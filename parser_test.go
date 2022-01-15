@@ -19,6 +19,7 @@ func Test_Parse(t *testing.T) {
 		{"(a)", Sexpr{List{Sexpr{"a"}, nil}}},
 		{"(())", Sexpr{List{Sexpr{List{}}, nil}}},
 		{"(1 2 3)", Sexpr{List{Sexpr{"1"}, &List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}}},
+		// {"((1 2) 3)", Sexpr{List{Sexpr{List{Sexpr{"1"}, &List{Sexpr{"2"}, nil}}}, &List{Sexpr{"3"}, nil}}}},
 		{"(1 (2 3))", Sexpr{List{Sexpr{"1"}, &List{Sexpr{List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}, nil}}}},
 	}
 
@@ -30,6 +31,26 @@ func Test_Parse(t *testing.T) {
 		}
 		if !cmp.Equal(result, tt.expected) {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
+		}
+	}
+}
+
+func Test_ParseAndPrint(t *testing.T) {
+	var testCases = []string{
+		"(1 2 3)",
+		"(1 (2 3))",
+		// "((1 2) 3)",
+		// "((1) (((2)) 3))",
+	}
+
+	for _, input := range testCases {
+		parser := newParser(input)
+		result, err := parser.Parse()
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if result.String() != input {
+			t.Errorf("%q is printable as %v", input, result)
 		}
 	}
 }

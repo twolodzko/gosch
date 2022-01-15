@@ -12,6 +12,7 @@ func Test_Parse(t *testing.T) {
 		{"42", Sexpr{"42"}},
 		{"nil", Sexpr{"nil"}},
 		{"()", Sexpr{List{}}},
+		{"(a)", Sexpr{List{Sexpr{"a"}, nil}}},
 	}
 
 	for _, tt := range testCases {

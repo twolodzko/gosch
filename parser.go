@@ -1,5 +1,7 @@
 package main
 
+import "fmt"
+
 type Sexpr struct {
 	value interface{}
 }
@@ -22,8 +24,12 @@ func (p *Parser) HasNext() bool {
 	return p.pos < len(p.str)
 }
 
+func (p *Parser) Head() rune {
+	return p.str[p.pos]
+}
+
 func (p *Parser) Read() rune {
-	val := p.str[p.pos]
+	val := p.Head()
 	p.pos++
 	return val
 }
@@ -31,28 +37,55 @@ func (p *Parser) Read() rune {
 func (p *Parser) ReadAtom() Sexpr {
 	var runes []rune
 	for p.HasNext() {
+		if p.Head() == ' ' || p.Head() == '(' || p.Head() == ')' {
+			break
+		}
 		runes = append(runes, p.Read())
 	}
 	return Sexpr{string(runes)}
 }
 
-func (p *Parser) ReadList() (Sexpr, error) {
+func (p *Parser) ReadList() (List, error) {
+	if (len(p.str) - p.pos) < 2 {
+		return List{}, fmt.Errorf("too short for a list")
+	}
+	if p.Head() != '(' {
+		return List{}, fmt.Errorf("list needs to start with (")
+	}
+	p.pos++
 	var list List
-	// for p.HasNext() {
+	for p.HasNext() {
+		switch p.Head() {
+		case ')':
+			return list, nil
+		default:
+			elem, err := p.ReadNext()
+			if err != nil {
+				return List{}, err
+			}
+			list = List{elem, nil}
+		}
+	}
+	return List{}, nil
+}
 
-	// }
-	return Sexpr{list}, nil
+func (p *Parser) ReadNext() (Sexpr, error) {
+	switch p.Head() {
+	case '(':
+		list, err := p.ReadList()
+		return Sexpr{list}, err
+	default:
+		return p.ReadAtom(), nil
+	}
 }
 
 func (p *Parser) Parse() (Sexpr, error) {
 	for p.HasNext() {
-		switch p.str[p.pos] {
+		switch p.Head() {
 		case ' ':
 			// skip
-		case '(':
-			return p.ReadList()
 		default:
-			return p.ReadAtom(), nil
+			return p.ReadNext()
 		}
 		p.pos++
 	}

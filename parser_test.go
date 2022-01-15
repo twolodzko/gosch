@@ -26,3 +26,18 @@ func Test_Parse(t *testing.T) {
 		}
 	}
 }
+
+func Test_InvalidList(t *testing.T) {
+	var testCases = []string{
+		"(",
+		"(a",
+		"(lorem ipsum",
+	}
+	for _, input := range testCases {
+		parser := newParser(input)
+		_, err := parser.Parse()
+		if err == nil {
+			t.Errorf("for %v expected an error", input)
+		}
+	}
+}

@@ -52,21 +52,34 @@ func (p *Parser) ReadList() (List, error) {
 	if p.Head() != '(' {
 		return List{}, fmt.Errorf("list needs to start with (")
 	}
+
 	p.pos++
-	var list List
+	if p.Head() == ')' {
+		return List{}, nil
+	}
+
+	head, err := p.ReadNext()
+	if err != nil {
+		return List{}, err
+	}
+
+	var next *List = nil
 	for p.HasNext() {
 		switch p.Head() {
+		case ' ':
+			// skip
 		case ')':
-			return list, nil
+			return List{head, next}, nil
 		default:
 			elem, err := p.ReadNext()
 			if err != nil {
 				return List{}, err
 			}
-			list = List{elem, nil}
+			next = &List{elem, nil}
 		}
+		p.pos++
 	}
-	return List{}, nil
+	return List{}, fmt.Errorf("list was not closed with )")
 }
 
 func (p *Parser) ReadNext() (Sexpr, error) {

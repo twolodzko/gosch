@@ -15,7 +15,11 @@ func Test_Parse(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		result := Parse(tt.input)
+		parser := newParser(tt.input)
+		result, err := parser.Parse()
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
 		if result != tt.expected {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
 		}

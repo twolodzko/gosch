@@ -31,8 +31,8 @@ func newList(elems []Sexpr) List {
 	case 1:
 		return List{elems[0], nil}
 	default:
-		head := elems[0]
-		tail := newList(elems[1:])
-		return List{head, &tail}
+		this := elems[0]
+		next := newList(elems[1:])
+		return List{this, &next}
 	}
 }

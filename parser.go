@@ -44,25 +44,21 @@ func (p *Parser) ReadList() (List, error) {
 	if (len(p.str) - p.pos) < 2 {
 		return List{}, fmt.Errorf("too short for a list")
 	}
-	if p.Head() != '(' {
-		return List{}, fmt.Errorf("list needs to start with (")
-	}
-
 	p.pos++
 	var elems []Sexpr
 	for p.HasNext() {
-		if p.Head() == ' ' {
+		switch p.Head() {
+		case ' ':
 			p.pos++
-			continue
-		}
-		if p.Head() == ')' {
+		case ')':
 			return newList(elems), nil
+		default:
+			elem, err := p.ReadNext()
+			if err != nil {
+				return List{}, err
+			}
+			elems = append(elems, elem)
 		}
-		elem, err := p.ReadNext()
-		if err != nil {
-			return List{}, err
-		}
-		elems = append(elems, elem)
 	}
 	return List{}, fmt.Errorf("list was not closed with )")
 }

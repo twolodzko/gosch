@@ -12,7 +12,8 @@ func Test_Parse(t *testing.T) {
 		{"42", Sexpr{"42"}},
 		{"nil", Sexpr{"nil"}},
 		{"()", Sexpr{List{}}},
-		// {"(a)", Sexpr{List{Sexpr{"a"}, nil}}},
+		{"(a)", Sexpr{List{Sexpr{"a"}, nil}}},
+		// {"(())", Sexpr{List{Sexpr{List{}}, nil}}},
 		// {"(1 2 3)", Sexpr{List{Sexpr{"1"}, &List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}}},
 	}
 

@@ -18,8 +18,7 @@ func (a List) Equal(b List) bool {
 		}
 		if a.next == nil {
 			return b.next == nil
-		}
-		if b.next == nil {
+		} else if b.next == nil {
 			return false
 		}
 		a = *a.next

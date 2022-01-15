@@ -19,19 +19,14 @@ func (p *Parser) Head() rune {
 	return p.str[p.pos]
 }
 
-func (p *Parser) Read() rune {
-	val := p.Head()
-	p.pos++
-	return val
-}
-
 func (p *Parser) ReadAtom() Sexpr {
 	var runes []rune
 	for p.HasNext() {
 		if p.Head() == ' ' || p.Head() == '(' || p.Head() == ')' {
 			break
 		}
-		runes = append(runes, p.Read())
+		runes = append(runes, p.Head())
+		p.pos++
 	}
 	if len(runes) > 0 {
 		return Sexpr{string(runes)}
@@ -68,6 +63,9 @@ func (p *Parser) ReadNext() (Sexpr, error) {
 	case '(':
 		list, err := p.ReadList()
 		return Sexpr{list}, err
+	// TODO: is this needed?
+	case ')':
+		return Sexpr{}, fmt.Errorf("unexpected )")
 	default:
 		return p.ReadAtom(), nil
 	}
@@ -77,11 +75,10 @@ func (p *Parser) Parse() (Sexpr, error) {
 	for p.HasNext() {
 		switch p.Head() {
 		case ' ':
-			// skip
+			p.pos++
 		default:
 			return p.ReadNext()
 		}
-		p.pos++
 	}
 	return Sexpr{}, nil
 }

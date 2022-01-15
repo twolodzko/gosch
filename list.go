@@ -3,37 +3,22 @@ package main
 import "fmt"
 
 type List struct {
-	this Sexpr
-	next *List
+	This Sexpr
+	Next *List
 }
 
 func (l *List) HasNext() bool {
-	return l.next != nil
-}
-
-func (a List) Equal(b List) bool {
-	for {
-		if a.this != b.this {
-			return false
-		}
-		if a.next == nil {
-			return b.next == nil
-		} else if b.next == nil {
-			return false
-		}
-		a = *a.next
-		b = *b.next
-	}
+	return l.Next != nil
 }
 
 func (a List) String() string {
 	var elems string
 	for {
-		elems += fmt.Sprintf("%v", a.this)
-		if a.next == nil {
+		elems += fmt.Sprintf("%v", a.This)
+		if a.Next == nil {
 			break
 		}
-		a = *a.next
+		a = *a.Next
 		elems += " "
 	}
 	return fmt.Sprintf("(%s)", elems)

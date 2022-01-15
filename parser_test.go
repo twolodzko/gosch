@@ -1,6 +1,10 @@
 package main
 
-import "testing"
+import (
+	"testing"
+
+	"github.com/google/go-cmp/cmp"
+)
 
 func Test_Parse(t *testing.T) {
 	var testCases = []struct {
@@ -14,7 +18,7 @@ func Test_Parse(t *testing.T) {
 		{"()", Sexpr{List{}}},
 		{"(a)", Sexpr{List{Sexpr{"a"}, nil}}},
 		{"(())", Sexpr{List{Sexpr{List{}}, nil}}},
-		// {"(1 2 3)", Sexpr{List{Sexpr{"1"}, &List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}}},
+		{"(1 2 3)", Sexpr{List{Sexpr{"1"}, &List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}}},
 	}
 
 	for _, tt := range testCases {
@@ -23,7 +27,7 @@ func Test_Parse(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-		if result != tt.expected {
+		if !cmp.Equal(result, tt.expected) {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
 		}
 	}

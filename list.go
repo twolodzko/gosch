@@ -29,12 +29,13 @@ func (a List) Equal(b List) bool {
 
 func (a List) String() string {
 	var elems string
-	for a.HasNext() {
+	for {
 		elems += fmt.Sprintf("%v", a.this)
-		a = *a.next
-		if a.next != nil {
-			elems += " "
+		if a.next == nil {
+			break
 		}
+		a = *a.next
+		elems += " "
 	}
 	return fmt.Sprintf("(%s)", elems)
 }

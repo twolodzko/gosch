@@ -33,7 +33,11 @@ func (p *Parser) ReadAtom() Sexpr {
 		}
 		runes = append(runes, p.Read())
 	}
-	return Sexpr{string(runes)}
+	if len(runes) > 0 {
+		return Sexpr{string(runes)}
+	} else {
+		return Sexpr{}
+	}
 }
 
 func (p *Parser) ReadList() (List, error) {

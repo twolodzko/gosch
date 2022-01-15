@@ -43,3 +43,21 @@ func Test_ListEqual(t *testing.T) {
 		}
 	}
 }
+
+func Test_ListString(t *testing.T) {
+	var testCases = []struct {
+		input    List
+		expected string
+	}{
+		{List{}, "()"},
+		{List{Sexpr{"1"}, nil}, "(1)"},
+		{List{Sexpr{"1"}, &List{Sexpr{"2"}, nil}}, "(1 2)"},
+	}
+
+	for _, tt := range testCases {
+		result := tt.input.String()
+		if result != tt.expected {
+			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
+		}
+	}
+}

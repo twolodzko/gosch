@@ -2,15 +2,6 @@ package main
 
 import "fmt"
 
-type Sexpr struct {
-	value interface{}
-}
-
-type List struct {
-	this Sexpr
-	next *List
-}
-
 type Parser struct {
 	str []rune
 	pos int
@@ -54,30 +45,20 @@ func (p *Parser) ReadList() (List, error) {
 	}
 
 	p.pos++
-	if p.Head() == ')' {
-		return List{}, nil
-	}
-
-	head, err := p.ReadNext()
-	if err != nil {
-		return List{}, err
-	}
-
-	var next *List = nil
+	var elems []Sexpr
 	for p.HasNext() {
-		switch p.Head() {
-		case ' ':
-			// skip
-		case ')':
-			return List{head, next}, nil
-		default:
-			elem, err := p.ReadNext()
-			if err != nil {
-				return List{}, err
-			}
-			next = &List{elem, nil}
+		if p.Head() == ' ' {
+			p.pos++
+			continue
 		}
-		p.pos++
+		if p.Head() == ')' {
+			return newList(elems), nil
+		}
+		elem, err := p.ReadNext()
+		if err != nil {
+			return List{}, err
+		}
+		elems = append(elems, elem)
 	}
 	return List{}, fmt.Errorf("list was not closed with )")
 }

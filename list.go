@@ -40,10 +40,14 @@ func (a List) String() string {
 }
 
 func newList(elems []Sexpr) List {
-	if len(elems) > 0 {
+	switch len(elems) {
+	case 0:
+		return List{}
+	case 1:
+		return List{elems[0], nil}
+	default:
 		head := elems[0]
 		tail := newList(elems[1:])
 		return List{head, &tail}
 	}
-	return List{}
 }

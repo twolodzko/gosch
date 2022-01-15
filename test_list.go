@@ -34,6 +34,10 @@ func Test_ListEqual(t *testing.T) {
 		{List{Sexpr{"1"}, nil}, List{Sexpr{"1"}, &List{Sexpr{"2"}, nil}}, false},
 		{List{Sexpr{"1"}, &List{Sexpr{"2"}, nil}}, List{Sexpr{"1"}, &List{Sexpr{"2"}, nil}}, true},
 		{List{Sexpr{"1"}, &List{Sexpr{"2"}, nil}}, List{Sexpr{"1"}, &List{Sexpr{"3"}, nil}}, false},
+		{List{Sexpr{"1"}, &List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}, List{Sexpr{"1"}, &List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}, true},
+		{List{Sexpr{"1"}, &List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}, List{Sexpr{"1"}, &List{Sexpr{"4"}, &List{Sexpr{"3"}, nil}}}, false},
+		{List{Sexpr{"1"}, &List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}, List{Sexpr{"4"}, &List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}, false},
+		{List{Sexpr{"1"}, &List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}, List{Sexpr{"1"}, &List{Sexpr{"2"}, nil}}, false},
 	}
 
 	for _, tt := range testCases {

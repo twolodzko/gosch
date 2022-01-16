@@ -6,7 +6,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func Test_newList(t *testing.T) {
+func Test_newPair(t *testing.T) {
 	var testCases = []struct {
 		input    []Sexpr
 		expected Pair
@@ -18,7 +18,7 @@ func Test_newList(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		result := newList(tt.input)
+		result := newPair(tt.input)
 		if !cmp.Equal(result, tt.expected) {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
 		}

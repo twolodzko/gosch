@@ -32,7 +32,7 @@ func (p Pair) String() string {
 	return fmt.Sprintf("(%s)", elems)
 }
 
-func newList(elems []Sexpr) Pair {
+func newPair(elems []Sexpr) Pair {
 	switch len(elems) {
 	case 0:
 		return Pair{}
@@ -40,7 +40,7 @@ func newList(elems []Sexpr) Pair {
 		return Pair{elems[0], nil}
 	default:
 		this := elems[0]
-		next := newList(elems[1:])
+		next := newPair(elems[1:])
 		return Pair{this, &next}
 	}
 }

@@ -47,7 +47,7 @@ func (p *Parser) ReadPair() (Pair, error) {
 	for p.HasNext() {
 		switch p.Head() {
 		case ')':
-			return newList(elems), nil
+			return newPair(elems), nil
 		default:
 			elem, err := p.ReadSexpr()
 			if err != nil {

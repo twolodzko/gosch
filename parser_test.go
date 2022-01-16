@@ -15,12 +15,12 @@ func Test_Parse(t *testing.T) {
 		{"a", Sexpr{"a"}},
 		{"42", Sexpr{"42"}},
 		{"nil", Sexpr{"nil"}},
-		{"()", Sexpr{List{}}},
-		{"(a)", Sexpr{List{Sexpr{"a"}, nil}}},
-		{"(())", Sexpr{List{Sexpr{List{}}, nil}}},
-		{"(1 2 3)", Sexpr{List{Sexpr{"1"}, &List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}}},
-		{"((1 2) 3)", Sexpr{List{Sexpr{List{Sexpr{"1"}, &List{Sexpr{"2"}, nil}}}, &List{Sexpr{"3"}, nil}}}},
-		{"(1 (2 3))", Sexpr{List{Sexpr{"1"}, &List{Sexpr{List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}, nil}}}},
+		{"()", Sexpr{Pair{}}},
+		{"(a)", Sexpr{Pair{Sexpr{"a"}, nil}}},
+		{"(())", Sexpr{Pair{Sexpr{Pair{}}, nil}}},
+		{"(1 2 3)", Sexpr{Pair{Sexpr{"1"}, &Pair{Sexpr{"2"}, &Pair{Sexpr{"3"}, nil}}}}},
+		{"((1 2) 3)", Sexpr{Pair{Sexpr{Pair{Sexpr{"1"}, &Pair{Sexpr{"2"}, nil}}}, &Pair{Sexpr{"3"}, nil}}}},
+		{"(1 (2 3))", Sexpr{Pair{Sexpr{"1"}, &Pair{Sexpr{Pair{Sexpr{"2"}, &Pair{Sexpr{"3"}, nil}}}, nil}}}},
 	}
 
 	for _, tt := range testCases {

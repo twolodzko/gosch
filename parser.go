@@ -38,9 +38,9 @@ func (p *Parser) ReadAtom() (Sexpr, error) {
 	}
 }
 
-func (p *Parser) ReadList() (List, error) {
+func (p *Parser) ReadPair() (Pair, error) {
 	if (len(p.str) - p.pos) < 2 {
-		return List{}, fmt.Errorf("too short for a list")
+		return Pair{}, fmt.Errorf("too short for a list")
 	}
 	p.pos++
 	var elems []Sexpr
@@ -51,12 +51,12 @@ func (p *Parser) ReadList() (List, error) {
 		default:
 			elem, err := p.ReadSexpr()
 			if err != nil {
-				return List{}, err
+				return Pair{}, err
 			}
 			elems = append(elems, elem)
 		}
 	}
-	return List{}, fmt.Errorf("list was not closed with )")
+	return Pair{}, fmt.Errorf("list was not closed with )")
 }
 
 func (p *Parser) ReadSexpr() (Sexpr, error) {
@@ -65,7 +65,7 @@ func (p *Parser) ReadSexpr() (Sexpr, error) {
 		case ' ':
 			p.pos++
 		case '(':
-			list, err := p.ReadList()
+			list, err := p.ReadPair()
 			p.pos++
 			return Sexpr{list}, err
 		case ')':

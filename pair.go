@@ -2,16 +2,20 @@ package main
 
 import "fmt"
 
-type List struct {
+type Pair struct {
 	This Sexpr
-	Next *List
+	Next *Pair
 }
 
-func (l *List) HasNext() bool {
+func (l *Pair) HasNext() bool {
 	return l.Next != nil
 }
 
-func (a List) String() string {
+func (a Pair) String() string {
+	if a == (Pair{}) {
+		return "()"
+	}
+
 	var elems string
 	for {
 		elems += fmt.Sprintf("%v", a.This)
@@ -24,15 +28,15 @@ func (a List) String() string {
 	return fmt.Sprintf("(%s)", elems)
 }
 
-func newList(elems []Sexpr) List {
+func newList(elems []Sexpr) Pair {
 	switch len(elems) {
 	case 0:
-		return List{}
+		return Pair{}
 	case 1:
-		return List{elems[0], nil}
+		return Pair{elems[0], nil}
 	default:
 		this := elems[0]
 		next := newList(elems[1:])
-		return List{this, &next}
+		return Pair{this, &next}
 	}
 }

@@ -77,7 +77,7 @@ func (p *Parser) ReadSexpr() (Sexpr, error) {
 	return Sexpr{}, io.EOF
 }
 
-func (p *Parser) Parse() (Sexpr, error) {
+func (p *Parser) Read() (Sexpr, error) {
 	for p.HasNext() {
 		return p.ReadSexpr()
 	}

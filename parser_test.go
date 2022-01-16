@@ -25,7 +25,7 @@ func Test_Parse(t *testing.T) {
 
 	for _, tt := range testCases {
 		parser := newParser(tt.input)
-		result, err := parser.Parse()
+		result, err := parser.Read()
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -45,7 +45,7 @@ func Test_ParseAndPrint(t *testing.T) {
 
 	for _, input := range testCases {
 		parser := newParser(input)
-		result, err := parser.Parse()
+		result, err := parser.Read()
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -87,7 +87,7 @@ func Test_InvalidList(t *testing.T) {
 	}
 	for _, input := range testCases {
 		parser := newParser(input)
-		_, err := parser.Parse()
+		_, err := parser.Read()
 		if err == nil {
 			t.Errorf("for %q expected an error", input)
 		}

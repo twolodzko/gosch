@@ -34,7 +34,8 @@ func Test_QuotedSexprEval(t *testing.T) {
 	}
 
 	for _, input := range testCases {
-		result, err := input.Eval()
+		env := NewEnv()
+		result, err := input.Eval(env)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -49,7 +50,8 @@ func Test_QuotedSexprEval(t *testing.T) {
 
 func Test_EvalDoesntMutate(t *testing.T) {
 	input := Sexpr{Pair{Sexpr{"a", true}, nil}, true}
-	_, err := input.Eval()
+	env := NewEnv()
+	_, err := input.Eval(env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -64,8 +66,42 @@ func Test_EvalExpectError(t *testing.T) {
 		{Pair{}, false},
 	}
 	for _, input := range testCases {
-		if _, err := input.Eval(); err == nil {
+		env := NewEnv()
+		if _, err := input.Eval(env); err == nil {
 			t.Errorf("for %q expected an error", input)
+		}
+	}
+}
+
+func Test_Eval(t *testing.T) {
+	var testCases = []struct {
+		input    Sexpr
+		expected Sexpr
+	}{
+		{Sexpr{}, Sexpr{}},
+		{Sexpr{"a", true}, Sexpr{"a", false}},
+		{
+			Sexpr{Pair{Sexpr{"+", false}, &Pair{Sexpr{2, false}, &Pair{Sexpr{2, false}, nil}}}, true},
+			Sexpr{Pair{Sexpr{"+", false}, &Pair{Sexpr{2, false}, &Pair{Sexpr{2, false}, nil}}}, false},
+		},
+		{Sexpr{42, false}, Sexpr{42, false}},
+		{Sexpr{"a", false}, Sexpr{"xxx", false}},
+		{Sexpr{"l", false}, Sexpr{Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, nil}}, false}},
+	}
+
+	env := NewEnv()
+	env.Set("a", Sexpr{"xxx", false})
+	env.Set("x", Sexpr{"13", false})
+	env.Set("y", Sexpr{26, false})
+	env.Set("l", Sexpr{Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, nil}}, false})
+
+	for _, tt := range testCases {
+		result, err := tt.input.Eval(env)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if !cmp.Equal(result, tt.expected) {
+			t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
 		}
 	}
 }

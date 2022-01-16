@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type Sexpr struct {
 	Value  interface{}
@@ -14,10 +17,18 @@ func (s Sexpr) String() string {
 	return fmt.Sprintf("%v", s.Value)
 }
 
-func (s Sexpr) Eval() (Sexpr, error) {
+func (s Sexpr) Eval(env *Env) (Sexpr, error) {
 	if s.Quoted {
 		s.Quoted = false
 		return s, nil
 	}
-	return Sexpr{}, fmt.Errorf("unbound variable %v", s)
+
+	switch val := s.Value.(type) {
+	case Pair:
+		return Sexpr{}, errors.New("not implemented")
+	case string:
+		return env.Get(val)
+	default:
+		return s, nil
+	}
 }

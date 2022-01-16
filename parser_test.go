@@ -11,15 +11,18 @@ func Test_Parse(t *testing.T) {
 		input    string
 		expected Sexpr
 	}{
-		{"a", Sexpr{"a"}},
-		{"42", Sexpr{"42"}},
-		{"nil", Sexpr{"nil"}},
-		{"()", Sexpr{Pair{}}},
-		{"(a)", Sexpr{Pair{Sexpr{"a"}, nil}}},
-		{"(())", Sexpr{Pair{Sexpr{Pair{}}, nil}}},
-		{"(1 2 3)", Sexpr{Pair{Sexpr{"1"}, &Pair{Sexpr{"2"}, &Pair{Sexpr{"3"}, nil}}}}},
-		{"((1 2) 3)", Sexpr{Pair{Sexpr{Pair{Sexpr{"1"}, &Pair{Sexpr{"2"}, nil}}}, &Pair{Sexpr{"3"}, nil}}}},
-		{"(1 (2 3))", Sexpr{Pair{Sexpr{"1"}, &Pair{Sexpr{Pair{Sexpr{"2"}, &Pair{Sexpr{"3"}, nil}}}, nil}}}},
+		{"a", Sexpr{"a", false}},
+		{"42", Sexpr{"42", false}},
+		{"nil", Sexpr{"nil", false}},
+		{"()", Sexpr{Pair{}, false}},
+		{"(a)", Sexpr{Pair{Sexpr{"a", false}, nil}, false}},
+		{"(())", Sexpr{Pair{Sexpr{Pair{}, false}, nil}, false}},
+		{"(1 2 3)", Sexpr{Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, &Pair{Sexpr{"3", false}, nil}}}, false}},
+		{"((1 2) 3)", Sexpr{Pair{Sexpr{Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, nil}}, false}, &Pair{Sexpr{"3", false}, nil}}, false}},
+		{"(1 (2 3))", Sexpr{Pair{Sexpr{"1", false}, &Pair{Sexpr{Pair{Sexpr{"2", false}, &Pair{Sexpr{"3", false}, nil}}, false}, nil}}, false}},
+		{"'a", Sexpr{"a", true}},
+		{"'(a)", Sexpr{Pair{Sexpr{"a", false}, nil}, true}},
+		{"('a)", Sexpr{Pair{Sexpr{"a", true}, nil}, false}},
 	}
 
 	for _, tt := range testCases {
@@ -54,20 +57,20 @@ func Test_ParseAndPrint(t *testing.T) {
 	}
 }
 
-func Test_ReadAtom(t *testing.T) {
+func Test_ReadAtomValue(t *testing.T) {
 	var testCases = []struct {
 		input    string
-		expected Sexpr
+		expected string
 	}{
-		{"a", Sexpr{"a"}},
-		{"a   ", Sexpr{"a"}},
-		{"a)   ", Sexpr{"a"}},
-		{"a(b)", Sexpr{"a"}},
+		{"a", "a"},
+		{"a   ", "a"},
+		{"a)   ", "a"},
+		{"a(b)", "a"},
 	}
 
 	for _, tt := range testCases {
 		parser := newParser(tt.input)
-		result, err := parser.ReadAtom()
+		result, err := parser.ReadAtomValue()
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}

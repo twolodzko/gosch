@@ -9,22 +9,24 @@ import (
 func Test_Parse(t *testing.T) {
 	var testCases = []struct {
 		input    string
-		expected Sexpr
+		expected []Sexpr
 	}{
-		{"a", Sexpr{"a", false}},
-		{"42", Sexpr{"42", false}},
-		{"nil", Sexpr{"nil", false}},
-		{"()", Sexpr{Pair{}, false}},
-		{"(a)", Sexpr{Pair{Sexpr{"a", false}, nil}, false}},
-		{"(())", Sexpr{Pair{Sexpr{Pair{}, false}, nil}, false}},
-		{"(1 2 3)", Sexpr{Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, &Pair{Sexpr{"3", false}, nil}}}, false}},
-		{"((1 2) 3)", Sexpr{Pair{Sexpr{Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, nil}}, false}, &Pair{Sexpr{"3", false}, nil}}, false}},
-		{"(1 (2 3))", Sexpr{Pair{Sexpr{"1", false}, &Pair{Sexpr{Pair{Sexpr{"2", false}, &Pair{Sexpr{"3", false}, nil}}, false}, nil}}, false}},
-		{"'a", Sexpr{"a", true}},
-		{"'(a)", Sexpr{Pair{Sexpr{"a", false}, nil}, true}},
-		{"('a)", Sexpr{Pair{Sexpr{"a", true}, nil}, false}},
-		{"  \n\ta", Sexpr{"a", false}},
-		{"\n  \t\n(\n   a\t\n)  ", Sexpr{Pair{Sexpr{"a", false}, nil}, false}},
+		{"", nil},
+		{"a", []Sexpr{{"a", false}}},
+		{"42", []Sexpr{{"42", false}}},
+		{"nil", []Sexpr{{"nil", false}}},
+		{"()", []Sexpr{{Pair{}, false}}},
+		{"(a)", []Sexpr{{Pair{Sexpr{"a", false}, nil}, false}}},
+		{"(())", []Sexpr{{Pair{Sexpr{Pair{}, false}, nil}, false}}},
+		{"(1 2 3)", []Sexpr{{Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, &Pair{Sexpr{"3", false}, nil}}}, false}}},
+		{"((1 2) 3)", []Sexpr{{Pair{Sexpr{Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, nil}}, false}, &Pair{Sexpr{"3", false}, nil}}, false}}},
+		{"(1 (2 3))", []Sexpr{{Pair{Sexpr{"1", false}, &Pair{Sexpr{Pair{Sexpr{"2", false}, &Pair{Sexpr{"3", false}, nil}}, false}, nil}}, false}}},
+		{"'a", []Sexpr{{"a", true}}},
+		{"'(a)", []Sexpr{{Pair{Sexpr{"a", false}, nil}, true}}},
+		{"('a)", []Sexpr{{Pair{Sexpr{"a", true}, nil}, false}}},
+		{"  \n\ta", []Sexpr{{"a", false}}},
+		{"\n  \t\n(\n   a\t\n)  ", []Sexpr{{Pair{Sexpr{"a", false}, nil}, false}}},
+		{"1 2 3", []Sexpr{{"1", false}, {"2", false}, {"3", false}}},
 	}
 
 	for _, tt := range testCases {
@@ -53,8 +55,8 @@ func Test_ParseAndPrint(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-		if result.String() != input {
-			t.Errorf("%q is printable as %v", input, result)
+		if result[0].String() != input {
+			t.Errorf("%q is printable as %v", input, result[0])
 		}
 	}
 }
@@ -83,17 +85,19 @@ func Test_ReadAtomValue(t *testing.T) {
 }
 
 func Test_ParseExpectError(t *testing.T) {
-	var testCases = []string{
-		"",
-		"(",
-		"(a",
-		"(lorem ipsum",
-		// "lorem ipsum)",
+	var testCases = []struct {
+		input    string
+		expected string
+	}{
+		{"(", "list was not closed with )"},
+		{"(a", "list was not closed with )"},
+		{"(lorem ipsum", "list was not closed with )"},
+		{"lorem ipsum)", "unexpected )"},
 	}
-	for _, input := range testCases {
-		parser := newParser(input)
-		if _, err := parser.Read(); err == nil {
-			t.Errorf("for %q expected an error", input)
+	for _, tt := range testCases {
+		parser := newParser(tt.input)
+		if _, err := parser.Read(); err.Error() != tt.expected {
+			t.Errorf("for %q expected an error %q, got: %q", tt.input, tt.expected, err)
 		}
 	}
 }

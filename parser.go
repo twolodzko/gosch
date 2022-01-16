@@ -40,11 +40,8 @@ func (p *Parser) ReadAtomValue() (string, error) {
 }
 
 func (p *Parser) ReadPair() (Pair, error) {
-	if (len(p.str) - p.pos) < 2 {
-		return Pair{}, fmt.Errorf("too short for a list")
-	}
 	p.pos++
-	var elems []Sexpr
+	var sexprs []Sexpr
 	for p.HasNext() {
 		if unicode.IsSpace(p.Head()) {
 			p.pos++
@@ -54,13 +51,13 @@ func (p *Parser) ReadPair() (Pair, error) {
 		switch p.Head() {
 		case ')':
 			p.pos++
-			return newPair(elems), nil
+			return newPair(sexprs), nil
 		default:
 			elem, err := p.ReadSexpr()
 			if err != nil {
 				return Pair{}, err
 			}
-			elems = append(elems, elem)
+			sexprs = append(sexprs, elem)
 		}
 	}
 	return Pair{}, fmt.Errorf("list was not closed with )")
@@ -69,11 +66,6 @@ func (p *Parser) ReadPair() (Pair, error) {
 func (p *Parser) ReadSexpr() (Sexpr, error) {
 	quote := false
 	for p.HasNext() {
-		if unicode.IsSpace(p.Head()) {
-			p.pos++
-			continue
-		}
-
 		switch p.Head() {
 		case '\'':
 			quote = true
@@ -91,9 +83,19 @@ func (p *Parser) ReadSexpr() (Sexpr, error) {
 	return Sexpr{}, io.EOF
 }
 
-func (p *Parser) Read() (Sexpr, error) {
+func (p *Parser) Read() ([]Sexpr, error) {
+	var sexprs []Sexpr
 	for p.HasNext() {
-		return p.ReadSexpr()
+		if unicode.IsSpace(p.Head()) {
+			p.pos++
+			continue
+		}
+
+		sexpr, err := p.ReadSexpr()
+		if err != nil {
+			return nil, err
+		}
+		sexprs = append(sexprs, sexpr)
 	}
-	return Sexpr{}, io.EOF
+	return sexprs, nil
 }

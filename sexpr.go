@@ -27,7 +27,11 @@ func (s Sexpr) Eval(env *Env) (Sexpr, error) {
 	case Pair:
 		return Sexpr{}, errors.New("not implemented")
 	case string:
-		return env.Get(val)
+		sexpr, err := env.Get(val)
+		if err != nil {
+			return Sexpr{}, err
+		}
+		return sexpr.Eval(env)
 	default:
 		return s, nil
 	}

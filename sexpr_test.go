@@ -87,13 +87,16 @@ func Test_Eval(t *testing.T) {
 		{Sexpr{42, false}, Sexpr{42, false}},
 		{Sexpr{"a", false}, Sexpr{"xxx", false}},
 		{Sexpr{"l", false}, Sexpr{Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, nil}}, false}},
+		{Sexpr{"b", false}, Sexpr{26, false}},
 	}
 
 	env := NewEnv()
-	env.Set("a", Sexpr{"xxx", false})
-	env.Set("x", Sexpr{"13", false})
-	env.Set("y", Sexpr{26, false})
-	env.Set("l", Sexpr{Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, nil}}, false})
+	env.Set("a", Sexpr{"xxx", true})
+	env.Set("x", Sexpr{"13", true})
+	env.Set("b", Sexpr{"c", false})
+	env.Set("c", Sexpr{"d", false})
+	env.Set("d", Sexpr{26, false})
+	env.Set("l", Sexpr{Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, nil}}, true})
 
 	for _, tt := range testCases {
 		result, err := tt.input.Eval(env)

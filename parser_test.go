@@ -90,9 +90,9 @@ func Test_ParseExpectError(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"(", "list was not closed with )"},
-		{"(a", "list was not closed with )"},
-		{"(lorem ipsum", "list was not closed with )"},
+		{"(", "pair was not closed with )"},
+		{"(a", "pair was not closed with )"},
+		{"(lorem ipsum", "pair was not closed with )"},
 		{"lorem ipsum)", "unexpected )"},
 	}
 	for _, tt := range testCases {

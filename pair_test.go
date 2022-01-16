@@ -25,7 +25,7 @@ func Test_newPair(t *testing.T) {
 	}
 }
 
-func Test_ListString(t *testing.T) {
+func Test_PairString(t *testing.T) {
 	var testCases = []struct {
 		input    Pair
 		expected string

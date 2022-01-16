@@ -60,7 +60,7 @@ func (p *Parser) ReadPair() (Pair, error) {
 			sexprs = append(sexprs, elem)
 		}
 	}
-	return Pair{}, fmt.Errorf("list was not closed with )")
+	return Pair{}, fmt.Errorf("pair was not closed with )")
 }
 
 func (p *Parser) ReadSexpr() (Sexpr, error) {
@@ -71,8 +71,8 @@ func (p *Parser) ReadSexpr() (Sexpr, error) {
 			quote = true
 			p.pos++
 		case '(':
-			list, err := p.ReadPair()
-			return Sexpr{list, quote}, err
+			pair, err := p.ReadPair()
+			return Sexpr{pair, quote}, err
 		case ')':
 			return Sexpr{}, fmt.Errorf("unexpected )")
 		default:

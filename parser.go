@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io"
+	"unicode"
 )
 
 type Parser struct {
@@ -25,7 +26,7 @@ func (p *Parser) Head() rune {
 func (p *Parser) ReadAtomValue() (string, error) {
 	var runes []rune
 	for p.HasNext() {
-		if p.Head() == ' ' || p.Head() == '(' || p.Head() == ')' {
+		if unicode.IsSpace(p.Head()) || p.Head() == '(' || p.Head() == ')' {
 			break
 		}
 		runes = append(runes, p.Head())
@@ -45,8 +46,14 @@ func (p *Parser) ReadPair() (Pair, error) {
 	p.pos++
 	var elems []Sexpr
 	for p.HasNext() {
+		if unicode.IsSpace(p.Head()) {
+			p.pos++
+			continue
+		}
+
 		switch p.Head() {
 		case ')':
+			p.pos++
 			return newPair(elems), nil
 		default:
 			elem, err := p.ReadSexpr()
@@ -62,15 +69,17 @@ func (p *Parser) ReadPair() (Pair, error) {
 func (p *Parser) ReadSexpr() (Sexpr, error) {
 	quote := false
 	for p.HasNext() {
-		switch p.Head() {
-		case ' ':
+		if unicode.IsSpace(p.Head()) {
 			p.pos++
+			continue
+		}
+
+		switch p.Head() {
 		case '\'':
 			quote = true
 			p.pos++
 		case '(':
 			list, err := p.ReadPair()
-			p.pos++
 			return Sexpr{list, quote}, err
 		case ')':
 			return Sexpr{}, fmt.Errorf("unexpected )")

@@ -23,6 +23,8 @@ func Test_Parse(t *testing.T) {
 		{"'a", Sexpr{"a", true}},
 		{"'(a)", Sexpr{Pair{Sexpr{"a", false}, nil}, true}},
 		{"('a)", Sexpr{Pair{Sexpr{"a", true}, nil}, false}},
+		{"  \n\ta", Sexpr{"a", false}},
+		{"\n  \t\n(\n   a\t\n)  ", Sexpr{Pair{Sexpr{"a", false}, nil}, false}},
 	}
 
 	for _, tt := range testCases {

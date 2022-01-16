@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"io"
+)
 
 type Parser struct {
 	str []rune
@@ -43,12 +46,10 @@ func (p *Parser) ReadList() (List, error) {
 	var elems []Sexpr
 	for p.HasNext() {
 		switch p.Head() {
-		case ' ':
-			p.pos++
 		case ')':
 			return newList(elems), nil
 		default:
-			elem, err := p.ReadNext()
+			elem, err := p.ReadSexpr()
 			if err != nil {
 				return List{}, err
 			}
@@ -58,27 +59,28 @@ func (p *Parser) ReadList() (List, error) {
 	return List{}, fmt.Errorf("list was not closed with )")
 }
 
-func (p *Parser) ReadNext() (Sexpr, error) {
-	switch p.Head() {
-	case '(':
-		list, err := p.ReadList()
-		return Sexpr{list}, err
-	// TODO: is this needed?
-	case ')':
-		return Sexpr{}, fmt.Errorf("unexpected )")
-	default:
-		return p.ReadAtom(), nil
-	}
-}
-
-func (p *Parser) Parse() (Sexpr, error) {
+func (p *Parser) ReadSexpr() (Sexpr, error) {
 	for p.HasNext() {
 		switch p.Head() {
 		case ' ':
 			p.pos++
+		case '(':
+			list, err := p.ReadList()
+			p.pos++
+			return Sexpr{list}, err
+		// TODO: is this needed?
+		case ')':
+			return Sexpr{}, fmt.Errorf("unexpected )")
 		default:
-			return p.ReadNext()
+			return p.ReadAtom(), nil
 		}
+	}
+	return Sexpr{}, io.EOF
+}
+
+func (p *Parser) Parse() (Sexpr, error) {
+	for p.HasNext() {
+		return p.ReadSexpr()
 	}
 	return Sexpr{}, nil
 }

@@ -19,7 +19,7 @@ func Test_Parse(t *testing.T) {
 		{"(a)", Sexpr{List{Sexpr{"a"}, nil}}},
 		{"(())", Sexpr{List{Sexpr{List{}}, nil}}},
 		{"(1 2 3)", Sexpr{List{Sexpr{"1"}, &List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}}},
-		// {"((1 2) 3)", Sexpr{List{Sexpr{List{Sexpr{"1"}, &List{Sexpr{"2"}, nil}}}, &List{Sexpr{"3"}, nil}}}},
+		{"((1 2) 3)", Sexpr{List{Sexpr{List{Sexpr{"1"}, &List{Sexpr{"2"}, nil}}}, &List{Sexpr{"3"}, nil}}}},
 		{"(1 (2 3))", Sexpr{List{Sexpr{"1"}, &List{Sexpr{List{Sexpr{"2"}, &List{Sexpr{"3"}, nil}}}, nil}}}},
 	}
 
@@ -39,8 +39,8 @@ func Test_ParseAndPrint(t *testing.T) {
 	var testCases = []string{
 		"(1 2 3)",
 		"(1 (2 3))",
-		// "((1 2) 3)",
-		// "((1) (((2)) 3))",
+		"((1 2) 3)",
+		"((1) (((2)) 3))",
 	}
 
 	for _, input := range testCases {

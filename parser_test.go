@@ -80,7 +80,7 @@ func Test_ReadAtomValue(t *testing.T) {
 	}
 }
 
-func Test_ExpectError(t *testing.T) {
+func Test_ParseExpectError(t *testing.T) {
 	var testCases = []string{
 		"",
 		"(",

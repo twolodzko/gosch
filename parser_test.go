@@ -24,6 +24,7 @@ func Test_Parse(t *testing.T) {
 		{"'a", []Sexpr{{"a", true}}},
 		{"'(a)", []Sexpr{{Pair{Sexpr{"a", false}, nil}, true}}},
 		{"('a)", []Sexpr{{Pair{Sexpr{"a", true}, nil}, false}}},
+		{"'()", []Sexpr{{Pair{}, true}}},
 		{"  \n\ta", []Sexpr{{"a", false}}},
 		{"\n  \t\n(\n   a\t\n)  ", []Sexpr{{Pair{Sexpr{"a", false}, nil}, false}}},
 		{"1 2 3", []Sexpr{{"1", false}, {"2", false}, {"3", false}}},

@@ -68,7 +68,10 @@ func Test_ReadAtom(t *testing.T) {
 
 	for _, tt := range testCases {
 		parser := newParser(tt.input)
-		result := parser.ReadAtom()
+		result, err := parser.ReadAtom()
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
 		if result != tt.expected {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
 		}
@@ -80,12 +83,13 @@ func Test_InvalidList(t *testing.T) {
 		"(",
 		"(a",
 		"(lorem ipsum",
+		// "lorem ipsum)",
 	}
 	for _, input := range testCases {
 		parser := newParser(input)
 		_, err := parser.Parse()
 		if err == nil {
-			t.Errorf("for %v expected an error", input)
+			t.Errorf("for %q expected an error", input)
 		}
 	}
 }

@@ -11,7 +11,6 @@ func Test_Parse(t *testing.T) {
 		input    string
 		expected Sexpr
 	}{
-		{"", Sexpr{}},
 		{"a", Sexpr{"a"}},
 		{"42", Sexpr{"42"}},
 		{"nil", Sexpr{"nil"}},
@@ -78,8 +77,9 @@ func Test_ReadAtom(t *testing.T) {
 	}
 }
 
-func Test_InvalidList(t *testing.T) {
+func Test_ExpectError(t *testing.T) {
 	var testCases = []string{
+		"",
 		"(",
 		"(a",
 		"(lorem ipsum",
@@ -87,8 +87,7 @@ func Test_InvalidList(t *testing.T) {
 	}
 	for _, input := range testCases {
 		parser := newParser(input)
-		_, err := parser.Read()
-		if err == nil {
+		if _, err := parser.Read(); err == nil {
 			t.Errorf("for %q expected an error", input)
 		}
 	}

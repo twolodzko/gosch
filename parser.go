@@ -81,5 +81,5 @@ func (p *Parser) Read() (Sexpr, error) {
 	for p.HasNext() {
 		return p.ReadSexpr()
 	}
-	return Sexpr{}, nil
+	return Sexpr{}, io.EOF
 }

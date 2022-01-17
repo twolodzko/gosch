@@ -59,6 +59,7 @@ func (env *Env) EvalArgs(pair *Pair) (*Pair, error) {
 		}
 		args = append(args, sexpr)
 	}
+	// TODO: avoid re-packing
 	return newPair(args), nil
 }
 

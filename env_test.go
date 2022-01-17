@@ -225,7 +225,8 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"'(1 (((2)) 3))", "(1 (((2)) 3))"},
 		{"(car '(1 2 3))", "1"},
 		{"(cdr '(1 2 3))", "(2 3)"},
-		// {"(car (cdr '(1 2 3)))", "(2)"},
+		{"(car (cdr '(1 2 3)))", "2"},
+		// {"(cdr '())", "()"},
 	}
 
 	for _, tt := range testCases {

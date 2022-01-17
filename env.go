@@ -49,15 +49,29 @@ func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 	if pair.IsNull() {
 		return Sexpr{&Pair{}, false}, nil
 	}
-	if name, ok := pair.This.Value.(string); ok {
-		if fn, ok := buildin(name); ok {
-			return fn(pair.Next)
+
+	var (
+		args Sexpr
+		err  error
+	)
+	if pair.Next != nil {
+		// TODO: need to eval all arguments
+		args, err = env.Eval(pair.Next.This)
+		if err != nil {
+			return Sexpr{}, err
 		}
 	}
+
+	if name, ok := pair.This.Value.(string); ok {
+		if fn, ok := buildin(name); ok {
+			return fn(args)
+		}
+	}
+
 	return Sexpr{}, fmt.Errorf("%v is not callable", pair.This)
 }
 
-func buildin(name string) (func(*Pair) (Sexpr, error), bool) {
+func buildin(name string) (func(Sexpr) (Sexpr, error), bool) {
 	switch name {
 	case "car":
 		return car, true

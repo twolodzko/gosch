@@ -54,7 +54,6 @@ func (env *Env) EvalCall(pair *Pair) (Sexpr, error) {
 			return fn(pair.Next)
 		}
 	}
-
 	return Sexpr{}, fmt.Errorf("%v is not callable", pair.This)
 }
 
@@ -64,6 +63,10 @@ func buildin(name string) (func(*Pair) (Sexpr, error), bool) {
 		return car, true
 	case "cdr":
 		return cdr, true
+	case "null?":
+		return isNull, true
+	case "pair?":
+		return isPair, true
 	default:
 		return nil, false
 	}

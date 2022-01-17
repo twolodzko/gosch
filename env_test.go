@@ -169,6 +169,34 @@ func Test_EvalCall(t *testing.T) {
 						&Pair{Sexpr{"c", false}, nil}}}, true}, nil}},
 			Sexpr{&Pair{Sexpr{"b", false}, &Pair{Sexpr{"c", false}, nil}}, false},
 		},
+		{
+			&Pair{Sexpr{"null?", false}, &Pair{Sexpr{&Pair{}, true}, nil}},
+			Sexpr{true, false},
+		},
+		{
+			&Pair{Sexpr{"null?", false}, &Pair{Sexpr{"a", true}, nil}},
+			Sexpr{false, false},
+		},
+		{
+			&Pair{Sexpr{"null?", false}, &Pair{Sexpr{&Pair{Sexpr{"a", false}, nil}, true}, nil}},
+			Sexpr{false, false},
+		},
+		{
+			&Pair{Sexpr{"pair?", false}, &Pair{Sexpr{&Pair{}, true}, nil}},
+			Sexpr{false, false},
+		},
+		{
+			&Pair{Sexpr{"pair?", false}, &Pair{Sexpr{"a", true}, nil}},
+			Sexpr{false, false},
+		},
+		{
+			&Pair{Sexpr{"pair?", false}, &Pair{Sexpr{&Pair{Sexpr{"a", false}, nil}, true}, nil}},
+			Sexpr{true, false},
+		},
+		{
+			&Pair{Sexpr{"pair?", false}, &Pair{Sexpr{&Pair{Sexpr{"a", false}, &Pair{Sexpr{"b", false}, nil}}, true}, nil}},
+			Sexpr{true, false},
+		},
 	}
 
 	env := NewEnv()

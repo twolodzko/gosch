@@ -26,3 +26,17 @@ func cdr(pair *Pair) (Sexpr, error) {
 		return Sexpr{}, fmt.Errorf("%v is not a Pair", pair.This)
 	}
 }
+
+func isNull(pair *Pair) (Sexpr, error) {
+	if val, ok := pair.This.Value.(*Pair); ok {
+		return Sexpr{val.IsNull(), false}, nil
+	}
+	return Sexpr{false, false}, nil
+}
+
+func isPair(pair *Pair) (Sexpr, error) {
+	if val, ok := pair.This.Value.(*Pair); ok {
+		return Sexpr{!val.IsNull(), false}, nil
+	}
+	return Sexpr{false, false}, nil
+}

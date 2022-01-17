@@ -3,6 +3,8 @@ package main
 import (
 	"fmt"
 	"io"
+	"regexp"
+	"strconv"
 	"unicode"
 )
 
@@ -23,7 +25,7 @@ func (p *Parser) Head() rune {
 	return p.str[p.pos]
 }
 
-func (p *Parser) ReadAtomValue() (string, error) {
+func (p *Parser) ReadAtomValue() (interface{}, error) {
 	var runes []rune
 	for p.HasNext() {
 		if unicode.IsSpace(p.Head()) || p.Head() == '(' || p.Head() == ')' {
@@ -33,10 +35,19 @@ func (p *Parser) ReadAtomValue() (string, error) {
 		p.pos++
 	}
 	if len(runes) > 0 {
-		return string(runes), nil
+		str := string(runes)
+		if isInt(str) {
+			return strconv.Atoi(str)
+		}
+		return str, nil
 	} else {
-		return "", fmt.Errorf("nothing was read")
+		return nil, fmt.Errorf("nothing was read")
 	}
+}
+
+func isInt(str string) bool {
+	matched, _ := regexp.MatchString(`^[+-]?\d+$`, str)
+	return matched
 }
 
 func (p *Parser) ReadPair() (Pair, error) {

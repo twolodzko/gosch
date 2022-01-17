@@ -54,13 +54,10 @@ func (p *Parser) ReadPair() (Pair, error) {
 	p.pos++
 	var sexprs []Sexpr
 	for p.HasNext() {
-		if unicode.IsSpace(p.Head()) {
+		switch {
+		case unicode.IsSpace(p.Head()):
 			p.pos++
-			continue
-		}
-
-		switch p.Head() {
-		case ')':
+		case p.Head() == ')':
 			p.pos++
 			return newPair(sexprs), nil
 		default:
@@ -99,14 +96,13 @@ func (p *Parser) Read() ([]Sexpr, error) {
 	for p.HasNext() {
 		if unicode.IsSpace(p.Head()) {
 			p.pos++
-			continue
+		} else {
+			sexpr, err := p.ReadSexpr()
+			if err != nil {
+				return nil, err
+			}
+			sexprs = append(sexprs, sexpr)
 		}
-
-		sexpr, err := p.ReadSexpr()
-		if err != nil {
-			return nil, err
-		}
-		sexprs = append(sexprs, sexpr)
 	}
 	return sexprs, nil
 }

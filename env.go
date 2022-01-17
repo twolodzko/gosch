@@ -47,3 +47,24 @@ func (env *Env) Eval(sexpr Sexpr) (Sexpr, error) {
 		}
 	}
 }
+
+func (env *Env) EvalCall(pair *Pair) (Sexpr, error) {
+	if name, ok := pair.This.Value.(string); ok {
+		if fn, ok := buildin(name); ok {
+			return fn(pair.Next)
+		}
+	}
+
+	return Sexpr{}, fmt.Errorf("%v is not callable", pair.This)
+}
+
+func buildin(name string) (func(*Pair) (Sexpr, error), bool) {
+	switch name {
+	case "car":
+		return car, true
+	case "cdr":
+		return cdr, true
+	default:
+		return nil, false
+	}
+}

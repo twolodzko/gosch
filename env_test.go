@@ -32,7 +32,7 @@ func Test_EnvGet(t *testing.T) {
 }
 
 func Test_EnvGetUnbound(t *testing.T) {
-	var testCases = []struct {
+	var values = []struct {
 		name  string
 		value Sexpr
 	}{
@@ -41,7 +41,7 @@ func Test_EnvGetUnbound(t *testing.T) {
 	}
 
 	env := NewEnv()
-	for _, tt := range testCases {
+	for _, tt := range values {
 		env.Set(tt.name, tt.value)
 	}
 
@@ -125,6 +125,55 @@ func Test_Eval(t *testing.T) {
 
 	for _, tt := range testCases {
 		result, err := env.Eval(tt.input)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if !cmp.Equal(result, tt.expected) {
+			t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
+		}
+	}
+}
+
+func Test_EvalCall(t *testing.T) {
+	var testCases = []struct {
+		input    *Pair
+		expected Sexpr
+	}{
+		{
+			&Pair{Sexpr{"car", false}, &Pair{Sexpr{&Pair{}, true}, nil}},
+			Sexpr{},
+		},
+		{
+			&Pair{Sexpr{"car", false}, &Pair{Sexpr{&Pair{Sexpr{"a", false}, nil}, true}, nil}},
+			Sexpr{"a", false},
+		},
+		{
+			&Pair{Sexpr{"car", false},
+				&Pair{Sexpr{&Pair{Sexpr{"a", false},
+					&Pair{Sexpr{"b", false},
+						&Pair{Sexpr{"c", false}, nil}}}, true}, nil}},
+			Sexpr{"a", false},
+		},
+		{
+			&Pair{Sexpr{"cdr", false}, &Pair{Sexpr{&Pair{}, true}, nil}},
+			Sexpr{},
+		},
+		{
+			&Pair{Sexpr{"cdr", false}, &Pair{Sexpr{&Pair{Sexpr{"a", false}, nil}, true}, nil}},
+			Sexpr{&Pair{}, false},
+		},
+		{
+			&Pair{Sexpr{"cdr", false},
+				&Pair{Sexpr{&Pair{Sexpr{"a", false},
+					&Pair{Sexpr{"b", false},
+						&Pair{Sexpr{"c", false}, nil}}}, true}, nil}},
+			Sexpr{&Pair{Sexpr{"b", false}, &Pair{Sexpr{"c", false}, nil}}, false},
+		},
+	}
+
+	env := NewEnv()
+	for _, tt := range testCases {
+		result, err := env.EvalCall(tt.input)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}

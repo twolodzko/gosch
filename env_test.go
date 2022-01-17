@@ -88,7 +88,7 @@ func Test_EvalDoesntMutate(t *testing.T) {
 func Test_EvalExpectError(t *testing.T) {
 	var testCases = []Sexpr{
 		{"a", false},
-		{Pair{}, false},
+		{&Pair{Sexpr{"a", false}, nil}, false},
 	}
 	for _, input := range testCases {
 		env := NewEnv()
@@ -134,11 +134,14 @@ func Test_Eval(t *testing.T) {
 	}
 }
 
-func Test_EvalCall(t *testing.T) {
+func Test_EvalPair(t *testing.T) {
 	var testCases = []struct {
 		input    *Pair
 		expected Sexpr
 	}{
+		{
+			&Pair{}, Sexpr{&Pair{}, false},
+		},
 		{
 			&Pair{Sexpr{"car", false}, &Pair{Sexpr{&Pair{}, true}, nil}},
 			Sexpr{},
@@ -201,12 +204,46 @@ func Test_EvalCall(t *testing.T) {
 
 	env := NewEnv()
 	for _, tt := range testCases {
-		result, err := env.EvalCall(tt.input)
+		result, err := env.EvalPair(tt.input)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
 		if !cmp.Equal(result, tt.expected) {
 			t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
+		}
+	}
+}
+
+func Test_ParseEvalPrint(t *testing.T) {
+	var testCases = []struct {
+		input    string
+		expected string
+	}{
+		{"()", "()"},
+		{"'()", "()"},
+		{"'(1 2 3)", "(1 2 3)"},
+		{"'(1 (((2)) 3))", "(1 (((2)) 3))"},
+		{"(car '(1 2 3))", "1"},
+		{"(cdr '(1 2 3))", "(2 3)"},
+		// {"(car (cdr '(1 2 3)))", "(2)"},
+	}
+
+	for _, tt := range testCases {
+		parser := newParser(tt.input)
+		sexprs, err := parser.Read()
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		env := NewEnv()
+		for _, sexpr := range sexprs {
+			result, err := env.Eval(sexpr)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			if !cmp.Equal(result.String(), tt.expected) {
+				t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
+			}
 		}
 	}
 }

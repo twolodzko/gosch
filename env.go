@@ -1,9 +1,6 @@
 package main
 
-import (
-	"errors"
-	"fmt"
-)
+import "fmt"
 
 type Env struct {
 	vars map[string]Sexpr
@@ -35,8 +32,8 @@ func (env *Env) Eval(sexpr Sexpr) (Sexpr, error) {
 		}
 
 		switch val := sexpr.Value.(type) {
-		case Pair:
-			return Sexpr{}, errors.New("not implemented")
+		case *Pair:
+			return env.EvalPair(val)
 		case string:
 			sexpr, err = env.Get(val)
 			if err != nil {
@@ -48,7 +45,10 @@ func (env *Env) Eval(sexpr Sexpr) (Sexpr, error) {
 	}
 }
 
-func (env *Env) EvalCall(pair *Pair) (Sexpr, error) {
+func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
+	if pair.IsNull() {
+		return Sexpr{&Pair{}, false}, nil
+	}
 	if name, ok := pair.This.Value.(string); ok {
 		if fn, ok := buildin(name); ok {
 			return fn(pair.Next)

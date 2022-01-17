@@ -26,22 +26,24 @@ func (e *Env) Get(name string) (Sexpr, error) {
 	return value, nil
 }
 
-func (env *Env) Eval(s Sexpr) (Sexpr, error) {
-	if s.Quoted {
-		s.Quoted = false
-		return s, nil
-	}
-
-	switch val := s.Value.(type) {
-	case Pair:
-		return Sexpr{}, errors.New("not implemented")
-	case string:
-		sexpr, err := env.Get(val)
-		if err != nil {
-			return Sexpr{}, err
+func (env *Env) Eval(sexpr Sexpr) (Sexpr, error) {
+	var err error
+	for {
+		if sexpr.Quoted {
+			sexpr.Quoted = false
+			return sexpr, nil
 		}
-		return env.Eval(sexpr)
-	default:
-		return s, nil
+
+		switch val := sexpr.Value.(type) {
+		case Pair:
+			return Sexpr{}, errors.New("not implemented")
+		case string:
+			sexpr, err = env.Get(val)
+			if err != nil {
+				return Sexpr{}, err
+			}
+		default:
+			return sexpr, nil
+		}
 	}
 }

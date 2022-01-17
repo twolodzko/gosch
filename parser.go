@@ -50,7 +50,7 @@ func isInt(str string) bool {
 	return matched
 }
 
-func (p *Parser) ReadPair() (Pair, error) {
+func (p *Parser) ReadPair() (*Pair, error) {
 	p.pos++
 	var sexprs []Sexpr
 	for p.HasNext() {
@@ -63,12 +63,12 @@ func (p *Parser) ReadPair() (Pair, error) {
 		default:
 			elem, err := p.ReadSexpr()
 			if err != nil {
-				return Pair{}, err
+				return nil, err
 			}
 			sexprs = append(sexprs, elem)
 		}
 	}
-	return Pair{}, fmt.Errorf("pair was not closed with )")
+	return nil, fmt.Errorf("pair was not closed with )")
 }
 
 func (p *Parser) ReadSexpr() (Sexpr, error) {

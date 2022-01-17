@@ -32,15 +32,15 @@ func (p Pair) String() string {
 	return fmt.Sprintf("(%s)", elems)
 }
 
-func newPair(elems []Sexpr) Pair {
+func newPair(elems []Sexpr) *Pair {
 	switch len(elems) {
 	case 0:
-		return Pair{}
+		return &Pair{}
 	case 1:
-		return Pair{elems[0], nil}
+		return &Pair{elems[0], nil}
 	default:
 		this := elems[0]
 		next := newPair(elems[1:])
-		return Pair{this, &next}
+		return &Pair{this, next}
 	}
 }

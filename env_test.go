@@ -214,6 +214,26 @@ func Test_EvalPair(t *testing.T) {
 	}
 }
 
+func Test_EvalArgs(t *testing.T) {
+	input := newPair([]Sexpr{{"a", true}, {"b", true}, {"c", true}})
+	expected := newPair([]Sexpr{{"b", false}, {"c", false}})
+	env := NewEnv()
+
+	result, err := env.EvalArgs(input)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if !cmp.Equal(result, expected) {
+		t.Errorf("for %v expected %v, got %v", input, expected, result)
+	}
+
+	// Eval should not mutate the input
+	inputCopy := newPair([]Sexpr{{"a", true}, {"b", true}, {"c", true}})
+	if !cmp.Equal(input, inputCopy) {
+		t.Errorf("input %v has changed to %v", inputCopy, input)
+	}
+}
+
 func Test_ParseEvalPrint(t *testing.T) {
 	var testCases = []struct {
 		input    string
@@ -226,7 +246,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(car '(1 2 3))", "1"},
 		{"(cdr '(1 2 3))", "(2 3)"},
 		{"(car (cdr '(1 2 3)))", "2"},
-		// {"(cdr '())", "()"},
+		{"(cdr '())", "<nil>"},
 	}
 
 	for _, tt := range testCases {

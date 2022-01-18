@@ -80,8 +80,7 @@ func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 
 		switch name {
 		case "define":
-			err := env.Define(pair.Next)
-			return pair.Next.This, err
+			return env.Define(pair.Next)
 		default:
 			if fn, ok := buildin(name); ok {
 				args, err := env.EvalArgs(pair)
@@ -96,20 +95,6 @@ func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 				}
 			}
 		}
-	}
-}
-
-func (env *Env) Define(args *Pair) error {
-	switch name := args.This.Value.(type) {
-	case string:
-		val, err := env.Eval(args.Next.This)
-		if err != nil {
-			return err
-		}
-		env.Set(name, val)
-		return nil
-	default:
-		return fmt.Errorf("%v is not a valid variable name", args.This)
 	}
 }
 

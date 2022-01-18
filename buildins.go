@@ -63,3 +63,17 @@ func cons(args *Pair) (Sexpr, error) {
 func list(args *Pair) (Sexpr, error) {
 	return Sexpr{args, false}, nil
 }
+
+func (env *Env) Define(args *Pair) (Sexpr, error) {
+	switch name := args.This.Value.(type) {
+	case string:
+		val, err := env.Eval(args.Next.This)
+		if err != nil {
+			return Sexpr{}, err
+		}
+		env.Set(name, val)
+		return val, nil
+	default:
+		return Sexpr{}, fmt.Errorf("%v is not a valid variable name", args.This)
+	}
+}

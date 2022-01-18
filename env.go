@@ -73,28 +73,43 @@ func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 		first Sexpr = pair.This
 	)
 	for {
-		if first.Quoted {
-			return Sexpr{}, fmt.Errorf("%v is not callable", first)
-		}
-
 		name, ok := first.Value.(string)
-		if !ok {
+		if first.Quoted || !ok {
 			return Sexpr{}, fmt.Errorf("%v is not callable", first)
 		}
-		fn, ok := buildin(name)
-		if !ok {
-			first, err = env.Get(name)
-			if err != nil {
-				return Sexpr{}, err
-			}
-			continue
-		}
 
-		args, err := env.EvalArgs(pair)
-		if err != nil {
-			return Sexpr{}, err
+		switch name {
+		case "define":
+			err := env.Define(pair.Next)
+			return pair.Next.This, err
+		default:
+			if fn, ok := buildin(name); ok {
+				args, err := env.EvalArgs(pair)
+				if err != nil {
+					return Sexpr{}, err
+				}
+				return fn(args)
+			} else {
+				first, err = env.Get(name)
+				if err != nil {
+					return Sexpr{}, err
+				}
+			}
 		}
-		return fn(args)
+	}
+}
+
+func (env *Env) Define(args *Pair) error {
+	switch name := args.This.Value.(type) {
+	case string:
+		val, err := env.Eval(args.Next.This)
+		if err != nil {
+			return err
+		}
+		env.Set(name, val)
+		return nil
+	default:
+		return fmt.Errorf("%v is not a valid variable name", args.This)
 	}
 }
 

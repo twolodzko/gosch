@@ -316,19 +316,19 @@ func Test_AliasToFunction(t *testing.T) {
 	}
 }
 
-// func Test_Define(t *testing.T) {
-// 	env := NewEnv()
+func Test_Define(t *testing.T) {
+	env := NewEnv()
 
-// 	_, err := env.Eval(
-// 		Sexpr{&Pair{Sexpr{"define", false},
-// 			&Pair{Sexpr{"x", false},
-// 				&Pair{Sexpr{42, false}, nil}}}, false})
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 	}
+	_, err := env.Eval(
+		Sexpr{&Pair{Sexpr{"define", false},
+			&Pair{Sexpr{"x", false},
+				&Pair{Sexpr{42, false}, nil}}}, false})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
-// 	result, ok := env.vars["x"]
-// 	if !ok || result != (Sexpr{42, false}) {
-// 		t.Errorf("variable was not set correctly: %v", result)
-// 	}
-// }
+	result, ok := env.vars["x"]
+	if !ok || result != (Sexpr{42, false}) {
+		t.Errorf("variable was not set correctly: %v", result)
+	}
+}

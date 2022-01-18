@@ -42,3 +42,22 @@ func Test_PairString(t *testing.T) {
 		}
 	}
 }
+
+func Test_Cons(t *testing.T) {
+	var testCases = []struct {
+		value    Sexpr
+		pair     *Pair
+		expected *Pair
+	}{
+		{Sexpr{"a", false}, &Pair{}, &Pair{Sexpr{"a", false}, nil}},
+		{Sexpr{&Pair{}, false}, &Pair{}, &Pair{Sexpr{&Pair{}, false}, nil}},
+		{Sexpr{"a", false}, &Pair{Sexpr{"b", false}, &Pair{Sexpr{"c", false}, nil}}, &Pair{Sexpr{"a", false}, &Pair{Sexpr{"b", false}, &Pair{Sexpr{"c", false}, nil}}}},
+	}
+
+	for _, tt := range testCases {
+		result := tt.pair.Cons(tt.value)
+		if !cmp.Equal(result, tt.expected) {
+			t.Errorf("for %q and %q expected %v, got: %v", tt.pair, tt.value, tt.expected, result)
+		}
+	}
+}

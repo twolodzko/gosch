@@ -15,6 +15,13 @@ func (p Pair) IsNull() bool {
 	return p == (Pair{})
 }
 
+func (p *Pair) Cons(sexpr Sexpr) *Pair {
+	if p.IsNull() {
+		return &Pair{sexpr, nil}
+	}
+	return &Pair{sexpr, p}
+}
+
 func (p Pair) String() string {
 	if p.IsNull() {
 		return "()"
@@ -23,7 +30,7 @@ func (p Pair) String() string {
 	var elems string
 	for {
 		elems += fmt.Sprintf("%v", p.This)
-		if p.Next == nil {
+		if !p.HasNext() {
 			break
 		}
 		p = *p.Next

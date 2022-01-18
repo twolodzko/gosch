@@ -200,6 +200,25 @@ func Test_EvalPair(t *testing.T) {
 			&Pair{Sexpr{"pair?", false}, &Pair{Sexpr{&Pair{Sexpr{"a", false}, &Pair{Sexpr{"b", false}, nil}}, true}, nil}},
 			Sexpr{true, false},
 		},
+		{
+			&Pair{Sexpr{"cons", false}, &Pair{Sexpr{"a", true}, &Pair{Sexpr{&Pair{}, true}, nil}}},
+			Sexpr{&Pair{Sexpr{"a", false}, nil}, false},
+		},
+		{
+			&Pair{Sexpr{"cons", false}, &Pair{Sexpr{1, false}, &Pair{Sexpr{2, false}, nil}}},
+			Sexpr{&Pair{Sexpr{1, false}, &Pair{Sexpr{2, false}, nil}}, false},
+		},
+		{
+			&Pair{Sexpr{"list", false}, &Pair{Sexpr{1, false}, &Pair{Sexpr{2, false}, nil}}},
+			Sexpr{&Pair{Sexpr{1, false}, &Pair{Sexpr{2, false}, nil}}, false},
+		},
+		{
+			&Pair{Sexpr{"list", false}, nil}, Sexpr{&Pair{}, false},
+		},
+		{
+			&Pair{Sexpr{"list", false}, &Pair{Sexpr{1, false}, &Pair{Sexpr{2, false}, &Pair{Sexpr{3, false}, nil}}}},
+			Sexpr{&Pair{Sexpr{1, false}, &Pair{Sexpr{2, false}, &Pair{Sexpr{3, false}, nil}}}, false},
+		},
 	}
 
 	env := NewEnv()
@@ -247,6 +266,16 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(cdr '(1 2 3))", "(2 3)"},
 		{"(car (cdr '(1 2 3)))", "2"},
 		{"(cdr '())", "<nil>"},
+		{"(cons 1 '())", "(1)"},
+		{"(cons 1 2)", "(1 2)"},
+		{"(cons 1 '(2 3))", "(1 2 3)"},
+		{"(cons '() '())", "(())"},
+		{"(cons '() '(a b c))", "(() a b c)"},
+		{"(cons '(a b c) '())", "((a b c))"},
+		{"(list)", "()"},
+		{"(list 1)", "(1)"},
+		{"(list 1 2 3)", "(1 2 3)"},
+		{"(list '(1) 2 3)", "((1) 2 3)"},
 	}
 
 	for _, tt := range testCases {

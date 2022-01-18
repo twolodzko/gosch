@@ -92,6 +92,10 @@ func buildin(name string) (func(*Pair) (Sexpr, error), bool) {
 		return isNull, true
 	case "pair?":
 		return isPair, true
+	case "cons":
+		return cons, true
+	case "list":
+		return list, true
 	default:
 		return nil, false
 	}

@@ -1,18 +1,21 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
-func car(pair *Pair) (Sexpr, error) {
-	switch val := pair.This.Value.(type) {
+func car(args *Pair) (Sexpr, error) {
+	switch val := args.This.Value.(type) {
 	case *Pair:
 		return val.This, nil
 	default:
-		return Sexpr{}, fmt.Errorf("%v is not a Pair", pair.This)
+		return Sexpr{}, fmt.Errorf("%v is not a Pair", args.This)
 	}
 }
 
-func cdr(pair *Pair) (Sexpr, error) {
-	switch val := pair.This.Value.(type) {
+func cdr(args *Pair) (Sexpr, error) {
+	switch val := args.This.Value.(type) {
 	case *Pair:
 		switch {
 		case val.IsNull():
@@ -23,20 +26,40 @@ func cdr(pair *Pair) (Sexpr, error) {
 			return Sexpr{val.Next, false}, nil
 		}
 	default:
-		return Sexpr{}, fmt.Errorf("%v is not a Pair", pair.This)
+		return Sexpr{}, fmt.Errorf("%v is not a Pair", args.This)
 	}
 }
 
-func isNull(pair *Pair) (Sexpr, error) {
-	if val, ok := pair.This.Value.(*Pair); ok {
+func isNull(args *Pair) (Sexpr, error) {
+	switch val := args.This.Value.(type) {
+	case *Pair:
 		return Sexpr{val.IsNull(), false}, nil
+	default:
+		return Sexpr{false, false}, nil
 	}
-	return Sexpr{false, false}, nil
 }
 
-func isPair(pair *Pair) (Sexpr, error) {
-	if val, ok := pair.This.Value.(*Pair); ok {
+func isPair(args *Pair) (Sexpr, error) {
+	switch val := args.This.Value.(type) {
+	case *Pair:
 		return Sexpr{!val.IsNull(), false}, nil
+	default:
+		return Sexpr{false, false}, nil
 	}
-	return Sexpr{false, false}, nil
+}
+
+func cons(args *Pair) (Sexpr, error) {
+	if !args.HasNext() || args.Next.HasNext() {
+		return Sexpr{}, errors.New("wrong number of arguments")
+	}
+	switch val := args.Next.This.Value.(type) {
+	case *Pair:
+		return Sexpr{val.Cons(args.This), false}, nil
+	default:
+		return list(args)
+	}
+}
+
+func list(args *Pair) (Sexpr, error) {
+	return Sexpr{args, false}, nil
 }

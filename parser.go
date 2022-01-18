@@ -36,10 +36,16 @@ func (p *Parser) ReadAtomValue() (interface{}, error) {
 	}
 	if len(runes) > 0 {
 		str := string(runes)
-		if isInt(str) {
+		switch {
+		case isInt(str):
 			return strconv.Atoi(str)
+		case str == "#t":
+			return Bool(true), nil
+		case str == "#f":
+			return Bool(false), nil
+		default:
+			return str, nil
 		}
-		return str, nil
 	} else {
 		return nil, fmt.Errorf("nothing was read")
 	}

@@ -16,6 +16,7 @@ func Test_Parse(t *testing.T) {
 		{"42", []Sexpr{{42, false}}},
 		{"-100", []Sexpr{{-100, false}}},
 		{"nil", []Sexpr{{"nil", false}}},
+		{"#t #f", []Sexpr{{Bool(true), false}, {Bool(false), false}}},
 		{"()", []Sexpr{{&Pair{}, false}}},
 		{"(a)", []Sexpr{{&Pair{Sexpr{"a", false}, nil}, false}}},
 		{"(())", []Sexpr{{&Pair{Sexpr{&Pair{}, false}, nil}, false}}},

@@ -97,22 +97,3 @@ func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 		}
 	}
 }
-
-func buildin(name string) (func(*Pair) (Sexpr, error), bool) {
-	switch name {
-	case "car":
-		return car, true
-	case "cdr":
-		return cdr, true
-	case "null?":
-		return isNull, true
-	case "pair?":
-		return isPair, true
-	case "cons":
-		return cons, true
-	case "list":
-		return list, true
-	default:
-		return nil, false
-	}
-}

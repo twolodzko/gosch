@@ -5,6 +5,25 @@ import (
 	"fmt"
 )
 
+func buildin(name string) (func(*Pair) (Sexpr, error), bool) {
+	switch name {
+	case "car":
+		return car, true
+	case "cdr":
+		return cdr, true
+	case "null?":
+		return isNull, true
+	case "pair?":
+		return isPair, true
+	case "cons":
+		return cons, true
+	case "list":
+		return list, true
+	default:
+		return nil, false
+	}
+}
+
 func car(args *Pair) (Sexpr, error) {
 	switch val := args.This.Value.(type) {
 	case *Pair:

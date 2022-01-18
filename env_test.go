@@ -297,3 +297,38 @@ func Test_ParseEvalPrint(t *testing.T) {
 		}
 	}
 }
+
+func Test_AliasToFunction(t *testing.T) {
+	expected := Sexpr{&Pair{Sexpr{1, false}, &Pair{Sexpr{2, false}, nil}}, false}
+
+	env := NewEnv()
+	env.vars["my-list"] = Sexpr{"list", false}
+
+	result, err := env.Eval(
+		Sexpr{&Pair{Sexpr{"my-list", false},
+			&Pair{Sexpr{1, false},
+				&Pair{Sexpr{2, false}, nil}}}, false})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if !cmp.Equal(result, expected) {
+		t.Errorf("expected: %v, got %v", expected, result)
+	}
+}
+
+// func Test_Define(t *testing.T) {
+// 	env := NewEnv()
+
+// 	_, err := env.Eval(
+// 		Sexpr{&Pair{Sexpr{"define", false},
+// 			&Pair{Sexpr{"x", false},
+// 				&Pair{Sexpr{42, false}, nil}}}, false})
+// 	if err != nil {
+// 		t.Errorf("unexpected error: %v", err)
+// 	}
+
+// 	result, ok := env.vars["x"]
+// 	if !ok || result != (Sexpr{42, false}) {
+// 		t.Errorf("variable was not set correctly: %v", result)
+// 	}
+// }

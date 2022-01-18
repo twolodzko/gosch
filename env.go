@@ -68,18 +68,34 @@ func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 		return Sexpr{&Pair{}, false}, nil
 	}
 
-	args, err := env.EvalArgs(pair)
-	if err != nil {
-		return Sexpr{}, err
-	}
-
-	if name, ok := pair.This.Value.(string); ok {
-		if fn, ok := buildin(name); ok {
-			return fn(args)
+	var (
+		err   error
+		first Sexpr = pair.This
+	)
+	for {
+		if first.Quoted {
+			return Sexpr{}, fmt.Errorf("%v is not callable", first)
 		}
-	}
 
-	return Sexpr{}, fmt.Errorf("%v is not callable", pair.This)
+		name, ok := first.Value.(string)
+		if !ok {
+			return Sexpr{}, fmt.Errorf("%v is not callable", first)
+		}
+		fn, ok := buildin(name)
+		if !ok {
+			first, err = env.Get(name)
+			if err != nil {
+				return Sexpr{}, err
+			}
+			continue
+		}
+
+		args, err := env.EvalArgs(pair)
+		if err != nil {
+			return Sexpr{}, err
+		}
+		return fn(args)
+	}
 }
 
 func buildin(name string) (func(*Pair) (Sexpr, error), bool) {

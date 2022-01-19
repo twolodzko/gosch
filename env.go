@@ -26,11 +26,6 @@ func (e *Env) Get(name string) (Sexpr, error) {
 func (env *Env) Eval(sexpr Sexpr) (Sexpr, error) {
 	var err error
 	for {
-		if sexpr.Quoted {
-			sexpr.Quoted = false
-			return sexpr, nil
-		}
-
 		switch val := sexpr.Value.(type) {
 		case *Pair:
 			return env.EvalPair(val)
@@ -65,7 +60,7 @@ func (env *Env) EvalArgs(pair *Pair) (*Pair, error) {
 
 func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 	if pair.IsNull() {
-		return Sexpr{&Pair{}, false}, nil
+		return Sexpr{&Pair{}}, nil
 	}
 
 	var (
@@ -74,7 +69,7 @@ func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 	)
 	for {
 		name, ok := first.Value.(string)
-		if first.Quoted || !ok {
+		if !ok {
 			return Sexpr{}, fmt.Errorf("%v is not callable", first)
 		}
 
@@ -82,9 +77,7 @@ func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 		case "define":
 			return env.Define(pair.Next)
 		case "quote":
-			sexpr := pair.Next.This
-			sexpr.Quoted = true
-			return sexpr, nil
+			return pair.Next.This, nil
 		default:
 			if fn, ok := buildin(name); ok {
 				args, err := env.EvalArgs(pair)

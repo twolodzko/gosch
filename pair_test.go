@@ -12,9 +12,9 @@ func Test_newPair(t *testing.T) {
 		expected *Pair
 	}{
 		{[]Sexpr{}, &Pair{}},
-		{[]Sexpr{{"1", false}}, &Pair{Sexpr{"1", false}, nil}},
-		{[]Sexpr{{"1", false}, {"2", false}}, &Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, nil}}},
-		{[]Sexpr{{"1", false}, {"2", false}, {"3", false}}, &Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, &Pair{Sexpr{"3", false}, nil}}}},
+		{[]Sexpr{{"1"}}, &Pair{Sexpr{"1"}, nil}},
+		{[]Sexpr{{"1"}, {"2"}}, &Pair{Sexpr{"1"}, &Pair{Sexpr{"2"}, nil}}},
+		{[]Sexpr{{"1"}, {"2"}, {"3"}}, &Pair{Sexpr{"1"}, &Pair{Sexpr{"2"}, &Pair{Sexpr{"3"}, nil}}}},
 	}
 
 	for _, tt := range testCases {
@@ -31,8 +31,8 @@ func Test_PairString(t *testing.T) {
 		expected string
 	}{
 		{Pair{}, "()"},
-		{Pair{Sexpr{"1", false}, nil}, "(1)"},
-		{Pair{Sexpr{"1", false}, &Pair{Sexpr{"2", false}, nil}}, "(1 2)"},
+		{Pair{Sexpr{"1"}, nil}, "(1)"},
+		{Pair{Sexpr{"1"}, &Pair{Sexpr{"2"}, nil}}, "(1 2)"},
 	}
 
 	for _, tt := range testCases {
@@ -49,9 +49,9 @@ func Test_Cons(t *testing.T) {
 		pair     *Pair
 		expected *Pair
 	}{
-		{Sexpr{"a", false}, &Pair{}, &Pair{Sexpr{"a", false}, nil}},
-		{Sexpr{&Pair{}, false}, &Pair{}, &Pair{Sexpr{&Pair{}, false}, nil}},
-		{Sexpr{"a", false}, &Pair{Sexpr{"b", false}, &Pair{Sexpr{"c", false}, nil}}, &Pair{Sexpr{"a", false}, &Pair{Sexpr{"b", false}, &Pair{Sexpr{"c", false}, nil}}}},
+		{Sexpr{"a"}, &Pair{}, &Pair{Sexpr{"a"}, nil}},
+		{Sexpr{&Pair{}}, &Pair{}, &Pair{Sexpr{&Pair{}}, nil}},
+		{Sexpr{"a"}, &Pair{Sexpr{"b"}, &Pair{Sexpr{"c"}, nil}}, &Pair{Sexpr{"a"}, &Pair{Sexpr{"b"}, &Pair{Sexpr{"c"}, nil}}}},
 	}
 
 	for _, tt := range testCases {

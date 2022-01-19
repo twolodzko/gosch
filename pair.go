@@ -11,7 +11,7 @@ func (p Pair) HasNext() bool {
 	return p.Next != nil
 }
 
-func (p Pair) IsNull() bool {
+func (p Pair) IsNull() Bool {
 	return p == (Pair{})
 }
 

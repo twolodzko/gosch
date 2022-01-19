@@ -14,14 +14,10 @@ func (b Bool) String() string {
 }
 
 type Sexpr struct {
-	Value  interface{}
-	Quoted bool
+	Value interface{}
 }
 
 func (s Sexpr) String() string {
-	if s.Quoted {
-		return fmt.Sprintf("'%v", s.Value)
-	}
 	return fmt.Sprintf("%v", s.Value)
 }
 

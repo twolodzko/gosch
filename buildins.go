@@ -44,7 +44,7 @@ func cdr(args *Pair) (Sexpr, error) {
 		case val.Next.Next == nil:
 			return val.Next.This, nil
 		default:
-			return Sexpr{val.Next, false}, nil
+			return Sexpr{val.Next}, nil
 		}
 	default:
 		return Sexpr{}, fmt.Errorf("%v is not a Pair", args.This)
@@ -54,18 +54,18 @@ func cdr(args *Pair) (Sexpr, error) {
 func isNull(args *Pair) (Sexpr, error) {
 	switch val := args.This.Value.(type) {
 	case *Pair:
-		return Sexpr{val.IsNull(), false}, nil
+		return Sexpr{val.IsNull()}, nil
 	default:
-		return Sexpr{false, false}, nil
+		return Sexpr{Bool(false)}, nil
 	}
 }
 
 func isPair(args *Pair) (Sexpr, error) {
 	switch val := args.This.Value.(type) {
 	case *Pair:
-		return Sexpr{!val.IsNull(), false}, nil
+		return Sexpr{!val.IsNull()}, nil
 	default:
-		return Sexpr{false, false}, nil
+		return Sexpr{Bool(false)}, nil
 	}
 }
 
@@ -75,18 +75,18 @@ func cons(args *Pair) (Sexpr, error) {
 	}
 	switch val := args.Next.This.Value.(type) {
 	case *Pair:
-		return Sexpr{val.Cons(args.This), false}, nil
+		return Sexpr{val.Cons(args.This)}, nil
 	default:
 		return list(args)
 	}
 }
 
 func list(args *Pair) (Sexpr, error) {
-	return Sexpr{args, false}, nil
+	return Sexpr{args}, nil
 }
 
 func not(args *Pair) (Sexpr, error) {
-	return Sexpr{!args.This.IsTrue(), false}, nil
+	return Sexpr{!args.This.IsTrue()}, nil
 }
 
 func (env *Env) Define(args *Pair) (Sexpr, error) {

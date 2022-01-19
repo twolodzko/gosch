@@ -40,19 +40,19 @@ func (env *Env) Eval(sexpr Sexpr) (Sexpr, error) {
 	}
 }
 
-func (env *Env) EvalArgs(pair *Pair) (*Pair, error) {
+func (env *Env) EvalAll(pair *Pair) (*Pair, error) {
 	var (
 		head *Pair
 		args []Sexpr
 	)
 	head = pair
-	for head.Next != nil {
-		head = head.Next
+	for head != nil {
 		sexpr, err := env.Eval(head.This)
 		if err != nil {
 			return nil, err
 		}
 		args = append(args, sexpr)
+		head = head.Next
 	}
 	// TODO: avoid re-packing
 	return newPair(args), nil
@@ -80,7 +80,7 @@ func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 			return pair.Next.This, nil
 		default:
 			if fn, ok := buildin(name); ok {
-				args, err := env.EvalArgs(pair)
+				args, err := env.EvalAll(pair.Next)
 				if err != nil {
 					return nil, err
 				}

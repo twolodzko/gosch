@@ -244,12 +244,12 @@ func Test_EvalPair(t *testing.T) {
 	}
 }
 
-func Test_EvalArgs(t *testing.T) {
-	input := newPair([]Sexpr{quote("a"), quote("b"), quote("c")})
-	expected := newPair([]Sexpr{"b", "c"})
+func Test_EvalAll(t *testing.T) {
+	input := newPair([]Sexpr{quote("a"), quote("b")})
+	expected := newPair([]Sexpr{"a", "b"})
 	env := NewEnv()
 
-	result, err := env.EvalArgs(input)
+	result, err := env.EvalAll(input)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -258,7 +258,7 @@ func Test_EvalArgs(t *testing.T) {
 	}
 
 	// Eval should not mutate the input
-	inputCopy := newPair([]Sexpr{quote("a"), quote("b"), quote("c")})
+	inputCopy := newPair([]Sexpr{quote("a"), quote("b")})
 	if !cmp.Equal(input, inputCopy) {
 		t.Errorf("input %v has changed to %v", inputCopy, input)
 	}

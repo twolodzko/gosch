@@ -2,6 +2,8 @@ package main
 
 import "fmt"
 
+type Sexpr = interface{}
+
 type Pair struct {
 	This Sexpr
 	Next *Pair
@@ -49,5 +51,23 @@ func newPair(elems []Sexpr) *Pair {
 		this := elems[0]
 		next := newPair(elems[1:])
 		return &Pair{this, next}
+	}
+}
+
+type Bool bool
+
+func (b Bool) String() string {
+	if b {
+		return "#t"
+	}
+	return "#f"
+}
+
+func IsTrue(s Sexpr) Bool {
+	switch val := s.(type) {
+	case Bool:
+		return val
+	default:
+		return true
 	}
 }

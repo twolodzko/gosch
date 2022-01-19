@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -12,24 +13,24 @@ func Test_Parse(t *testing.T) {
 		expected []Sexpr
 	}{
 		{"", nil},
-		{"a", []Sexpr{{"a"}}},
-		{"42", []Sexpr{{42}}},
-		{"-100", []Sexpr{{-100}}},
-		{"nil", []Sexpr{{"nil"}}},
-		{"#t #f", []Sexpr{{Bool(true)}, {Bool(false)}}},
-		{"()", []Sexpr{{&Pair{}}}},
-		{"(a)", []Sexpr{{&Pair{Sexpr{"a"}, nil}}}},
-		{"(())", []Sexpr{{&Pair{Sexpr{&Pair{}}, nil}}}},
-		{"(1 2 3)", []Sexpr{{&Pair{Sexpr{1}, &Pair{Sexpr{2}, &Pair{Sexpr{3}, nil}}}}}},
-		{"((1 2) 3)", []Sexpr{{&Pair{Sexpr{&Pair{Sexpr{1}, &Pair{Sexpr{2}, nil}}}, &Pair{Sexpr{3}, nil}}}}},
-		{"(1 (2 3))", []Sexpr{{&Pair{Sexpr{1}, &Pair{Sexpr{&Pair{Sexpr{2}, &Pair{Sexpr{3}, nil}}}, nil}}}}},
-		{"'a", []Sexpr{quote(Sexpr{"a"})}},
-		{"'(a)", []Sexpr{quote(Sexpr{&Pair{Sexpr{"a"}, nil}})}},
-		{"('a)", []Sexpr{{&Pair{quote(Sexpr{"a"}), nil}}}},
-		{"'()", []Sexpr{quote(Sexpr{&Pair{}})}},
-		{"  \n\ta", []Sexpr{{"a"}}},
-		{"\n  \t\n(\n   a\t\n)  ", []Sexpr{{&Pair{Sexpr{"a"}, nil}}}},
-		{"1 2 3", []Sexpr{{1}, {2}, {3}}},
+		{"a", []Sexpr{"a"}},
+		{"42", []Sexpr{42}},
+		{"-100", []Sexpr{-100}},
+		{"nil", []Sexpr{"nil"}},
+		{"#t #f", []Sexpr{Bool(true), Bool(false)}},
+		{"()", []Sexpr{&Pair{}}},
+		{"(a)", []Sexpr{&Pair{"a", nil}}},
+		{"(())", []Sexpr{&Pair{&Pair{}, nil}}},
+		{"(1 2 3)", []Sexpr{&Pair{1, &Pair{2, &Pair{3, nil}}}}},
+		{"((1 2) 3)", []Sexpr{&Pair{&Pair{1, &Pair{2, nil}}, &Pair{3, nil}}}},
+		{"(1 (2 3))", []Sexpr{&Pair{1, &Pair{&Pair{2, &Pair{3, nil}}, nil}}}},
+		{"'a", []Sexpr{quote("a")}},
+		{"'(a)", []Sexpr{quote(&Pair{"a", nil})}},
+		{"('a)", []Sexpr{&Pair{quote("a"), nil}}},
+		{"'()", []Sexpr{quote(&Pair{})}},
+		{"  \n\ta", []Sexpr{"a"}},
+		{"\n  \t\n(\n   a\t\n)  ", []Sexpr{&Pair{"a", nil}}},
+		{"1 2 3", []Sexpr{1, 2, 3}},
 	}
 
 	for _, tt := range testCases {
@@ -58,7 +59,7 @@ func Test_ParseAndPrint(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-		if result[0].String() != input {
+		if fmt.Sprintf("%v", result[0]) != input {
 			t.Errorf("%q is printable as %v", input, result[0])
 		}
 	}

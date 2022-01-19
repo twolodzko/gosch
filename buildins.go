@@ -27,78 +27,78 @@ func buildin(name string) (func(*Pair) (Sexpr, error), bool) {
 }
 
 func car(args *Pair) (Sexpr, error) {
-	switch val := args.This.Value.(type) {
+	switch val := args.This.(type) {
 	case *Pair:
 		return val.This, nil
 	default:
-		return Sexpr{}, fmt.Errorf("%v is not a Pair", args.This)
+		return nil, fmt.Errorf("%v is not a Pair", args.This)
 	}
 }
 
 func cdr(args *Pair) (Sexpr, error) {
-	switch val := args.This.Value.(type) {
+	switch val := args.This.(type) {
 	case *Pair:
 		switch {
 		case val.Next == nil:
-			return Sexpr{}, nil
+			return nil, nil
 		case val.Next.Next == nil:
 			return val.Next.This, nil
 		default:
-			return Sexpr{val.Next}, nil
+			return val.Next, nil
 		}
 	default:
-		return Sexpr{}, fmt.Errorf("%v is not a Pair", args.This)
+		return nil, fmt.Errorf("%v is not a Pair", args.This)
 	}
 }
 
 func isNull(args *Pair) (Sexpr, error) {
-	switch val := args.This.Value.(type) {
+	switch val := args.This.(type) {
 	case *Pair:
-		return Sexpr{val.IsNull()}, nil
+		return val.IsNull(), nil
 	default:
-		return Sexpr{Bool(false)}, nil
+		return Bool(false), nil
 	}
 }
 
 func isPair(args *Pair) (Sexpr, error) {
-	switch val := args.This.Value.(type) {
+	switch val := args.This.(type) {
 	case *Pair:
-		return Sexpr{!val.IsNull()}, nil
+		return !val.IsNull(), nil
 	default:
-		return Sexpr{Bool(false)}, nil
+		return Bool(false), nil
 	}
 }
 
 func cons(args *Pair) (Sexpr, error) {
 	if !args.HasNext() || args.Next.HasNext() {
-		return Sexpr{}, errors.New("wrong number of arguments")
+		return nil, errors.New("wrong number of arguments")
 	}
-	switch val := args.Next.This.Value.(type) {
+	switch val := args.Next.This.(type) {
 	case *Pair:
-		return Sexpr{val.Cons(args.This)}, nil
+		return val.Cons(args.This), nil
 	default:
 		return list(args)
 	}
 }
 
 func list(args *Pair) (Sexpr, error) {
-	return Sexpr{args}, nil
+	return args, nil
 }
 
 func not(args *Pair) (Sexpr, error) {
-	return Sexpr{!args.This.IsTrue()}, nil
+	return !IsTrue(args.This), nil
 }
 
 func (env *Env) Define(args *Pair) (Sexpr, error) {
-	switch name := args.This.Value.(type) {
+	switch name := args.This.(type) {
 	case string:
 		val, err := env.Eval(args.Next.This)
 		if err != nil {
-			return Sexpr{}, err
+			return nil, err
 		}
 		env.Set(name, val)
 		return val, nil
 	default:
-		return Sexpr{}, fmt.Errorf("%v is not a valid variable name", args.This)
+		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
 	}
 }

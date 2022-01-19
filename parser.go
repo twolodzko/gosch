@@ -87,20 +87,20 @@ func (p *Parser) ReadSexpr() (Sexpr, error) {
 		case '(':
 			pair, err := p.ReadPair()
 			if quoted {
-				return quote(Sexpr{pair}), nil
+				return quote(pair), nil
 			}
-			return Sexpr{pair}, err
+			return pair, err
 		case ')':
-			return Sexpr{}, fmt.Errorf("unexpected )")
+			return nil, fmt.Errorf("unexpected )")
 		default:
 			atom, err := p.ReadAtomValue()
 			if quoted {
-				return quote(Sexpr{atom}), nil
+				return quote(atom), nil
 			}
-			return Sexpr{atom}, err
+			return atom, err
 		}
 	}
-	return Sexpr{}, io.EOF
+	return nil, io.EOF
 }
 
 func (p *Parser) Read() ([]Sexpr, error) {
@@ -120,5 +120,5 @@ func (p *Parser) Read() ([]Sexpr, error) {
 }
 
 func quote(sexpr Sexpr) Sexpr {
-	return Sexpr{&Pair{Sexpr{"quote"}, &Pair{sexpr, nil}}}
+	return &Pair{"quote", &Pair{sexpr, nil}}
 }

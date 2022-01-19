@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -11,8 +12,8 @@ func Test_EnvGet(t *testing.T) {
 		name  string
 		value Sexpr
 	}{
-		{"a", Sexpr{"xxx"}},
-		{"b", Sexpr{42}},
+		{"a", "xxx"},
+		{"b", 42},
 	}
 
 	env := NewEnv()
@@ -36,8 +37,8 @@ func Test_EnvGetUnbound(t *testing.T) {
 		name  string
 		value Sexpr
 	}{
-		{"a", Sexpr{"xxx"}},
-		{"b", Sexpr{42}},
+		{"a", "xxx"},
+		{"b", 42},
 	}
 
 	env := NewEnv()
@@ -53,9 +54,9 @@ func Test_EnvGetUnbound(t *testing.T) {
 
 func Test_QuotedSexprEval(t *testing.T) {
 	var testCases = []Sexpr{
-		{"a"},
-		{Pair{}},
-		{Pair{quote(Sexpr{"a"}), nil}},
+		"a",
+		Pair{},
+		Pair{quote("a"), nil},
 	}
 
 	for _, input := range testCases {
@@ -64,28 +65,28 @@ func Test_QuotedSexprEval(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-		if !cmp.Equal(input.Value, result.Value) {
+		if !cmp.Equal(input, result) {
 			t.Errorf("after evaluating %v its value has changed: %v", input, result)
 		}
 	}
 }
 
 func Test_EvalDoesntMutate(t *testing.T) {
-	input := quote(Sexpr{Pair{quote(Sexpr{"a"}), nil}})
+	input := quote(Pair{quote("a"), nil})
 	env := NewEnv()
 	_, err := env.Eval(input)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
-	if !cmp.Equal(input, quote(Sexpr{Pair{quote(Sexpr{"a"}), nil}})) {
+	if !cmp.Equal(input, quote(Pair{quote("a"), nil})) {
 		t.Errorf("%v mutated after eval", input)
 	}
 }
 
 func Test_EvalExpectError(t *testing.T) {
 	var testCases = []Sexpr{
-		{"a"},
-		{&Pair{Sexpr{"a"}, nil}},
+		"a",
+		&Pair{"a", nil},
 		// FIXME
 		// {&Pair{Sexpr{"quote"}, nil}},
 	}
@@ -102,24 +103,21 @@ func Test_Eval(t *testing.T) {
 		input    Sexpr
 		expected Sexpr
 	}{
-		{Sexpr{}, Sexpr{}},
-		{quote(Sexpr{"a"}), Sexpr{"a"}},
-		{
-			quote(Sexpr{Pair{Sexpr{"+"}, &Pair{Sexpr{2}, &Pair{Sexpr{2}, nil}}}}),
-			Sexpr{Pair{Sexpr{"+"}, &Pair{Sexpr{2}, &Pair{Sexpr{2}, nil}}}},
-		},
-		{Sexpr{42}, Sexpr{42}},
-		{Sexpr{"a"}, Sexpr{"xxx"}},
-		{Sexpr{"l"}, Sexpr{Pair{Sexpr{"1"}, &Pair{Sexpr{"2"}, nil}}}},
-		{Sexpr{"b"}, Sexpr{26}},
+		{nil, nil},
+		{quote("a"), "a"},
+		{quote(Pair{"+", &Pair{2, &Pair{2, nil}}}), Pair{"+", &Pair{2, &Pair{2, nil}}}},
+		{42, 42},
+		{"a", "xxx"},
+		{"l", &Pair{1, &Pair{2, nil}}},
+		{"b", 26},
 	}
 
 	env := NewEnv()
-	env.Set("a", quote(Sexpr{"xxx"}))
-	env.Set("b", Sexpr{"c"})
-	env.Set("c", Sexpr{"d"})
-	env.Set("d", Sexpr{26})
-	env.Set("l", quote(Sexpr{Pair{Sexpr{"1"}, &Pair{Sexpr{"2"}, nil}}}))
+	env.Set("a", quote("xxx"))
+	env.Set("b", "c")
+	env.Set("c", "d")
+	env.Set("d", 26)
+	env.Set("l", quote(&Pair{1, &Pair{2, nil}}))
 
 	for _, tt := range testCases {
 		result, err := env.Eval(tt.input)
@@ -138,104 +136,99 @@ func Test_EvalPair(t *testing.T) {
 		expected Sexpr
 	}{
 		{
-			&Pair{}, Sexpr{&Pair{}},
+			&Pair{}, &Pair{},
 		},
 		{
-			&Pair{Sexpr{"car"}, &Pair{quote(Sexpr{&Pair{}}), nil}},
-			Sexpr{},
+			&Pair{"car", &Pair{quote(&Pair{}), nil}},
+			nil,
 		},
 		{
-			&Pair{Sexpr{"car"}, &Pair{quote(Sexpr{&Pair{Sexpr{"a"}, nil}}), nil}},
-			Sexpr{"a"},
+			&Pair{"car", &Pair{quote(&Pair{"a", nil}), nil}},
+			"a",
 		},
 		{
-			&Pair{Sexpr{"car"},
-				&Pair{quote(Sexpr{&Pair{Sexpr{"a"},
-					&Pair{Sexpr{"b"},
-						&Pair{Sexpr{"c"}, nil}}}}), nil}},
-			Sexpr{"a"},
+			&Pair{"car", &Pair{quote(&Pair{"a", &Pair{"b", &Pair{"c", nil}}}), nil}},
+			"a",
 		},
 		{
-			&Pair{Sexpr{"cdr"}, &Pair{quote(Sexpr{&Pair{}}), nil}},
-			Sexpr{},
+			&Pair{"cdr", &Pair{quote(&Pair{}), nil}},
+			nil,
 		},
 		{
-			&Pair{Sexpr{"cdr"}, &Pair{quote(Sexpr{&Pair{Sexpr{"a"}, nil}}), nil}},
-			Sexpr{},
+			&Pair{"cdr", &Pair{quote(&Pair{"a", nil}), nil}},
+			nil,
 		},
 		{
-			&Pair{Sexpr{"cdr"},
-				&Pair{quote(Sexpr{&Pair{Sexpr{"a"},
-					&Pair{Sexpr{"b"},
-						&Pair{Sexpr{"c"}, nil}}}}), nil}},
-			Sexpr{&Pair{Sexpr{"b"}, &Pair{Sexpr{"c"}, nil}}},
+			&Pair{"cdr", &Pair{quote(&Pair{"a", &Pair{"b", &Pair{"c", nil}}}), nil}},
+			&Pair{"b", &Pair{"c", nil}},
 		},
 		{
-			&Pair{Sexpr{"null?"}, &Pair{quote(Sexpr{&Pair{}}), nil}},
-			Sexpr{Bool(true)},
+			&Pair{"null?", &Pair{quote(&Pair{}), nil}},
+			Bool(true),
 		},
 		{
-			&Pair{Sexpr{"null?"}, &Pair{quote(Sexpr{"a"}), nil}},
-			Sexpr{Bool(false)},
+			&Pair{"null?", &Pair{quote("a"), nil}},
+			Bool(false),
 		},
 		{
-			&Pair{Sexpr{"null?"}, &Pair{quote(Sexpr{&Pair{Sexpr{"a"}, nil}}), nil}},
-			Sexpr{Bool(false)},
+			&Pair{"null?", &Pair{quote(&Pair{"a", nil}), nil}},
+			Bool(false),
 		},
 		{
-			&Pair{Sexpr{"pair?"}, &Pair{quote(Sexpr{&Pair{}}), nil}},
-			Sexpr{Bool(false)},
+			&Pair{"pair?", &Pair{quote(&Pair{}), nil}},
+			Bool(false),
 		},
 		{
-			&Pair{Sexpr{"pair?"}, &Pair{quote(Sexpr{"a"}), nil}},
-			Sexpr{Bool(false)},
+			&Pair{"pair?", &Pair{quote("a"), nil}},
+			Bool(false),
 		},
 		{
-			&Pair{Sexpr{"pair?"}, &Pair{quote(Sexpr{&Pair{Sexpr{"a"}, nil}}), nil}},
-			Sexpr{Bool(true)},
+			&Pair{"pair?", &Pair{quote(&Pair{"a", nil}), nil}},
+			Bool(true),
 		},
 		{
-			&Pair{Sexpr{"pair?"}, &Pair{quote(Sexpr{&Pair{Sexpr{"a"}, &Pair{Sexpr{"b"}, nil}}}), nil}},
-			Sexpr{Bool(true)},
+			&Pair{"pair?", &Pair{quote(&Pair{"a", &Pair{"b", nil}}), nil}},
+			Bool(true),
 		},
 		{
-			&Pair{Sexpr{"cons"}, &Pair{quote(Sexpr{"a"}), &Pair{quote(Sexpr{&Pair{}}), nil}}},
-			Sexpr{&Pair{Sexpr{"a"}, nil}},
+			&Pair{"cons", &Pair{quote("a"), &Pair{quote(&Pair{}), nil}}},
+			&Pair{"a", nil},
 		},
 		{
-			&Pair{Sexpr{"cons"}, &Pair{Sexpr{1}, &Pair{Sexpr{2}, nil}}},
-			Sexpr{&Pair{Sexpr{1}, &Pair{Sexpr{2}, nil}}},
+			&Pair{"cons", &Pair{1, &Pair{2, nil}}},
+			&Pair{1, &Pair{2, nil}},
 		},
 		{
-			&Pair{Sexpr{"list"}, &Pair{Sexpr{1}, &Pair{Sexpr{2}, nil}}},
-			Sexpr{&Pair{Sexpr{1}, &Pair{Sexpr{2}, nil}}},
+			&Pair{"list", &Pair{1, &Pair{2, nil}}},
+			&Pair{1, &Pair{2, nil}},
 		},
 		{
-			&Pair{Sexpr{"list"}, nil}, Sexpr{&Pair{}},
+			&Pair{"list", nil},
+			&Pair{},
 		},
 		{
-			&Pair{Sexpr{"list"}, &Pair{Sexpr{1}, &Pair{Sexpr{2}, &Pair{Sexpr{3}, nil}}}},
-			Sexpr{&Pair{Sexpr{1}, &Pair{Sexpr{2}, &Pair{Sexpr{3}, nil}}}},
+			&Pair{"list", &Pair{1, &Pair{2, &Pair{3, nil}}}},
+			&Pair{1, &Pair{2, &Pair{3, nil}}},
 		},
 		{
-			&Pair{Sexpr{"not"}, &Pair{Sexpr{Bool(false)}, nil}},
-			Sexpr{Bool(true)},
+			&Pair{"not", &Pair{Bool(false), nil}},
+			Bool(true),
 		},
 		{
-			&Pair{Sexpr{"not"}, &Pair{Sexpr{Bool(true)}, nil}},
-			Sexpr{Bool(false)},
+			&Pair{"not", &Pair{Bool(true), nil}},
+			Bool(false),
 		},
 		{
-			&Pair{Sexpr{"not"}, &Pair{Sexpr{3}, nil}},
-			Sexpr{Bool(false)},
+			&Pair{"not", &Pair{3, nil}},
+			Bool(false),
 		},
 		{
-			&Pair{Sexpr{"quote"}, &Pair{Sexpr{"a"}, nil}},
-			Sexpr{"a"},
+			&Pair{"quote", &Pair{"a", nil}},
+			"a",
 		},
 		{
-			&Pair{Sexpr{"quote"}, &Pair{Sexpr{&Pair{Sexpr{"list"}, &Pair{Sexpr{2}, nil}}}, nil}},
-			Sexpr{&Pair{Sexpr{"list"}, &Pair{Sexpr{2}, nil}}},
+			&Pair{"quote", &Pair{&Pair{"list", &Pair{2, nil}}, nil}},
+			&Pair{"list", &Pair{2, nil}},
 		},
 	}
 
@@ -252,8 +245,8 @@ func Test_EvalPair(t *testing.T) {
 }
 
 func Test_EvalArgs(t *testing.T) {
-	input := newPair([]Sexpr{quote(Sexpr{"a"}), quote(Sexpr{"b"}), quote(Sexpr{"c"})})
-	expected := newPair([]Sexpr{{"b"}, {"c"}})
+	input := newPair([]Sexpr{quote("a"), quote("b"), quote("c")})
+	expected := newPair([]Sexpr{"b", "c"})
 	env := NewEnv()
 
 	result, err := env.EvalArgs(input)
@@ -265,7 +258,7 @@ func Test_EvalArgs(t *testing.T) {
 	}
 
 	// Eval should not mutate the input
-	inputCopy := newPair([]Sexpr{quote(Sexpr{"a"}), quote(Sexpr{"b"}), quote(Sexpr{"c"})})
+	inputCopy := newPair([]Sexpr{quote("a"), quote("b"), quote("c")})
 	if !cmp.Equal(input, inputCopy) {
 		t.Errorf("input %v has changed to %v", inputCopy, input)
 	}
@@ -320,7 +313,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 			}
-			if !cmp.Equal(result.String(), tt.expected) {
+			if !cmp.Equal(fmt.Sprintf("%v", result), tt.expected) {
 				t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
 			}
 		}
@@ -328,15 +321,12 @@ func Test_ParseEvalPrint(t *testing.T) {
 }
 
 func Test_AliasToFunction(t *testing.T) {
-	expected := Sexpr{&Pair{Sexpr{1}, &Pair{Sexpr{2}, nil}}}
+	expected := &Pair{1, &Pair{2, nil}}
 
 	env := NewEnv()
-	env.vars["my-list"] = Sexpr{"list"}
+	env.vars["my-list"] = "list"
 
-	result, err := env.Eval(
-		Sexpr{&Pair{Sexpr{"my-list"},
-			&Pair{Sexpr{1},
-				&Pair{Sexpr{2}, nil}}}})
+	result, err := env.Eval(&Pair{"my-list", &Pair{1, &Pair{2, nil}}})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -348,31 +338,28 @@ func Test_AliasToFunction(t *testing.T) {
 func Test_Define(t *testing.T) {
 	env := NewEnv()
 
-	_, err := env.Eval(
-		Sexpr{&Pair{Sexpr{"define"},
-			&Pair{Sexpr{"x"},
-				&Pair{Sexpr{42}, nil}}}})
+	_, err := env.Eval(&Pair{"define", &Pair{"x", &Pair{42, nil}}})
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 
 	result, ok := env.vars["x"]
-	if !ok || result != (Sexpr{42}) {
+	if !ok || result != 42 {
 		t.Errorf("variable was not set correctly: %v", result)
 	}
 }
 
 func Test_QuoteDoesntMutate(t *testing.T) {
-	example := quote(Sexpr{"a"})
+	example := quote("a")
 	env := NewEnv()
 	result, err := env.Eval(example)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
-	if !cmp.Equal(result, Sexpr{"a"}) {
-		t.Errorf("expected %v, got %v", Sexpr{"a"}, result)
+	if !cmp.Equal(result, "a") {
+		t.Errorf("expected %v, got %v", "a", result)
 	}
-	if !cmp.Equal(example, quote(Sexpr{"a"})) {
+	if !cmp.Equal(example, quote("a")) {
 		t.Errorf("object mutated %v", example)
 	}
 }

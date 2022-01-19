@@ -109,20 +109,6 @@ func not(args *Pair) (Any, error) {
 	return !IsTrue(args.This), nil
 }
 
-func (env *Env) Define(args *Pair) (Any, error) {
-	switch name := args.This.(type) {
-	case string:
-		val, err := env.Eval(args.Next.This)
-		if err != nil {
-			return nil, err
-		}
-		env.Set(name, val)
-		return val, nil
-	default:
-		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
-	}
-}
-
 func eq(args *Pair) (Any, error) {
 	if !args.HasNext() || args.Next.HasNext() {
 		return nil, errors.New("wrong number of arguments")

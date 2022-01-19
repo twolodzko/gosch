@@ -231,6 +231,14 @@ func Test_EvalPair(t *testing.T) {
 			&Pair{Sexpr{"not", false}, &Pair{Sexpr{3, false}, nil}},
 			Sexpr{Bool(false), false},
 		},
+		{
+			&Pair{Sexpr{"quote", false}, &Pair{Sexpr{"a", false}, nil}},
+			Sexpr{"a", true},
+		},
+		{
+			&Pair{Sexpr{"quote", false}, &Pair{Sexpr{&Pair{Sexpr{"list", false}, &Pair{Sexpr{2, false}, nil}}, false}, nil}},
+			Sexpr{&Pair{Sexpr{"list", false}, &Pair{Sexpr{2, false}, nil}}, true},
+		},
 	}
 
 	env := NewEnv()
@@ -346,5 +354,22 @@ func Test_Define(t *testing.T) {
 	result, ok := env.vars["x"]
 	if !ok || result != (Sexpr{42, false}) {
 		t.Errorf("variable was not set correctly: %v", result)
+	}
+}
+
+func Test_QuoteDoesntMutate(t *testing.T) {
+	example := Sexpr{"a", false}
+	expected := Sexpr{"a", true}
+	env := NewEnv()
+	result, err := env.Eval(
+		Sexpr{&Pair{Sexpr{"quote", false}, &Pair{example, nil}}, false})
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if !cmp.Equal(result, expected) {
+		t.Errorf("expected %v, got %v", expected, result)
+	}
+	if cmp.Equal(example, result) {
+		t.Errorf("object mutated %v", result)
 	}
 }

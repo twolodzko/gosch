@@ -81,6 +81,10 @@ func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 		switch name {
 		case "define":
 			return env.Define(pair.Next)
+		case "quote":
+			sexpr := pair.Next.This
+			sexpr.Quoted = true
+			return sexpr, nil
 		default:
 			if fn, ok := buildin(name); ok {
 				args, err := env.EvalArgs(pair)

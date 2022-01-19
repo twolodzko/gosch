@@ -2,6 +2,7 @@ package main
 
 import "fmt"
 
+type Bool bool
 type Sexpr = interface{}
 
 type Pair struct {
@@ -53,8 +54,6 @@ func newPair(elems []Sexpr) *Pair {
 		return &Pair{this, next}
 	}
 }
-
-type Bool bool
 
 func (b Bool) String() string {
 	if b {

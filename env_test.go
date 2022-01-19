@@ -291,6 +291,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(list 1)", "(1)"},
 		{"(list 1 2 3)", "(1 2 3)"},
 		{"(list '(1) 2 3)", "((1) 2 3)"},
+		{"(not)", "#f"},
 		{"(not #t)", "#f"},
 		{"(not 3)", "#f"},
 		{"(not (list 3))", "#f"},

@@ -78,26 +78,30 @@ func (p *Parser) ReadPair() (*Pair, error) {
 }
 
 func (p *Parser) ReadSexpr() (Sexpr, error) {
-	quoted := false
+	var (
+		val Sexpr
+		err error
+	)
+	quotes := 0
 	for p.HasNext() {
 		switch p.Head() {
 		case '\'':
-			quoted = true
+			quotes++
 			p.pos++
 		case '(':
-			pair, err := p.ReadPair()
-			if quoted {
-				return quote(pair), nil
+			val, err = p.ReadPair()
+			for i := 0; i < quotes; i++ {
+				val = quote(val)
 			}
-			return pair, err
+			return val, err
 		case ')':
 			return nil, fmt.Errorf("unexpected )")
 		default:
-			atom, err := p.ReadAtomValue()
-			if quoted {
-				return quote(atom), nil
+			val, err = p.ReadAtomValue()
+			for i := 0; i < quotes; i++ {
+				val = quote(val)
 			}
-			return atom, err
+			return val, err
 		}
 	}
 	return nil, io.EOF

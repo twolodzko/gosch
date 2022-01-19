@@ -10,27 +10,28 @@ import (
 func Test_Parse(t *testing.T) {
 	var testCases = []struct {
 		input    string
-		expected []Sexpr
+		expected Sexpr
 	}{
-		{"", nil},
-		{"a", []Sexpr{"a"}},
-		{"42", []Sexpr{42}},
-		{"-100", []Sexpr{-100}},
-		{"nil", []Sexpr{"nil"}},
-		{"#t #f", []Sexpr{Bool(true), Bool(false)}},
-		{"()", []Sexpr{&Pair{}}},
-		{"(a)", []Sexpr{&Pair{"a", nil}}},
-		{"(())", []Sexpr{&Pair{&Pair{}, nil}}},
-		{"(1 2 3)", []Sexpr{&Pair{1, &Pair{2, &Pair{3, nil}}}}},
-		{"((1 2) 3)", []Sexpr{&Pair{&Pair{1, &Pair{2, nil}}, &Pair{3, nil}}}},
-		{"(1 (2 3))", []Sexpr{&Pair{1, &Pair{&Pair{2, &Pair{3, nil}}, nil}}}},
-		{"'a", []Sexpr{quote("a")}},
-		{"'(a)", []Sexpr{quote(&Pair{"a", nil})}},
-		{"('a)", []Sexpr{&Pair{quote("a"), nil}}},
-		{"'()", []Sexpr{quote(&Pair{})}},
-		{"  \n\ta", []Sexpr{"a"}},
-		{"\n  \t\n(\n   a\t\n)  ", []Sexpr{&Pair{"a", nil}}},
-		{"1 2 3", []Sexpr{1, 2, 3}},
+		{"a", "a"},
+		{"42", 42},
+		{"-100", -100},
+		{"nil", "nil"},
+		{"#t", Bool(true)},
+		{"#f", Bool(false)},
+		{"()", &Pair{}},
+		{"(a)", &Pair{"a", nil}},
+		{"(())", &Pair{&Pair{}, nil}},
+		{"(1 2 3)", &Pair{1, &Pair{2, &Pair{3, nil}}}},
+		{"((1 2) 3)", &Pair{&Pair{1, &Pair{2, nil}}, &Pair{3, nil}}},
+		{"(1 (2 3))", &Pair{1, &Pair{&Pair{2, &Pair{3, nil}}, nil}}},
+		{"'a", quote("a")},
+		{"'(a)", quote(&Pair{"a", nil})},
+		{"('a)", &Pair{quote("a"), nil}},
+		{"'''a", quote(quote(quote("a")))},
+		{"'()", quote(&Pair{})},
+		{"''()", quote(quote(&Pair{}))},
+		{"  \n\ta", "a"},
+		{"\n  \t\n(\n   a\t\n)  ", &Pair{"a", nil}},
 	}
 
 	for _, tt := range testCases {
@@ -39,9 +40,22 @@ func Test_Parse(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-		if !cmp.Equal(result, tt.expected) {
-			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
+		if !cmp.Equal(result[0], tt.expected) {
+			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result[0])
 		}
+	}
+}
+
+func Test_ParseMany(t *testing.T) {
+	input := "1 2 3"
+	expected := []Sexpr{1, 2, 3}
+	parser := newParser(input)
+	result, err := parser.Read()
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if !cmp.Equal(result, expected) {
+		t.Errorf("for %q expected %v, got: %v", input, expected, result)
 	}
 }
 

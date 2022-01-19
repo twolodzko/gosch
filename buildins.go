@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 func buildin(name string) (func(*Pair) (Any, error), bool) {
@@ -37,6 +39,8 @@ func buildin(name string) (func(*Pair) (Any, error), bool) {
 		return lower, true
 	case ">":
 		return higher, true
+	case "eq?":
+		return eq, true
 	default:
 		return nil, false
 	}
@@ -117,4 +121,11 @@ func (env *Env) Define(args *Pair) (Any, error) {
 	default:
 		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
 	}
+}
+
+func eq(args *Pair) (Any, error) {
+	if !args.HasNext() || args.Next.HasNext() {
+		return nil, errors.New("wrong number of arguments")
+	}
+	return Bool(cmp.Equal(args.This, args.Next.This)), nil
 }

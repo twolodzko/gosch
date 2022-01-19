@@ -163,7 +163,7 @@ func Test_EvalPair(t *testing.T) {
 		},
 		{
 			&Pair{Sexpr{"cdr", false}, &Pair{Sexpr{&Pair{Sexpr{"a", false}, nil}, true}, nil}},
-			Sexpr{&Pair{}, false},
+			Sexpr{},
 		},
 		{
 			&Pair{Sexpr{"cdr", false},
@@ -282,10 +282,14 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"'()", "()"},
 		{"'(1 2 3)", "(1 2 3)"},
 		{"'(1 (((2)) 3))", "(1 (((2)) 3))"},
+		{"(car '())", "<nil>"},
 		{"(car '(1 2 3))", "1"},
+		{"(car '((a) b c d))", "(a)"},
 		{"(cdr '(1 2 3))", "(2 3)"},
 		{"(car (cdr '(1 2 3)))", "2"},
 		{"(cdr '())", "<nil>"},
+		{"(cdr '((a) b c d))", "(b c d)"},
+		{"(cdr '(a b))", "b"},
 		{"(cons 1 '())", "(1)"},
 		{"(cons 1 2)", "(1 2)"},
 		{"(cons 1 '(2 3))", "(1 2 3)"},

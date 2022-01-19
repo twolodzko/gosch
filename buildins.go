@@ -39,10 +39,10 @@ func cdr(args *Pair) (Sexpr, error) {
 	switch val := args.This.Value.(type) {
 	case *Pair:
 		switch {
-		case val.IsNull():
-			return Sexpr{}, nil
 		case val.Next == nil:
-			return Sexpr{&Pair{}, false}, nil
+			return Sexpr{}, nil
+		case val.Next.Next == nil:
+			return val.Next.This, nil
 		default:
 			return Sexpr{val.Next, false}, nil
 		}

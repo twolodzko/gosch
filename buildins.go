@@ -19,6 +19,8 @@ func buildin(name string) (func(*Pair) (Sexpr, error), bool) {
 		return cons, true
 	case "list":
 		return list, true
+	case "not":
+		return not, true
 	default:
 		return nil, false
 	}
@@ -81,6 +83,10 @@ func cons(args *Pair) (Sexpr, error) {
 
 func list(args *Pair) (Sexpr, error) {
 	return Sexpr{args, false}, nil
+}
+
+func not(args *Pair) (Sexpr, error) {
+	return Sexpr{!args.This.IsTrue(), false}, nil
 }
 
 func (env *Env) Define(args *Pair) (Sexpr, error) {

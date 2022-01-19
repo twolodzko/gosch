@@ -219,6 +219,18 @@ func Test_EvalPair(t *testing.T) {
 			&Pair{Sexpr{"list", false}, &Pair{Sexpr{1, false}, &Pair{Sexpr{2, false}, &Pair{Sexpr{3, false}, nil}}}},
 			Sexpr{&Pair{Sexpr{1, false}, &Pair{Sexpr{2, false}, &Pair{Sexpr{3, false}, nil}}}, false},
 		},
+		{
+			&Pair{Sexpr{"not", false}, &Pair{Sexpr{Bool(false), false}, nil}},
+			Sexpr{Bool(true), false},
+		},
+		{
+			&Pair{Sexpr{"not", false}, &Pair{Sexpr{Bool(true), false}, nil}},
+			Sexpr{Bool(false), false},
+		},
+		{
+			&Pair{Sexpr{"not", false}, &Pair{Sexpr{3, false}, nil}},
+			Sexpr{Bool(false), false},
+		},
 	}
 
 	env := NewEnv()
@@ -276,6 +288,10 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(list 1)", "(1)"},
 		{"(list 1 2 3)", "(1 2 3)"},
 		{"(list '(1) 2 3)", "((1) 2 3)"},
+		{"(not #t)", "#f"},
+		{"(not 3)", "#f"},
+		{"(not (list 3))", "#f"},
+		{"(not #f)", "#t"},
 	}
 
 	for _, tt := range testCases {

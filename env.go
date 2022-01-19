@@ -3,19 +3,19 @@ package main
 import "fmt"
 
 type Env struct {
-	vars map[string]Sexpr
+	vars map[string]Any
 }
 
 func NewEnv() *Env {
-	vars := make(map[string]Sexpr)
+	vars := make(map[string]Any)
 	return &Env{vars}
 }
 
-func (e *Env) Set(name string, value Sexpr) {
+func (e *Env) Set(name string, value Any) {
 	e.vars[name] = value
 }
 
-func (e *Env) Get(name string) (Sexpr, error) {
+func (e *Env) Get(name string) (Any, error) {
 	value, ok := e.vars[name]
 	if !ok {
 		return nil, fmt.Errorf("unbound variable %v", name)
@@ -23,7 +23,7 @@ func (e *Env) Get(name string) (Sexpr, error) {
 	return value, nil
 }
 
-func (env *Env) Eval(sexpr Sexpr) (Sexpr, error) {
+func (env *Env) Eval(sexpr Any) (Any, error) {
 	var err error
 	for {
 		switch val := sexpr.(type) {
@@ -43,7 +43,7 @@ func (env *Env) Eval(sexpr Sexpr) (Sexpr, error) {
 func (env *Env) EvalAll(pair *Pair) (*Pair, error) {
 	var (
 		head *Pair
-		args []Sexpr
+		args []Any
 	)
 	head = pair
 	for head != nil {
@@ -58,14 +58,14 @@ func (env *Env) EvalAll(pair *Pair) (*Pair, error) {
 	return newPair(args), nil
 }
 
-func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
+func (env *Env) EvalPair(pair *Pair) (Any, error) {
 	if pair.IsNull() {
 		return &Pair{}, nil
 	}
 
 	var (
 		err   error
-		first Sexpr = pair.This
+		first Any = pair.This
 	)
 	for {
 		name, ok := first.(string)

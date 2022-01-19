@@ -9,13 +9,13 @@ import (
 
 func Test_newPair(t *testing.T) {
 	var testCases = []struct {
-		input    []Sexpr
+		input    []Any
 		expected *Pair
 	}{
-		{[]Sexpr{}, &Pair{}},
-		{[]Sexpr{1}, &Pair{1, nil}},
-		{[]Sexpr{1, 2}, &Pair{1, &Pair{2, nil}}},
-		{[]Sexpr{1, 2, 3}, &Pair{1, &Pair{2, &Pair{3, nil}}}},
+		{[]Any{}, &Pair{}},
+		{[]Any{1}, &Pair{1, nil}},
+		{[]Any{1, 2}, &Pair{1, &Pair{2, nil}}},
+		{[]Any{1, 2, 3}, &Pair{1, &Pair{2, &Pair{3, nil}}}},
 	}
 
 	for _, tt := range testCases {
@@ -46,7 +46,7 @@ func Test_PairString(t *testing.T) {
 
 func Test_Cons(t *testing.T) {
 	var testCases = []struct {
-		value    Sexpr
+		value    Any
 		pair     *Pair
 		expected *Pair
 	}{
@@ -65,7 +65,7 @@ func Test_Cons(t *testing.T) {
 
 func Test_String(t *testing.T) {
 	var testCases = []struct {
-		input    Sexpr
+		input    Any
 		expected string
 	}{
 		{Pair{"a", nil}, "(a)"},
@@ -83,7 +83,7 @@ func Test_String(t *testing.T) {
 
 func Test_IsTrue(t *testing.T) {
 	var testCases = []struct {
-		input    Sexpr
+		input    Any
 		expected Bool
 	}{
 		{nil, true},
@@ -91,7 +91,7 @@ func Test_IsTrue(t *testing.T) {
 		{Bool(false), false},
 		{quote(Bool(true)), true},
 		// FIXME ?
-		// {quote(Sexpr{Bool(false)}), false},
+		// {quote(Bool(false)), false},
 		{quote(&Pair{}), true},
 		{quote(&Pair{1, &Pair{2, nil}}), true},
 		{0, true},

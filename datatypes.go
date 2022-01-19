@@ -3,10 +3,10 @@ package main
 import "fmt"
 
 type Bool bool
-type Sexpr = interface{}
+type Any = interface{}
 
 type Pair struct {
-	This Sexpr
+	This Any
 	Next *Pair
 }
 
@@ -18,7 +18,7 @@ func (p Pair) IsNull() Bool {
 	return p == (Pair{})
 }
 
-func (p *Pair) Cons(sexpr Sexpr) *Pair {
+func (p *Pair) Cons(sexpr Any) *Pair {
 	if p.IsNull() {
 		return &Pair{sexpr, nil}
 	}
@@ -42,7 +42,7 @@ func (p Pair) String() string {
 	return fmt.Sprintf("(%s)", elems)
 }
 
-func newPair(elems []Sexpr) *Pair {
+func newPair(elems []Any) *Pair {
 	switch len(elems) {
 	case 0:
 		return &Pair{}
@@ -62,7 +62,7 @@ func (b Bool) String() string {
 	return "#f"
 }
 
-func IsTrue(s Sexpr) Bool {
+func IsTrue(s Any) Bool {
 	switch val := s.(type) {
 	case Bool:
 		return val

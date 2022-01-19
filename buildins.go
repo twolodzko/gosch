@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func buildin(name string) (func(*Pair) (Sexpr, error), bool) {
+func buildin(name string) (func(*Pair) (Any, error), bool) {
 	switch name {
 	case "car":
 		return car, true
@@ -26,7 +26,7 @@ func buildin(name string) (func(*Pair) (Sexpr, error), bool) {
 	}
 }
 
-func car(args *Pair) (Sexpr, error) {
+func car(args *Pair) (Any, error) {
 	switch val := args.This.(type) {
 	case *Pair:
 		return val.This, nil
@@ -35,7 +35,7 @@ func car(args *Pair) (Sexpr, error) {
 	}
 }
 
-func cdr(args *Pair) (Sexpr, error) {
+func cdr(args *Pair) (Any, error) {
 	switch val := args.This.(type) {
 	case *Pair:
 		switch {
@@ -51,7 +51,7 @@ func cdr(args *Pair) (Sexpr, error) {
 	}
 }
 
-func isNull(args *Pair) (Sexpr, error) {
+func isNull(args *Pair) (Any, error) {
 	switch val := args.This.(type) {
 	case *Pair:
 		return val.IsNull(), nil
@@ -60,7 +60,7 @@ func isNull(args *Pair) (Sexpr, error) {
 	}
 }
 
-func isPair(args *Pair) (Sexpr, error) {
+func isPair(args *Pair) (Any, error) {
 	switch val := args.This.(type) {
 	case *Pair:
 		return !val.IsNull(), nil
@@ -69,7 +69,7 @@ func isPair(args *Pair) (Sexpr, error) {
 	}
 }
 
-func cons(args *Pair) (Sexpr, error) {
+func cons(args *Pair) (Any, error) {
 	if !args.HasNext() || args.Next.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -81,15 +81,15 @@ func cons(args *Pair) (Sexpr, error) {
 	}
 }
 
-func list(args *Pair) (Sexpr, error) {
+func list(args *Pair) (Any, error) {
 	return args, nil
 }
 
-func not(args *Pair) (Sexpr, error) {
+func not(args *Pair) (Any, error) {
 	return !IsTrue(args.This), nil
 }
 
-func (env *Env) Define(args *Pair) (Sexpr, error) {
+func (env *Env) Define(args *Pair) (Any, error) {
 	switch name := args.This.(type) {
 	case string:
 		val, err := env.Eval(args.Next.This)

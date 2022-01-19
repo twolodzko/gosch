@@ -10,7 +10,7 @@ import (
 func Test_EnvGet(t *testing.T) {
 	var testCases = []struct {
 		name  string
-		value Sexpr
+		value Any
 	}{
 		{"a", "xxx"},
 		{"b", 42},
@@ -35,7 +35,7 @@ func Test_EnvGet(t *testing.T) {
 func Test_EnvGetUnbound(t *testing.T) {
 	var values = []struct {
 		name  string
-		value Sexpr
+		value Any
 	}{
 		{"a", "xxx"},
 		{"b", 42},
@@ -52,8 +52,8 @@ func Test_EnvGetUnbound(t *testing.T) {
 	}
 }
 
-func Test_QuotedSexprEval(t *testing.T) {
-	var testCases = []Sexpr{
+func Test_QuotedEval(t *testing.T) {
+	var testCases = []Any{
 		"a",
 		Pair{},
 		Pair{quote("a"), nil},
@@ -84,11 +84,11 @@ func Test_EvalDoesntMutate(t *testing.T) {
 }
 
 func Test_EvalExpectError(t *testing.T) {
-	var testCases = []Sexpr{
+	var testCases = []Any{
 		"a",
 		&Pair{"a", nil},
 		// FIXME
-		// {&Pair{Sexpr{"quote"}, nil}},
+		// {&Pair{"quote", nil}},
 	}
 	for _, input := range testCases {
 		env := NewEnv()
@@ -100,8 +100,8 @@ func Test_EvalExpectError(t *testing.T) {
 
 func Test_Eval(t *testing.T) {
 	var testCases = []struct {
-		input    Sexpr
-		expected Sexpr
+		input    Any
+		expected Any
 	}{
 		{nil, nil},
 		{quote("a"), "a"},
@@ -133,7 +133,7 @@ func Test_Eval(t *testing.T) {
 func Test_EvalPair(t *testing.T) {
 	var testCases = []struct {
 		input    *Pair
-		expected Sexpr
+		expected Any
 	}{
 		{
 			&Pair{}, &Pair{},
@@ -245,8 +245,8 @@ func Test_EvalPair(t *testing.T) {
 }
 
 func Test_EvalAll(t *testing.T) {
-	input := newPair([]Sexpr{quote("a"), quote("b")})
-	expected := newPair([]Sexpr{"a", "b"})
+	input := newPair([]Any{quote("a"), quote("b")})
+	expected := newPair([]Any{"a", "b"})
 	env := NewEnv()
 
 	result, err := env.EvalAll(input)
@@ -258,7 +258,7 @@ func Test_EvalAll(t *testing.T) {
 	}
 
 	// Eval should not mutate the input
-	inputCopy := newPair([]Sexpr{quote("a"), quote("b")})
+	inputCopy := newPair([]Any{quote("a"), quote("b")})
 	if !cmp.Equal(input, inputCopy) {
 		t.Errorf("input %v has changed to %v", inputCopy, input)
 	}

@@ -58,7 +58,7 @@ func isInt(str string) bool {
 
 func (p *Parser) ReadPair() (*Pair, error) {
 	p.pos++
-	var sexprs []Sexpr
+	var sexprs []Any
 	for p.HasNext() {
 		switch {
 		case unicode.IsSpace(p.Head()):
@@ -77,9 +77,9 @@ func (p *Parser) ReadPair() (*Pair, error) {
 	return nil, fmt.Errorf("pair was not closed with )")
 }
 
-func (p *Parser) ReadSexpr() (Sexpr, error) {
+func (p *Parser) ReadSexpr() (Any, error) {
 	var (
-		val Sexpr
+		val Any
 		err error
 	)
 	quotes := 0
@@ -107,8 +107,8 @@ func (p *Parser) ReadSexpr() (Sexpr, error) {
 	return nil, io.EOF
 }
 
-func (p *Parser) Read() ([]Sexpr, error) {
-	var sexprs []Sexpr
+func (p *Parser) Read() ([]Any, error) {
+	var sexprs []Any
 	for p.HasNext() {
 		if unicode.IsSpace(p.Head()) {
 			p.pos++
@@ -123,6 +123,6 @@ func (p *Parser) Read() ([]Sexpr, error) {
 	return sexprs, nil
 }
 
-func quote(sexpr Sexpr) Sexpr {
+func quote(sexpr Any) Any {
 	return &Pair{"quote", &Pair{sexpr, nil}}
 }

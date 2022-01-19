@@ -62,7 +62,7 @@ func (b Bool) String() string {
 	return "#f"
 }
 
-func IsTrue(s Any) Bool {
+func isTrue(s Any) Bool {
 	switch val := s.(type) {
 	case Bool:
 		return val

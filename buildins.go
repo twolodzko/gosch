@@ -3,8 +3,6 @@ package main
 import (
 	"errors"
 	"fmt"
-
-	"github.com/google/go-cmp/cmp"
 )
 
 func buildin(name string) (func(*Pair) (Any, error), bool) {
@@ -23,6 +21,12 @@ func buildin(name string) (func(*Pair) (Any, error), bool) {
 		return list, true
 	case "not":
 		return not, true
+	case "eq?":
+		return eq, true
+	case "and":
+		return and, true
+	case "or":
+		return or, true
 	case "+":
 		return sum, true
 	case "-":
@@ -39,8 +43,6 @@ func buildin(name string) (func(*Pair) (Any, error), bool) {
 		return lower, true
 	case ">":
 		return higher, true
-	case "eq?":
-		return eq, true
 	default:
 		return nil, false
 	}
@@ -106,12 +108,40 @@ func list(args *Pair) (Any, error) {
 }
 
 func not(args *Pair) (Any, error) {
-	return !IsTrue(args.This), nil
+	return !isTrue(args.This), nil
 }
 
 func eq(args *Pair) (Any, error) {
 	if !args.HasNext() || args.Next.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
-	return Bool(cmp.Equal(args.This, args.Next.This)), nil
+	return Bool(args.This == args.Next.This), nil
+}
+
+func and(args *Pair) (Any, error) {
+	if args.This == nil {
+		return Bool(true), nil
+	}
+	head := args
+	for head != nil {
+		if !isTrue(head.This) {
+			return Bool(false), nil
+		}
+		head = head.Next
+	}
+	return Bool(true), nil
+}
+
+func or(args *Pair) (Any, error) {
+	if args.This == nil {
+		return Bool(true), nil
+	}
+	head := args
+	for head != nil {
+		if isTrue(head.This) {
+			return Bool(true), nil
+		}
+		head = head.Next
+	}
+	return Bool(false), nil
 }

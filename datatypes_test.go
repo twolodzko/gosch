@@ -99,7 +99,7 @@ func Test_IsTrue(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		result := IsTrue(tt.input)
+		result := isTrue(tt.input)
 		if result != tt.expected {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
 		}

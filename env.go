@@ -28,7 +28,7 @@ func (env *Env) Eval(sexpr Any) (Any, error) {
 	for {
 		switch val := sexpr.(type) {
 		case *Pair:
-			return env.EvalPair(val)
+			return env.evalPair(val)
 		case string:
 			sexpr, err = env.Get(val)
 			if err != nil {
@@ -40,7 +40,7 @@ func (env *Env) Eval(sexpr Any) (Any, error) {
 	}
 }
 
-func (env *Env) EvalAll(pair *Pair) (*Pair, error) {
+func (env *Env) evalAll(pair *Pair) (*Pair, error) {
 	var (
 		head *Pair
 		args []Any
@@ -58,7 +58,7 @@ func (env *Env) EvalAll(pair *Pair) (*Pair, error) {
 	return newPair(args), nil
 }
 
-func (env *Env) EvalPair(pair *Pair) (Any, error) {
+func (env *Env) evalPair(pair *Pair) (Any, error) {
 	if pair.IsNull() {
 		return &Pair{}, nil
 	}
@@ -75,12 +75,12 @@ func (env *Env) EvalPair(pair *Pair) (Any, error) {
 
 		switch name {
 		case "define":
-			return env.Define(pair.Next)
+			return env.define(pair.Next)
 		case "quote":
 			return pair.Next.This, nil
 		default:
 			if fn, ok := buildin(name); ok {
-				args, err := env.EvalAll(pair.Next)
+				args, err := env.evalAll(pair.Next)
 				if err != nil {
 					return nil, err
 				}

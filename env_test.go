@@ -234,7 +234,7 @@ func Test_EvalPair(t *testing.T) {
 
 	env := NewEnv()
 	for _, tt := range testCases {
-		result, err := env.EvalPair(tt.input)
+		result, err := env.evalPair(tt.input)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -249,7 +249,7 @@ func Test_EvalAll(t *testing.T) {
 	expected := newPair([]Any{"a", "b"})
 	env := NewEnv()
 
-	result, err := env.EvalAll(input)
+	result, err := env.evalAll(input)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}

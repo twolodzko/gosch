@@ -92,7 +92,7 @@ func Test_ReadAtomValue(t *testing.T) {
 
 	for _, tt := range testCases {
 		parser := newParser(tt.input)
-		result, err := parser.ReadAtomValue()
+		result, err := parser.readAtomValue()
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}

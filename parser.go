@@ -25,7 +25,23 @@ func (p *Parser) Head() rune {
 	return p.str[p.pos]
 }
 
-func (p *Parser) ReadAtomValue() (interface{}, error) {
+func (p *Parser) Read() ([]Any, error) {
+	var sexprs []Any
+	for p.HasNext() {
+		if unicode.IsSpace(p.Head()) {
+			p.pos++
+		} else {
+			sexpr, err := p.readSexpr()
+			if err != nil {
+				return nil, err
+			}
+			sexprs = append(sexprs, sexpr)
+		}
+	}
+	return sexprs, nil
+}
+
+func (p *Parser) readAtomValue() (interface{}, error) {
 	var runes []rune
 	for p.HasNext() {
 		if unicode.IsSpace(p.Head()) || p.Head() == '(' || p.Head() == ')' {
@@ -56,7 +72,7 @@ func isInt(str string) bool {
 	return matched
 }
 
-func (p *Parser) ReadPair() (*Pair, error) {
+func (p *Parser) readPair() (*Pair, error) {
 	p.pos++
 	var sexprs []Any
 	for p.HasNext() {
@@ -67,7 +83,7 @@ func (p *Parser) ReadPair() (*Pair, error) {
 			p.pos++
 			return newPair(sexprs), nil
 		default:
-			elem, err := p.ReadSexpr()
+			elem, err := p.readSexpr()
 			if err != nil {
 				return nil, err
 			}
@@ -77,7 +93,7 @@ func (p *Parser) ReadPair() (*Pair, error) {
 	return nil, fmt.Errorf("pair was not closed with )")
 }
 
-func (p *Parser) ReadSexpr() (Any, error) {
+func (p *Parser) readSexpr() (Any, error) {
 	var (
 		val Any
 		err error
@@ -89,7 +105,7 @@ func (p *Parser) ReadSexpr() (Any, error) {
 			quotes++
 			p.pos++
 		case '(':
-			val, err = p.ReadPair()
+			val, err = p.readPair()
 			for i := 0; i < quotes; i++ {
 				val = quote(val)
 			}
@@ -97,7 +113,7 @@ func (p *Parser) ReadSexpr() (Any, error) {
 		case ')':
 			return nil, fmt.Errorf("unexpected )")
 		default:
-			val, err = p.ReadAtomValue()
+			val, err = p.readAtomValue()
 			for i := 0; i < quotes; i++ {
 				val = quote(val)
 			}
@@ -105,22 +121,6 @@ func (p *Parser) ReadSexpr() (Any, error) {
 		}
 	}
 	return nil, io.EOF
-}
-
-func (p *Parser) Read() ([]Any, error) {
-	var sexprs []Any
-	for p.HasNext() {
-		if unicode.IsSpace(p.Head()) {
-			p.pos++
-		} else {
-			sexpr, err := p.ReadSexpr()
-			if err != nil {
-				return nil, err
-			}
-			sexprs = append(sexprs, sexpr)
-		}
-	}
-	return sexprs, nil
 }
 
 func quote(sexpr Any) Any {

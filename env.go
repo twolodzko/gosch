@@ -18,7 +18,7 @@ func (e *Env) Set(name string, value Sexpr) {
 func (e *Env) Get(name string) (Sexpr, error) {
 	value, ok := e.vars[name]
 	if !ok {
-		return Sexpr{}, fmt.Errorf("unbound variable %v", name)
+		return nil, fmt.Errorf("unbound variable %v", name)
 	}
 	return value, nil
 }
@@ -26,13 +26,13 @@ func (e *Env) Get(name string) (Sexpr, error) {
 func (env *Env) Eval(sexpr Sexpr) (Sexpr, error) {
 	var err error
 	for {
-		switch val := sexpr.Value.(type) {
+		switch val := sexpr.(type) {
 		case *Pair:
 			return env.EvalPair(val)
 		case string:
 			sexpr, err = env.Get(val)
 			if err != nil {
-				return Sexpr{}, err
+				return nil, err
 			}
 		default:
 			return sexpr, nil
@@ -60,7 +60,7 @@ func (env *Env) EvalArgs(pair *Pair) (*Pair, error) {
 
 func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 	if pair.IsNull() {
-		return Sexpr{&Pair{}}, nil
+		return &Pair{}, nil
 	}
 
 	var (
@@ -68,9 +68,9 @@ func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 		first Sexpr = pair.This
 	)
 	for {
-		name, ok := first.Value.(string)
+		name, ok := first.(string)
 		if !ok {
-			return Sexpr{}, fmt.Errorf("%v is not callable", first)
+			return nil, fmt.Errorf("%v is not callable", first)
 		}
 
 		switch name {
@@ -82,13 +82,13 @@ func (env *Env) EvalPair(pair *Pair) (Sexpr, error) {
 			if fn, ok := buildin(name); ok {
 				args, err := env.EvalArgs(pair)
 				if err != nil {
-					return Sexpr{}, err
+					return nil, err
 				}
 				return fn(args)
 			} else {
 				first, err = env.Get(name)
 				if err != nil {
-					return Sexpr{}, err
+					return nil, err
 				}
 			}
 		}

@@ -5,7 +5,7 @@ import (
 	"fmt"
 )
 
-func buildin(name string) (func(*Pair) (Any, error), bool) {
+func procedure(name string) (func(*Pair) (Any, error), bool) {
 	switch name {
 	case "car":
 		return car, true

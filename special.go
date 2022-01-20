@@ -2,10 +2,10 @@ package main
 
 import "fmt"
 
-func (env *Env) define(args *Pair) (Any, error) {
+func define(args *Pair, env *Env) (Any, error) {
 	switch name := args.This.(type) {
 	case string:
-		val, err := env.Eval(args.Next.This)
+		val, err := Eval(args.Next.This, env)
 		if err != nil {
 			return nil, err
 		}

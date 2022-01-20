@@ -16,6 +16,7 @@ func (e *Env) Set(name string, value Any) {
 	e.vars[name] = value
 }
 
+// Find an enclosing environment for the variable
 func (e *Env) FindEnv(name string) (*Env, bool) {
 	current := e
 	for current != nil {

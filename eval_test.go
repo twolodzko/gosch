@@ -348,6 +348,25 @@ func Test_Define(t *testing.T) {
 	}
 }
 
+func Test_LetBindsLocally(t *testing.T) {
+	env := NewEnv()
+
+	parser := newParser("(let ((x 3)) (+ x 5))")
+	sexprs, err := parser.Read()
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	_, err = Eval(sexprs[0], env)
+	if err != nil {
+		t.Errorf("evaluating %v resulted in an unexpected error: %v", sexprs[0], err)
+	}
+	// we don't expect this variable to be set in parent env
+	if _, found := env.vars["x"]; found {
+		t.Errorf("let assigned variable to parent env: %v", env)
+	}
+}
+
 func Test_QuoteDoesntMutate(t *testing.T) {
 	example := quote("a")
 	env := NewEnv()

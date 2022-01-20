@@ -48,8 +48,23 @@ func let(args *Pair, env *Env) (Any, error) {
 	}
 	body := args.Next
 
-	pair, err := evalAll(body, local)
-	return pair.Last(), err
+	last, local, err := partialEval(body, local)
+	if err != nil {
+		return nil, err
+	}
+	return Eval(last, local)
+}
+
+func partialEval(args *Pair, env *Env) (Any, *Env, error) {
+	current := args
+	for current.HasNext() {
+		_, err := Eval(current.This, env)
+		if err != nil {
+			return nil, nil, err
+		}
+		current = current.Next
+	}
+	return current.This, env, nil
 }
 
 // func lambda(args *Pair, env *Env) (Any, error) {

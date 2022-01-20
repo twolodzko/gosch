@@ -50,3 +50,29 @@ func Test_EnvGetUnbound(t *testing.T) {
 		t.Errorf("expected unbound variable error, got %v", err)
 	}
 }
+
+func Test_NestedEnvGet(t *testing.T) {
+	parent := NewEnv()
+	parent.Set("x", 1)
+	sybling := NewEnv()
+	sybling.parent = parent
+	sybling.Set("y", 2)
+
+	var testCases = []struct {
+		name     string
+		expected Any
+	}{
+		{"x", 1},
+		{"y", 2},
+	}
+
+	for _, tt := range testCases {
+		result, err := sybling.Get(tt.name)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if !cmp.Equal(result, tt.expected) {
+			t.Errorf("for %q expected %v, got: %v", tt.name, tt.expected, result)
+		}
+	}
+}

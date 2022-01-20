@@ -293,6 +293,10 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(or #t #t)", "#t"},
 		{"(or #f #f #f #f)", "#f"},
 		{"(or (< 10 2) (< 2 3))", "#t"},
+		{"(let ((x 1)) (+ x 2))", "3"},
+		{"(let ((x 5) (y 4)) (+ x y))", "9"},
+		{"(let ((l '(1 2 3)) (y 5)) (/ (+ (car l) y) 2))", "3"},
+		// {"((lambda (x) (+ x 2)) 3)", "5"},
 	}
 
 	for _, tt := range testCases {

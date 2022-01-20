@@ -63,6 +63,24 @@ func Test_Cons(t *testing.T) {
 	}
 }
 
+func Test_PairLast(t *testing.T) {
+	var testCases = []struct {
+		input    *Pair
+		expected Any
+	}{
+		{&Pair{}, nil},
+		{&Pair{1, &Pair{2, &Pair{3, nil}}}, 3},
+		{&Pair{1, &Pair{2, &Pair{&Pair{}, nil}}}, &Pair{}},
+	}
+
+	for _, tt := range testCases {
+		result := tt.input.Last()
+		if !cmp.Equal(result, tt.expected) {
+			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
+		}
+	}
+}
+
 func Test_String(t *testing.T) {
 	var testCases = []struct {
 		input    Any

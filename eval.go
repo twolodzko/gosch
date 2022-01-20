@@ -57,6 +57,8 @@ func evalPair(pair *Pair, env *Env) (Any, error) {
 			return define(pair.Next, env)
 		case "quote":
 			return pair.Next.This, nil
+		case "let":
+			return let(pair.Next, env)
 		default:
 			if fn, ok := procedure(name); ok {
 				args, err := evalAll(pair.Next, env)

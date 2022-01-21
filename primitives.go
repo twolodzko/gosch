@@ -30,24 +30,6 @@ func cdr(args *Pair) (Any, error) {
 	}
 }
 
-func isNull(args *Pair) (Any, error) {
-	switch val := args.This.(type) {
-	case *Pair:
-		return val.IsNull(), nil
-	default:
-		return Bool(false), nil
-	}
-}
-
-func isPair(args *Pair) (Any, error) {
-	switch val := args.This.(type) {
-	case *Pair:
-		return !val.IsNull(), nil
-	default:
-		return Bool(false), nil
-	}
-}
-
 func cons(args *Pair) (Any, error) {
 	if !args.HasNext() || args.Next.HasNext() {
 		return nil, errors.New("wrong number of arguments")
@@ -114,6 +96,51 @@ func define(args *Pair, env *Env) (Any, error) {
 		return val, nil
 	default:
 		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
+	}
+}
+
+func isNull(args *Pair) (Any, error) {
+	switch val := args.This.(type) {
+	case *Pair:
+		return val.IsNull(), nil
+	default:
+		return Bool(false), nil
+	}
+}
+
+func isPair(args *Pair) (Any, error) {
+	switch val := args.This.(type) {
+	case *Pair:
+		return !val.IsNull(), nil
+	default:
+		return Bool(false), nil
+	}
+}
+
+func isNumber(args *Pair) (Any, error) {
+	switch args.This.(type) {
+	case int:
+		return Bool(true), nil
+	default:
+		return Bool(false), nil
+	}
+}
+
+func isBool(args *Pair) (Any, error) {
+	switch args.This.(type) {
+	case Bool:
+		return Bool(true), nil
+	default:
+		return Bool(false), nil
+	}
+}
+
+func isSymbol(args *Pair) (Any, error) {
+	switch args.This.(type) {
+	case string:
+		return Bool(true), nil
+	default:
+		return Bool(false), nil
 	}
 }
 

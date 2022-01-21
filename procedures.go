@@ -12,10 +12,6 @@ func procedure(name string) (Procedure, bool) {
 		fn = car
 	case "cdr":
 		fn = cdr
-	case "null?":
-		fn = isNull
-	case "pair?":
-		fn = isPair
 	case "cons":
 		fn = cons
 	case "list":
@@ -36,7 +32,7 @@ func procedure(name string) (Procedure, bool) {
 		fn = mul
 	case "/":
 		fn = div
-	case "modulo":
+	case "%":
 		fn = mod
 	case "=":
 		fn = equal
@@ -54,6 +50,16 @@ func procedure(name string) (Procedure, bool) {
 		}, true
 	case "lambda":
 		return newLambda, true
+	case "null?":
+		fn = isNull
+	case "pair?":
+		fn = isPair
+	case "number?":
+		fn = isNumber
+	case "boolean?":
+		fn = isBool
+	case "symbol?":
+		fn = isSymbol
 	default:
 		return nil, false
 	}

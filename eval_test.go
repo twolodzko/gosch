@@ -269,7 +269,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(/ 1)", "1"},
 		{"(/ 6 3)", "2"},
 		{"(/ 10 5 2)", "1"},
-		{"(modulo 5 2)", "1"},
+		{"(% 5 2)", "1"},
 		{"(=)", "#t"},
 		{"(= 2 2)", "#t"},
 		{"(= 2 2 2)", "#t"},
@@ -305,6 +305,19 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(if #t (+ 2 2))", "4"},
 		{"((lambda (x) x) 3)", "3"},
 		{"((lambda (x) (let ((y 2)) (+ x y))) 3)", "5"},
+		{"(number? 5)", "#t"},
+		{"(number? 'a)", "#f"},
+		{"(number? '())", "#f"},
+		{"(symbol? 'a)", "#t"},
+		{"(symbol? 42)", "#f"},
+		{"(symbol? '())", "#f"},
+		{"(symbol? '(1 2 3))", "#f"},
+		{"(boolean? #t)", "#t"},
+		{"(boolean? #f)", "#t"},
+		{"(boolean? 0)", "#f"},
+		{"(boolean? 1)", "#f"},
+		{"(boolean? '())", "#f"},
+		{"(boolean? '(1 2 3))", "#f"},
 	}
 
 	for _, tt := range testCases {

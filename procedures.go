@@ -1,147 +1,88 @@
 package main
 
-import (
-	"errors"
-	"fmt"
+type (
+	Primitive = func(*Pair) (Any, error)
+	Procedure = func(*Pair, *Env) (Any, error)
+	// TcoProcedure = func(*Pair, *Env) (Any, *Env, error)
 )
 
-func procedure(name string) (func(*Pair) (Any, error), bool) {
+func procedure(name string) (Procedure, bool) {
+	var fn Primitive
 	switch name {
 	case "car":
-		return car, true
+		fn = car
 	case "cdr":
-		return cdr, true
+		fn = cdr
 	case "null?":
-		return isNull, true
+		fn = isNull
 	case "pair?":
-		return isPair, true
+		fn = isPair
 	case "cons":
-		return cons, true
+		fn = cons
 	case "list":
-		return list, true
+		fn = list
 	case "not":
-		return not, true
+		fn = not
 	case "eq?":
-		return eq, true
+		fn = eq
 	case "and":
-		return and, true
+		fn = and
 	case "or":
-		return or, true
+		fn = or
 	case "+":
-		return sum, true
+		fn = sum
 	case "-":
-		return dif, true
+		fn = dif
 	case "*":
-		return mul, true
+		fn = mul
 	case "/":
-		return div, true
+		fn = div
 	case "modulo":
-		return mod, true
+		fn = mod
 	case "=":
-		return equal, true
+		fn = equal
 	case "<":
-		return lower, true
+		fn = lower
 	case ">":
-		return higher, true
+		fn = higher
+	case "define":
+		return define, true
+	case "quote":
+		return func(args *Pair, env *Env) (Any, error) {
+			return args.This, nil
+		}, true
+	case "let":
+		return let, true
 	default:
 		return nil, false
 	}
+	return primitiveWrapper(fn), true
 }
 
-func car(args *Pair) (Any, error) {
-	switch val := args.This.(type) {
-	case *Pair:
-		return val.This, nil
-	default:
-		return nil, fmt.Errorf("%v is not a Pair", args.This)
-	}
-}
-
-func cdr(args *Pair) (Any, error) {
-	switch val := args.This.(type) {
-	case *Pair:
-		switch {
-		case val.Next == nil:
-			return nil, nil
-		case val.Next.Next == nil:
-			return val.Next.This, nil
-		default:
-			return val.Next, nil
+func primitiveWrapper(fn Primitive) Procedure {
+	return func(args *Pair, env *Env) (Any, error) {
+		args, err := evalArgs(args, env)
+		if err != nil {
+			return nil, err
 		}
-	default:
-		return nil, fmt.Errorf("%v is not a Pair", args.This)
+		return fn(args)
 	}
 }
 
-func isNull(args *Pair) (Any, error) {
-	switch val := args.This.(type) {
-	case *Pair:
-		return val.IsNull(), nil
-	default:
-		return Bool(false), nil
-	}
-}
-
-func isPair(args *Pair) (Any, error) {
-	switch val := args.This.(type) {
-	case *Pair:
-		return !val.IsNull(), nil
-	default:
-		return Bool(false), nil
-	}
-}
-
-func cons(args *Pair) (Any, error) {
-	if !args.HasNext() || args.Next.HasNext() {
-		return nil, errors.New("wrong number of arguments")
-	}
-	switch val := args.Next.This.(type) {
-	case *Pair:
-		return val.Cons(args.This), nil
-	default:
-		return list(args)
-	}
-}
-
-func list(args *Pair) (Any, error) {
-	return args, nil
-}
-
-func not(args *Pair) (Any, error) {
-	return !isTrue(args.This), nil
-}
-
-func eq(args *Pair) (Any, error) {
-	if !args.HasNext() || args.Next.HasNext() {
-		return nil, errors.New("wrong number of arguments")
-	}
-	return Bool(args.This == args.Next.This), nil
-}
-
-func and(args *Pair) (Any, error) {
-	if args.This == nil {
-		return Bool(true), nil
-	}
-	head := args
+func evalArgs(pair *Pair, env *Env) (*Pair, error) {
+	var (
+		head *Pair
+		args []Any
+	)
+	head = pair
 	for head != nil {
-		if !isTrue(head.This) {
-			return Bool(false), nil
+		sexpr, err := Eval(head.This, env)
+		if err != nil {
+			return nil, err
 		}
+		args = append(args, sexpr)
 		head = head.Next
 	}
-	return Bool(true), nil
-}
-
-func or(args *Pair) (Any, error) {
-	if args.This == nil {
-		return Bool(true), nil
-	}
-	head := args
-	for head != nil {
-		if isTrue(head.This) {
-			return Bool(true), nil
-		}
-		head = head.Next
-	}
-	return Bool(false), nil
+	// TODO: avoid re-packing
+	return newPair(args), nil
 }

@@ -188,7 +188,7 @@ func Test_EvalPair(t *testing.T) {
 
 	env := NewEnv()
 	for _, tt := range testCases {
-		result, err := evalPair(tt.input, env)
+		result, err := Eval(tt.input, env)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -198,12 +198,12 @@ func Test_EvalPair(t *testing.T) {
 	}
 }
 
-func Test_EvalAll(t *testing.T) {
+func Test_EvalArgs(t *testing.T) {
 	input := newPair([]Any{quote("a"), quote("b")})
 	expected := newPair([]Any{"a", "b"})
 	env := NewEnv()
 
-	result, err := evalAll(input, env)
+	result, err := evalArgs(input, env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -296,6 +296,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(let ((x 1)) (+ x 2))", "3"},
 		{"(let ((x 5) (y 4)) (+ x y))", "9"},
 		{"(let ((l '(1 2 3)) (y 5)) (/ (+ (car l) y) 2))", "3"},
+		{"((car '(+ -)) 3 2)", "5"},
 		// {"((lambda (x) (+ x 2)) 3)", "5"},
 	}
 

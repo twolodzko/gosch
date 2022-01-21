@@ -7,7 +7,15 @@ func Eval(sexpr Any, env *Env) (Any, error) {
 	for {
 		switch val := sexpr.(type) {
 		case *Pair:
-			return evalPair(val, env)
+			if val.IsNull() {
+				return &Pair{}, nil
+			}
+
+			fn, err := getCallable(val.This, env)
+			if err != nil {
+				return nil, err
+			}
+			return fn(val.Next, env)
 		case string:
 			sexpr, err = env.Get(val)
 			if err != nil {
@@ -19,59 +27,43 @@ func Eval(sexpr Any, env *Env) (Any, error) {
 	}
 }
 
-func evalAll(pair *Pair, env *Env) (*Pair, error) {
+func getCallable(sexpr Any, env *Env) (Procedure, error) {
 	var (
-		head *Pair
-		args []Any
+		name string
+		err  error
 	)
-	head = pair
-	for head != nil {
-		sexpr, err := Eval(head.This, env)
+	for {
+		name, err = getName(sexpr, env)
 		if err != nil {
 			return nil, err
 		}
-		args = append(args, sexpr)
-		head = head.Next
+
+		if fn, ok := procedure(name); ok {
+			return fn, nil
+		}
+
+		// get TCO procedure
+		// ...
+
+		sexpr, err = env.Get(name)
+		if err != nil {
+			return nil, err
+		}
 	}
-	// TODO: avoid re-packing
-	return newPair(args), nil
 }
 
-func evalPair(pair *Pair, env *Env) (Any, error) {
-	if pair.IsNull() {
-		return &Pair{}, nil
-	}
-
-	var (
-		err   error
-		first Any = pair.This
-	)
-	for {
-		name, ok := first.(string)
-		if !ok {
-			return nil, fmt.Errorf("%v is not callable", first)
+func getName(sexpr Any, env *Env) (string, error) {
+	switch val := sexpr.(type) {
+	case string:
+		return val, nil
+	default:
+		obj, err := Eval(val, env)
+		if err != nil {
+			return "", err
 		}
-
-		switch name {
-		case "define":
-			return define(pair.Next, env)
-		case "quote":
-			return pair.Next.This, nil
-		case "let":
-			return let(pair.Next, env)
-		default:
-			if fn, ok := procedure(name); ok {
-				args, err := evalAll(pair.Next, env)
-				if err != nil {
-					return nil, err
-				}
-				return fn(args)
-			} else {
-				first, err = env.Get(name)
-				if err != nil {
-					return nil, err
-				}
-			}
+		if name, ok := obj.(string); ok {
+			return name, nil
 		}
+		return "", fmt.Errorf("%v is not callable", obj)
 	}
 }

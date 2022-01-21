@@ -19,8 +19,8 @@ the only available numerical type is integer.
 - `(cons obj1 obj2)` creates pair where *obj1* is car and *obj2* is cdr.
 - `(list obj1 obj2 ...)` is the same as `(cons obj1 (cons obj2 (cons obj3 ...)))`.
 - `(eq? obj1 obj2)` compares if two objects are equal, for pairs only checks if they point to the same memory location.
-- `(define name value)` assigns *value* to *name* in the current environment.
-- `(set! name value)` if *name* exists in the current or enclosing environment, it sets it to *value*, otherwise it assigns *value* to *name* in the current environment.
+- `(define name value)` assigns *value* to a *name* in the current environment.
+- `(set! name value)` if *name* exists in the current or enclosing environment, it sets it to the *value*, otherwise it assigns *value* to a *name* in the current environment.
 - `(quote obj)` returns *obj* without evaluating it.
 - `(lambda (arg1 arg2 ...) obj1 obj2 ...)` defines a [lambda expression] (*aka* function).
 - `(let ((name1 value1) (name2 value2) ...) obj1 obj2 ...)` evaluates *obj1*, *obj2*, ... in the local environment, with *name1*, *name2*, ... variables present; returns the result of evaluating the last *objN* expression.
@@ -29,8 +29,7 @@ the only available numerical type is integer.
 - Logical `(not obj)`, `and`, and `or`, e.g. `(and obj1 obj2 ...)`.
 - Arithmetic operators `+`, `-`, `*`, `/`, e.g. `(+ x1 x2 ...)` and `(% x1 x2)` for modulo.
 - Numerical comparison operators `<`, `=`, `>`, e.g. `(< x1 x2 ...)`.
-- Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `symbol?`.
-- Other checkers: `null?`.
+- Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `symbol?`, and other checkers: `null?`.
 
 
  [pairs]: https://web.mit.edu/scheme_v9.2/doc/mit-scheme-ref/Lists.html#Lists

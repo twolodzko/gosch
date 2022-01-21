@@ -46,6 +46,8 @@ func procedure(name string) (Procedure, bool) {
 		fn = higher
 	case "define":
 		return define, true
+	case "set!":
+		return set, true
 	case "quote":
 		return func(args *Pair, env *Env) (Any, error) {
 			return args.This, nil

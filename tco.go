@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type TcoProcedure = func(*Pair, *Env) (Any, *Env, error)
 
@@ -8,6 +11,8 @@ func tcoProcedure(name string) (TcoProcedure, bool) {
 	switch name {
 	case "let":
 		return let, true
+	case "if":
+		return ifFn, true
 	default:
 		return nil, false
 	}
@@ -56,6 +61,26 @@ func (e *Env) setBindings(bindings *Pair) error {
 		head = head.Next
 	}
 	return nil
+}
+
+func ifFn(args *Pair, env *Env) (Any, *Env, error) {
+	if bool(args.IsNull()) || !args.HasNext() {
+		return nil, env, errors.New("wrong number of arguments")
+	}
+
+	condition, err := Eval(args.This, env)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if isTrue(condition) {
+		return args.Next.This, env, nil
+	} else {
+		if !args.Next.HasNext() {
+			return nil, env, nil
+		}
+		return args.Next.Next.This, env, nil
+	}
 }
 
 // Evaluate all but last args, return last arg and enclosing environment

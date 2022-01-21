@@ -297,6 +297,11 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(let ((x 5) (y 4)) (+ x y))", "9"},
 		{"(let ((l '(1 2 3)) (y 5)) (/ (+ (car l) y) 2))", "3"},
 		{"((car '(+ -)) 3 2)", "5"},
+		{"(if #t 'ok)", "ok"},
+		{"(if #f 'nay)", "<nil>"},
+		{"(if (< 2 5) 'smaller 'bigger)", "smaller"},
+		{"(if (< 8 (+ 2 2)) 'smaller 'bigger)", "bigger"},
+		{"(if #t (+ 2 2))", "4"},
 		// {"((lambda (x) (+ x 2)) 3)", "5"},
 	}
 

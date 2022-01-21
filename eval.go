@@ -2,6 +2,23 @@ package main
 
 import "fmt"
 
+func EvalString(code string, env *Env) ([]Any, *Env, error) {
+	var out []Any
+	parser := newParser(code)
+	sexprs, err := parser.Read()
+	if err != nil {
+		return nil, env, err
+	}
+	for _, sexpr := range sexprs {
+		result, err := Eval(sexpr, env)
+		if err != nil {
+			return nil, env, err
+		}
+		out = append(out, result)
+	}
+	return out, env, err
+}
+
 func Eval(sexpr Any, env *Env) (Any, error) {
 	var err error
 	for {

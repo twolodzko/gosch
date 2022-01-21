@@ -2,8 +2,10 @@ package main
 
 import "fmt"
 
-type Bool bool
-type Any = interface{}
+type (
+	Bool bool
+	Any  = interface{}
+)
 
 type Pair struct {
 	This Any

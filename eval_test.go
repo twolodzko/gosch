@@ -303,7 +303,8 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(if (< 2 5) 'smaller 'bigger)", "smaller"},
 		{"(if (< 8 (+ 2 2)) 'smaller 'bigger)", "bigger"},
 		{"(if #t (+ 2 2))", "4"},
-		// {"((lambda (x) (+ x 2)) 3)", "5"},
+		{"((lambda (x) x) 3)", "3"},
+		{"((lambda (x) (let ((y 2)) (+ x y))) 3)", "5"},
 	}
 
 	for _, tt := range testCases {
@@ -386,5 +387,26 @@ func Test_QuoteDoesntMutate(t *testing.T) {
 	}
 	if !cmp.Equal(example, quote("a")) {
 		t.Errorf("object mutated %v", example)
+	}
+}
+
+func Test_newLambda(t *testing.T) {
+	env := NewEnv()
+	expected := Lambda{
+		[]string{"x", "y"},
+		&Pair{"+", &Pair{&Pair{"x", &Pair{"y", nil}}, nil}},
+	}
+	result, err := newLambda(
+		&Pair{
+			&Pair{"x", &Pair{"y", nil}},
+			&Pair{"+", &Pair{&Pair{"x", &Pair{"y", nil}}, nil}},
+		},
+		env,
+	)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if !cmp.Equal(result, expected) {
+		t.Errorf("expected: %v, got %v", expected, result)
 	}
 }

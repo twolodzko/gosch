@@ -38,9 +38,7 @@ func let(args *Pair, env *Env) (Any, *Env, error) {
 	if !args.HasNext() {
 		return nil, env, nil
 	}
-	body := args.Next
-
-	return partialEval(body, local)
+	return partialEval(args.Next, local)
 }
 
 // Iterate through the bindings ((name1 value1) (name2 value2) ...) and set them to an environment

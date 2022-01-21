@@ -33,6 +33,7 @@ func Eval(sexpr Any, env *Env) (Any, error) {
 			if err != nil {
 				return nil, err
 			}
+
 			switch fn := callable.(type) {
 			case Procedure:
 				return fn(val.Next, localEnv)
@@ -41,10 +42,14 @@ func Eval(sexpr Any, env *Env) (Any, error) {
 				if err != nil {
 					return nil, err
 				}
+			case Lambda:
+				sexpr, localEnv, err = fn.Call(val.Next, localEnv)
+				if err != nil {
+					return nil, err
+				}
 			default:
 				return nil, fmt.Errorf("%v is not callable", fn)
 			}
-
 		case string:
 			sexpr, err = localEnv.Get(val)
 			if err != nil {
@@ -57,42 +62,30 @@ func Eval(sexpr Any, env *Env) (Any, error) {
 }
 
 func getCallable(sexpr Any, env *Env) (interface{}, error) {
-	var (
-		name string
-		err  error
-	)
+	var err error
 	for {
-		name, err = getName(sexpr, env)
-		if err != nil {
-			return nil, err
-		}
+		switch obj := sexpr.(type) {
+		case string:
+			if fn, ok := procedure(obj); ok {
+				return fn, nil
+			}
+			if fn, ok := tcoProcedure(obj); ok {
+				return fn, nil
+			}
 
-		if fn, ok := procedure(name); ok {
-			return fn, nil
+			sexpr, err = env.Get(obj)
+			if err != nil {
+				return nil, err
+			}
+		case Lambda:
+			return obj, nil
+		case *Pair:
+			sexpr, err = Eval(obj, env)
+			if err != nil {
+				return nil, err
+			}
+		default:
+			return nil, fmt.Errorf("%v is not callable", obj)
 		}
-		if fn, ok := tcoProcedure(name); ok {
-			return fn, nil
-		}
-
-		sexpr, err = env.Get(name)
-		if err != nil {
-			return nil, err
-		}
-	}
-}
-
-func getName(sexpr Any, env *Env) (string, error) {
-	switch val := sexpr.(type) {
-	case string:
-		return val, nil
-	default:
-		obj, err := Eval(val, env)
-		if err != nil {
-			return "", err
-		}
-		if name, ok := obj.(string); ok {
-			return name, nil
-		}
-		return "", fmt.Errorf("%v is not callable", obj)
 	}
 }

@@ -52,6 +52,8 @@ func procedure(name string) (Procedure, bool) {
 		return func(args *Pair, env *Env) (Any, error) {
 			return args.This, nil
 		}, true
+	case "lambda":
+		return newLambda, true
 	default:
 		return nil, false
 	}

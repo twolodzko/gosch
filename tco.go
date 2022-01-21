@@ -51,14 +51,14 @@ func setBindings(bindings *Pair, env *Env) error {
 
 	head := bindings
 	for head != nil {
-		switch binding := head.This.(type) {
+		switch pair := head.This.(type) {
 		case *Pair:
-			err := bind(binding, env)
+			err := bind(pair, env)
 			if err != nil {
 				return err
 			}
 		default:
-			return fmt.Errorf("%v is not a list", binding)
+			return fmt.Errorf("%v is not a list", head.This)
 		}
 		head = head.Next
 	}

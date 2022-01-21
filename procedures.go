@@ -3,7 +3,6 @@ package main
 type (
 	Primitive = func(*Pair) (Any, error)
 	Procedure = func(*Pair, *Env) (Any, error)
-	// TcoProcedure = func(*Pair, *Env) (Any, *Env, error)
 )
 
 func procedure(name string) (Procedure, bool) {
@@ -51,8 +50,6 @@ func procedure(name string) (Procedure, bool) {
 		return func(args *Pair, env *Env) (Any, error) {
 			return args.This, nil
 		}, true
-	case "let":
-		return let, true
 	default:
 		return nil, false
 	}

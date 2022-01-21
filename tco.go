@@ -2,31 +2,38 @@ package main
 
 import "fmt"
 
-func let(args *Pair, env *Env) (Any, error) {
+type TcoProcedure = func(*Pair, *Env) (Any, *Env, error)
+
+func tcoProcedure(name string) (TcoProcedure, bool) {
+	switch name {
+	case "let":
+		return let, true
+	default:
+		return nil, false
+	}
+}
+
+func let(args *Pair, env *Env) (Any, *Env, error) {
 	local := NewEnv()
 	local.parent = env
 
 	// bind variables
 	bindings, ok := args.This.(*Pair)
 	if !ok {
-		return nil, fmt.Errorf("%v is not a list", args.This)
+		return nil, env, fmt.Errorf("%v is not a list", args.This)
 	}
 	err := local.setBindings(bindings)
 	if err != nil {
-		return nil, err
+		return nil, env, err
 	}
 
 	// no body
 	if !args.HasNext() {
-		return nil, nil
+		return nil, env, nil
 	}
 	body := args.Next
 
-	last, local, err := partialEval(body, local)
-	if err != nil {
-		return nil, err
-	}
-	return Eval(last, local)
+	return partialEval(body, local)
 }
 
 // Iterate through the bindings ((name1 value1) (name2 value2) ...) and set them to an environment

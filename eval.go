@@ -21,6 +21,7 @@ func EvalString(code string, env *Env) ([]Any, *Env, error) {
 
 func Eval(sexpr Any, env *Env) (Any, error) {
 	var err error
+	localEnv := env
 	for {
 		switch val := sexpr.(type) {
 		case *Pair:
@@ -28,13 +29,24 @@ func Eval(sexpr Any, env *Env) (Any, error) {
 				return &Pair{}, nil
 			}
 
-			fn, err := getCallable(val.This, env)
+			callable, err := getCallable(val.This, localEnv)
 			if err != nil {
 				return nil, err
 			}
-			return fn(val.Next, env)
+			switch fn := callable.(type) {
+			case Procedure:
+				return fn(val.Next, localEnv)
+			case TcoProcedure:
+				sexpr, localEnv, err = fn(val.Next, localEnv)
+				if err != nil {
+					return nil, err
+				}
+			default:
+				return nil, fmt.Errorf("%v is not callable", fn)
+			}
+
 		case string:
-			sexpr, err = env.Get(val)
+			sexpr, err = localEnv.Get(val)
 			if err != nil {
 				return nil, err
 			}
@@ -44,7 +56,7 @@ func Eval(sexpr Any, env *Env) (Any, error) {
 	}
 }
 
-func getCallable(sexpr Any, env *Env) (Procedure, error) {
+func getCallable(sexpr Any, env *Env) (interface{}, error) {
 	var (
 		name string
 		err  error
@@ -58,9 +70,9 @@ func getCallable(sexpr Any, env *Env) (Procedure, error) {
 		if fn, ok := procedure(name); ok {
 			return fn, nil
 		}
-
-		// get TCO procedure
-		// ...
+		if fn, ok := tcoProcedure(name); ok {
+			return fn, nil
+		}
 
 		sexpr, err = env.Get(name)
 		if err != nil {

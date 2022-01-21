@@ -16,8 +16,10 @@ func Test_EnvAndVariables(t *testing.T) {
 	(let ((y 2)) (let ((z 20)) (+ x y z)))
 	(let ((y 1)) (set! x 100) (set! z 10) (+ x y z))
 	x
+	(begin (set! x 5) (+ x 2))
+	x
 	`
-	expected := []Any{3, 5, 10, 25, 111, 100}
+	expected := []Any{3, 5, 10, 25, 111, 100, 7, 5}
 
 	result, _, err := EvalString(code, env)
 	if err != nil {

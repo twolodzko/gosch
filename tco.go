@@ -13,6 +13,8 @@ func tcoProcedure(name string) (TcoProcedure, bool) {
 		return let, true
 	case "if":
 		return ifFn, true
+	case "begin":
+		return partialEval, true
 	default:
 		return nil, false
 	}
@@ -27,7 +29,7 @@ func let(args *Pair, env *Env) (Any, *Env, error) {
 	if !ok {
 		return nil, env, fmt.Errorf("%v is not a list", args.This)
 	}
-	err := local.setBindings(bindings)
+	err := setBindings(bindings, local)
 	if err != nil {
 		return nil, env, err
 	}
@@ -42,25 +44,36 @@ func let(args *Pair, env *Env) (Any, *Env, error) {
 }
 
 // Iterate through the bindings ((name1 value1) (name2 value2) ...) and set them to an environment
-func (e *Env) setBindings(bindings *Pair) error {
+func setBindings(bindings *Pair, env *Env) error {
+	if bindings.IsNull() {
+		return nil
+	}
+
 	head := bindings
 	for head != nil {
-		binding, ok := head.This.(*Pair)
-		if !ok {
-			return fmt.Errorf("%v is not a list", head.This)
-		}
-		// unpack binding (name value)
-		if name, ok := binding.This.(string); ok {
-			if !binding.HasNext() {
-				return fmt.Errorf("%v has not value to bind", binding)
+		switch binding := head.This.(type) {
+		case *Pair:
+			err := bind(binding, env)
+			if err != nil {
+				return err
 			}
-			e.Set(name, binding.Next.This)
-		} else {
-			return fmt.Errorf("binding %v does not use proper name", binding)
+		default:
+			return fmt.Errorf("%v is not a list", binding)
 		}
 		head = head.Next
 	}
 	return nil
+}
+
+func bind(binding *Pair, env *Env) error {
+	if name, ok := binding.This.(string); ok {
+		if !binding.HasNext() {
+			return fmt.Errorf("%v has not value to bind", binding)
+		}
+		env.Set(name, binding.Next.This)
+		return nil
+	}
+	return fmt.Errorf("binding %v does not use proper name", binding)
 }
 
 func ifFn(args *Pair, env *Env) (Any, *Env, error) {
@@ -95,7 +108,3 @@ func partialEval(args *Pair, env *Env) (Any, *Env, error) {
 	}
 	return current.This, env, nil
 }
-
-// func lambda(args *Pair, env *Env) (Any, error) {
-
-// }

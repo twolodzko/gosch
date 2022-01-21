@@ -27,12 +27,17 @@ func (p *Pair) Cons(sexpr Any) *Pair {
 	return &Pair{sexpr, p}
 }
 
-func (p *Pair) Last() Any {
+func (p *Pair) Len() int {
+	if p.IsNull() {
+		return 0
+	}
+	length := 0
 	head := p
-	for head.HasNext() {
+	for head != nil {
+		length++
 		head = head.Next
 	}
-	return head.This
+	return length
 }
 
 func (p Pair) String() string {

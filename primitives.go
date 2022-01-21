@@ -144,6 +144,10 @@ func isSymbol(args *Pair) (Any, error) {
 	}
 }
 
+func isNil(args *Pair) (Any, error) {
+	return Bool(args.This == nil), nil
+}
+
 func set(args *Pair, env *Env) (Any, error) {
 	val, err := Eval(args.Next.This, env)
 	if err != nil {

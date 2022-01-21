@@ -60,6 +60,8 @@ func procedure(name string) (Procedure, bool) {
 		fn = isBool
 	case "symbol?":
 		fn = isSymbol
+	case "nil?":
+		fn = isNil
 	default:
 		return nil, false
 	}

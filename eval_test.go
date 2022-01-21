@@ -318,6 +318,9 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(boolean? 1)", "#f"},
 		{"(boolean? '())", "#f"},
 		{"(boolean? '(1 2 3))", "#f"},
+		{"(nil? (car '()))", "#t"},
+		{"(nil? '())", "#f"},
+		{"(nil? '(1 2 3))", "#f"},
 	}
 
 	for _, tt := range testCases {

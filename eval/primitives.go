@@ -35,7 +35,7 @@ func cdr(args *types.Pair) (types.Any, error) {
 }
 
 func cons(args *types.Pair) (types.Any, error) {
-	if !args.HasNext() || args.Next.HasNext() {
+	if args.IsNull() || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
 	switch val := args.Next.This.(type) {
@@ -55,7 +55,7 @@ func not(args *types.Pair) (types.Any, error) {
 }
 
 func eq(args *types.Pair) (types.Any, error) {
-	if !args.HasNext() || args.Next.HasNext() {
+	if args.IsNull() || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
 	return types.Bool(args.This == args.Next.This), nil
@@ -152,7 +152,20 @@ func isNil(args *types.Pair) (types.Any, error) {
 	return types.Bool(args.This == nil), nil
 }
 
+func isProcedure(args *types.Pair) (types.Any, error) {
+	switch args.This.(type) {
+	case Procedure, Primitive, TcoProcedure, Lambda:
+		return types.Bool(true), nil
+	default:
+		return types.Bool(false), nil
+	}
+}
+
 func set(args *types.Pair, env *envir.Env) (types.Any, error) {
+	if args.IsNull() || !args.HasNext() {
+		return nil, errors.New("wrong number of arguments")
+	}
+
 	val, err := Eval(args.Next.This, env)
 	if err != nil {
 		return nil, err

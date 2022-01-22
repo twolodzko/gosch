@@ -219,6 +219,9 @@ func Test_ParseEvalPrint(t *testing.T) {
 		input    string
 		expected string
 	}{
+		{"'a", "a"},
+		{"(quote a)", "a"},
+		{"(quote (quote a))", "(quote a)"},
 		{"()", "()"},
 		{"'()", "()"},
 		{"'(1 2 3)", "(1 2 3)"},
@@ -249,9 +252,6 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(not 3)", "#f"},
 		{"(not (list 3))", "#f"},
 		{"(not #f)", "#t"},
-		{"'a", "a"},
-		{"(quote a)", "a"},
-		{"(quote (quote a))", "(quote a)"},
 		{"(+)", "0"},
 		{"(+ 5)", "5"},
 		{"(+ 2 2)", "4"},
@@ -301,11 +301,13 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(if (< 2 5) 'smaller 'bigger)", "smaller"},
 		{"(if (< 8 (+ 2 2)) 'smaller 'bigger)", "bigger"},
 		{"(if #t (+ 2 2))", "4"},
+		{"(lambda (x) x)", "(lambda (x) x)"},
 		{"((lambda (x) x) 3)", "3"},
 		{"((lambda (x) (let ((y 2)) (+ x y))) 3)", "5"},
 		{"(number? 5)", "#t"},
 		{"(number? 'a)", "#f"},
 		{"(number? '())", "#f"},
+		{"(number? #t)", "#f"},
 		{"(symbol? 'a)", "#t"},
 		{"(symbol? 42)", "#f"},
 		{"(symbol? '())", "#f"},
@@ -319,6 +321,19 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(nil? (car '()))", "#t"},
 		{"(nil? '())", "#f"},
 		{"(nil? '(1 2 3))", "#f"},
+		{"(pair? '(1))", "#t"},
+		{"(pair? '(1 2))", "#t"},
+		{"(pair? '(a b c))", "#t"},
+		{"(pair? (quote (a b c)))", "#t"},
+		{"(pair? '())", "#f"},
+		{"(pair? 'a)", "#f"},
+		{"(pair? '42)", "#f"},
+		{"(pair? #t)", "#f"},
+		{"(procedure? cdr)", "#t"},
+		{"(procedure? quote)", "#t"},
+		{"(procedure? (lambda (x) x))", "#t"},
+		{"(define x (+ 2 (/ 10 5)))", "4"},
+		{"(set! x (+ 2 (/ 10 5)))", "4"},
 	}
 
 	for _, tt := range testCases {
@@ -328,8 +343,8 @@ func Test_ParseEvalPrint(t *testing.T) {
 			t.Errorf("unexpected error: %v", err)
 		}
 
-		env := envir.NewEnv()
 		for _, sexpr := range sexprs {
+			env := envir.NewEnv()
 			result, err := Eval(sexpr, env)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)

@@ -9,6 +9,10 @@ import (
 )
 
 func let(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+	if args.IsNull() || !args.HasNext() {
+		return nil, env, errors.New("wrong number of arguments")
+	}
+
 	local := envir.NewEnv()
 	local.Parent = env
 
@@ -22,10 +26,6 @@ func let(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
 		return nil, local, err
 	}
 
-	// no body
-	if !args.HasNext() {
-		return nil, local, nil
-	}
 	return partialEval(args.Next, local)
 }
 
@@ -67,7 +67,7 @@ func bind(binding *types.Pair, env *envir.Env) error {
 }
 
 func ifFn(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
-	if bool(args.IsNull()) || !args.HasNext() {
+	if args.IsNull() || !args.HasNext() {
 		return nil, env, errors.New("wrong number of arguments")
 	}
 

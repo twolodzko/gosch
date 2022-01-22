@@ -31,7 +31,7 @@ the procedures return it, for example `(if #f 'ok)` returns `<nil>`.
 - Logical `(not obj)`, `and`, and `or`, e.g. `(and obj1 obj2 ...)`.
 - Arithmetic operators `+`, `-`, `*`, `/`, e.g. `(+ x1 x2 ...)` and `(% x1 x2)` for modulo.
 - Numerical comparison operators `<`, `=`, `>`, e.g. `(< x1 x2 ...)`.
-- Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `symbol?`, and other checkers: `null?` and `nil?`.
+- Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `symbol?`, `procedure?`, and other checkers: `null?` and `nil?`.
 
 
  [pairs]: https://web.mit.edu/scheme_v9.2/doc/mit-scheme-ref/Lists.html#Lists

@@ -61,6 +61,8 @@ func procedure(name string) (interface{}, bool) {
 		return isBool, true
 	case "symbol?":
 		return isSymbol, true
+	case "procedure?":
+		return isProcedure, true
 	case "nil?":
 		return isNil, true
 	case "+":

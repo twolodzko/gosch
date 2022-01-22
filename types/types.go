@@ -16,7 +16,7 @@ func NewPair(this Any, next *Pair) *Pair {
 	return &Pair{this, next}
 }
 
-func (p Pair) HasNext() bool {
+func (p Pair) HasNext() Bool {
 	return p.Next != nil
 }
 

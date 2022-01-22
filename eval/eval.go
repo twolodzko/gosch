@@ -28,6 +28,7 @@ func EvalString(code string, env *envir.Env) ([]types.Any, *envir.Env, error) {
 func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	var err error
 	for {
+		// fmt.Printf("Evaluating: %v :: %T\n", sexpr, sexpr)
 		switch val := sexpr.(type) {
 		case string:
 			sexpr, err = getSymbolValue(val, env)

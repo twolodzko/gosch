@@ -42,7 +42,11 @@ func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, e
 		if head == nil {
 			return nil, local, errors.New("wrong number of arguments")
 		}
-		local.Set(name, head.This)
+		val, err := Eval(head.This, local)
+		if err != nil {
+			return nil, local, err
+		}
+		local.Set(name, val)
 		head = head.Next
 	}
 	return partialEval(l.Body, local)

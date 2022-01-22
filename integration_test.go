@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 )
@@ -36,26 +37,26 @@ func Test_EnvAndVariables(t *testing.T) {
 	}
 }
 
-// func Test_MapFunction(t *testing.T) {
-// 	env := envir.NewEnv()
+func Test_MapFunction(t *testing.T) {
+	env := envir.NewEnv()
 
-// 	code := `
-// 	(define add1 (lambda (x) (+ 1 x)))
-// 	(define map (lambda (f items)
-// 		(if (null? items)
-// 			'()
-// 			(cons (f (car items))
-// 				(map f (cdr items))))))
-// 	(map add1 '(1 2 3))
-// 	`
-// 	expected := []int{2, 3, 4}
+	code := `
+	(define add1 (lambda (x) (+ 1 x)))
+	(define map (lambda (f items)
+		(if (null? items)
+			'()
+			(cons (f (car items))
+				(map f (cdr items))))))
+	(map add1 '(1 2 3))
+	`
+	expected := []int{2, 3, 4}
 
-// 	result, _, err := eval.EvalString(code, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 	}
+	result, _, err := eval.EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
-// 	if cmp.Equal(result, expected) {
-// 		t.Errorf("for %v expected %v, got %v", code, expected, result)
-// 	}
-// }
+	if cmp.Equal(result, expected) {
+		t.Errorf("for %v expected %v, got %v", code, expected, result)
+	}
+}

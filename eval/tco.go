@@ -8,21 +8,6 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-type TcoProcedure = func(*types.Pair, *envir.Env) (types.Any, *envir.Env, error)
-
-func tcoProcedure(name string) (TcoProcedure, bool) {
-	switch name {
-	case "let":
-		return let, true
-	case "if":
-		return ifFn, true
-	case "begin":
-		return partialEval, true
-	default:
-		return nil, false
-	}
-}
-
 func let(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
 	local := envir.NewEnv()
 	local.Parent = env
@@ -30,16 +15,16 @@ func let(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
 	// bind variables
 	bindings, ok := args.This.(*types.Pair)
 	if !ok {
-		return nil, env, fmt.Errorf("%v is not a list", args.This)
+		return nil, local, fmt.Errorf("%v is not a list", args.This)
 	}
 	err := setBindings(bindings, local)
 	if err != nil {
-		return nil, env, err
+		return nil, local, err
 	}
 
 	// no body
 	if !args.HasNext() {
-		return nil, env, nil
+		return nil, local, nil
 	}
 	return partialEval(args.Next, local)
 }

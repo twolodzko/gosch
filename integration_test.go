@@ -22,8 +22,9 @@ func Test_EnvAndVariables(t *testing.T) {
 	x
 	(define add1 (lambda (x) (+ x 1)))
 	(add1 5)
+	((lambda (f) (f 10)) add1)
 	`
-	expected := []string{"3", "5", "10", "25", "111", "100", "7", "5", "(lambda (x) (+ x 1))", "6"}
+	expected := []string{"3", "5", "10", "25", "111", "100", "7", "5", "(lambda (x) (+ x 1))", "6", "11"}
 
 	result, _, err := eval.EvalString(code, env)
 	if err != nil {
@@ -36,7 +37,7 @@ func Test_EnvAndVariables(t *testing.T) {
 }
 
 // func Test_MapFunction(t *testing.T) {
-// 	env := NewEnv()
+// 	env := envir.NewEnv()
 
 // 	code := `
 // 	(define add1 (lambda (x) (+ 1 x)))
@@ -49,7 +50,7 @@ func Test_EnvAndVariables(t *testing.T) {
 // 	`
 // 	expected := []int{2, 3, 4}
 
-// 	result, _, err := EvalString(code, env)
+// 	result, _, err := eval.EvalString(code, env)
 // 	if err != nil {
 // 		t.Errorf("unexpected error: %v", err)
 // 	}

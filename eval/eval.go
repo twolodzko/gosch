@@ -27,39 +27,44 @@ func EvalString(code string, env *envir.Env) ([]types.Any, *envir.Env, error) {
 
 func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	var err error
-	localEnv := env
 	for {
 		switch val := sexpr.(type) {
+		case string:
+			sexpr, err = getSymbolValue(val, env)
+			if err != nil {
+				return nil, err
+			}
 		case *types.Pair:
 			if val.IsNull() {
 				return &types.Pair{}, nil
 			}
 
-			callable, err := getCallable(val.This, localEnv)
+			callable, err := Eval(val.This, env)
 			if err != nil {
 				return nil, err
 			}
 
 			switch fn := callable.(type) {
+			case Primitive:
+				args, err := evalArgs(val.Next, env)
+				if err != nil {
+					return nil, err
+				}
+				return fn(args)
 			case Procedure:
-				return fn(val.Next, localEnv)
+				return fn(val.Next, env)
 			case TcoProcedure:
-				sexpr, localEnv, err = fn(val.Next, localEnv)
+				sexpr, env, err = fn(val.Next, env)
 				if err != nil {
 					return nil, err
 				}
 			case Lambda:
-				sexpr, localEnv, err = fn.Call(val.Next, localEnv)
+				sexpr, env, err = fn.Call(val.Next, env)
 				if err != nil {
 					return nil, err
 				}
 			default:
 				return nil, fmt.Errorf("%v is not callable", fn)
-			}
-		case string:
-			sexpr, err = localEnv.Get(val)
-			if err != nil {
-				return nil, err
 			}
 		default:
 			return sexpr, nil
@@ -67,31 +72,9 @@ func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	}
 }
 
-func getCallable(sexpr types.Any, env *envir.Env) (interface{}, error) {
-	var err error
-	for {
-		switch obj := sexpr.(type) {
-		case string:
-			if fn, ok := procedure(obj); ok {
-				return fn, nil
-			}
-			if fn, ok := tcoProcedure(obj); ok {
-				return fn, nil
-			}
-
-			sexpr, err = env.Get(obj)
-			if err != nil {
-				return nil, err
-			}
-		case Lambda:
-			return obj, nil
-		case *types.Pair:
-			sexpr, err = Eval(obj, env)
-			if err != nil {
-				return nil, err
-			}
-		default:
-			return nil, fmt.Errorf("%v is not callable", obj)
-		}
+func getSymbolValue(name string, env *envir.Env) (types.Any, error) {
+	if fn, ok := procedure(name); ok {
+		return fn, nil
 	}
+	return env.Get(name)
 }

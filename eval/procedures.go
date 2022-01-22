@@ -6,45 +6,35 @@ import (
 )
 
 type (
-	Primitive = func(*types.Pair) (types.Any, error)
-	Procedure = func(*types.Pair, *envir.Env) (types.Any, error)
+	Primitive    = func(*types.Pair) (types.Any, error)
+	Procedure    = func(*types.Pair, *envir.Env) (types.Any, error)
+	TcoProcedure = func(*types.Pair, *envir.Env) (types.Any, *envir.Env, error)
 )
 
-func procedure(name string) (Procedure, bool) {
-	var fn Primitive
+func procedure(name string) (interface{}, bool) {
 	switch name {
 	case "car":
-		fn = car
+		return car, true
 	case "cdr":
-		fn = cdr
+		return cdr, true
 	case "cons":
-		fn = cons
+		return cons, true
 	case "list":
-		fn = list
+		return list, true
 	case "not":
-		fn = not
+		return not, true
 	case "eq?":
-		fn = eq
+		return eq, true
 	case "and":
-		fn = and
+		return and, true
 	case "or":
-		fn = or
-	case "+":
-		fn = sum
-	case "-":
-		fn = dif
-	case "*":
-		fn = mul
-	case "/":
-		fn = div
-	case "%":
-		fn = mod
+		return or, true
 	case "=":
-		fn = equal
+		return equal, true
 	case "<":
-		fn = lower
+		return lower, true
 	case ">":
-		fn = higher
+		return higher, true
 	case "define":
 		return define, true
 	case "set!":
@@ -55,31 +45,36 @@ func procedure(name string) (Procedure, bool) {
 		}, true
 	case "lambda":
 		return newLambda, true
+	case "let":
+		return let, true
+	case "if":
+		return ifFn, true
+	case "begin":
+		return partialEval, true
 	case "null?":
-		fn = isNull
+		return isNull, true
 	case "pair?":
-		fn = isPair
+		return isPair, true
 	case "number?":
-		fn = isNumber
+		return isNumber, true
 	case "boolean?":
-		fn = isBool
+		return isBool, true
 	case "symbol?":
-		fn = isSymbol
+		return isSymbol, true
 	case "nil?":
-		fn = isNil
+		return isNil, true
+	case "+":
+		return sum, true
+	case "-":
+		return dif, true
+	case "*":
+		return mul, true
+	case "/":
+		return div, true
+	case "%":
+		return mod, true
 	default:
 		return nil, false
-	}
-	return primitiveWrapper(fn), true
-}
-
-func primitiveWrapper(fn Primitive) Procedure {
-	return func(args *types.Pair, env *envir.Env) (types.Any, error) {
-		args, err := evalArgs(args, env)
-		if err != nil {
-			return nil, err
-		}
-		return fn(args)
 	}
 }
 

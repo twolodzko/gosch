@@ -40,7 +40,7 @@ func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, e
 	head := args
 	for _, name := range l.Vars {
 		if head == nil {
-			return nil, env, errors.New("wrong number of arguments")
+			return nil, local, errors.New("wrong number of arguments")
 		}
 		local.Set(name, head.This)
 		head = head.Next

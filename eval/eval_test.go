@@ -64,13 +64,10 @@ func Test_Eval(t *testing.T) {
 		{types.Quote("a"), "a"},
 		{types.Quote(types.NewPair("+", types.NewPair(2, types.NewPair(2, nil)))), types.NewPair("+", types.NewPair(2, types.NewPair(2, nil)))},
 		{42, 42},
-		{"a", "xxx"},
-		{"l", types.NewPair(1, types.NewPair(2, nil))},
 		{"b", 26},
 	}
 
 	env := envir.NewEnv()
-	env.Set("a", types.Quote("xxx"))
 	env.Set("b", "c")
 	env.Set("c", "d")
 	env.Set("d", 26)
@@ -113,7 +110,7 @@ func Test_EvalPair(t *testing.T) {
 		},
 		{
 			types.NewPair("cdr", types.NewPair(types.Quote(types.NewPair("a", nil)), nil)),
-			nil,
+			&types.Pair{},
 		},
 		{
 			types.NewPair("cdr", types.NewPair(types.Quote(types.NewPair("a", types.NewPair("b", types.NewPair("c", nil)))), nil)),
@@ -180,10 +177,6 @@ func Test_EvalPair(t *testing.T) {
 			types.Bool(false),
 		},
 		{
-			types.NewPair("quote", types.NewPair("a", nil)),
-			"a",
-		},
-		{
 			types.NewPair("quote", types.NewPair(types.NewPair("list", types.NewPair(2, nil)), nil)),
 			types.NewPair("list", types.NewPair(2, nil)),
 		},
@@ -231,13 +224,16 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"'(1 2 3)", "(1 2 3)"},
 		{"'(1 (((2)) 3))", "(1 (((2)) 3))"},
 		{"(car '())", "<nil>"},
+		{"(car '(1))", "1"},
 		{"(car '(1 2 3))", "1"},
 		{"(car '((a) b c d))", "(a)"},
+		{"(cdr '(1))", "()"},
+		{"(cdr '(1 2))", "(2)"},
 		{"(cdr '(1 2 3))", "(2 3)"},
-		{"(car (cdr '(1 2 3)))", "2"},
 		{"(cdr '())", "<nil>"},
 		{"(cdr '((a) b c d))", "(b c d)"},
-		{"(cdr '(a b))", "b"},
+		{"(cdr '(a b))", "(b)"},
+		{"(car (cdr '(1 2 3)))", "2"},
 		{"(cons 1 '())", "(1)"},
 		{"(cons 1 2)", "(1 2)"},
 		{"(cons 1 '(2 3))", "(1 2 3)"},

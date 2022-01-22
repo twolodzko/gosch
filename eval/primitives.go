@@ -20,11 +20,12 @@ func car(args *types.Pair) (types.Any, error) {
 func cdr(args *types.Pair) (types.Any, error) {
 	switch val := args.This.(type) {
 	case *types.Pair:
+		if val.IsNull() {
+			return nil, nil
+		}
 		switch {
 		case val.Next == nil:
-			return nil, nil
-		case val.Next.Next == nil:
-			return val.Next.This, nil
+			return &types.Pair{}, nil
 		default:
 			return val.Next, nil
 		}

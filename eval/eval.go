@@ -26,15 +26,11 @@ func EvalString(code string, env *envir.Env) ([]types.Any, *envir.Env, error) {
 }
 
 func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
-	var err error
 	for {
-		// fmt.Printf("Evaluating: %v :: %T\n", sexpr, sexpr)
+		// fmt.Printf("%v\n", sexpr)
 		switch val := sexpr.(type) {
 		case string:
-			sexpr, err = getSymbolValue(val, env)
-			if err != nil {
-				return nil, err
-			}
+			return evalSymbol(val, env)
 		case *types.Pair:
 			if val.IsNull() {
 				return &types.Pair{}, nil
@@ -73,9 +69,33 @@ func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	}
 }
 
-func getSymbolValue(name string, env *envir.Env) (types.Any, error) {
-	if fn, ok := procedure(name); ok {
-		return fn, nil
+func evalSymbol(sexpr types.Any, env *envir.Env) (types.Any, error) {
+	var err error
+	for {
+		switch val := sexpr.(type) {
+		case string:
+			if fn, ok := procedure(val); ok {
+				return fn, nil
+			}
+			sexpr, err = env.Get(val)
+			if err != nil {
+				return nil, err
+			}
+		default:
+			return val, nil
+		}
 	}
-	return env.Get(name)
+}
+
+// Evaluate all but last args, return last arg and enclosing environment
+func partialEval(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+	current := args
+	for current.HasNext() {
+		_, err := Eval(current.This, env)
+		if err != nil {
+			return nil, nil, err
+		}
+		current = current.Next
+	}
+	return current.This, env, nil
 }

@@ -56,7 +56,11 @@ func bind(binding *types.Pair, env *envir.Env) error {
 		if !binding.HasNext() {
 			return fmt.Errorf("%v has not value to bind", binding)
 		}
-		env.Set(name, binding.Next.This)
+		val, err := Eval(binding.Next.This, env)
+		if err != nil {
+			return err
+		}
+		env.Set(name, val)
 		return nil
 	}
 	return fmt.Errorf("binding %v does not use proper name", binding)
@@ -80,17 +84,4 @@ func ifFn(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
 		}
 		return args.Next.Next.This, env, nil
 	}
-}
-
-// Evaluate all but last args, return last arg and enclosing environment
-func partialEval(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
-	current := args
-	for current.HasNext() {
-		_, err := Eval(current.This, env)
-		if err != nil {
-			return nil, nil, err
-		}
-		current = current.Next
-	}
-	return current.This, env, nil
 }

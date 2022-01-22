@@ -1,4 +1,4 @@
-package main
+package parser
 
 import (
 	"fmt"
@@ -6,6 +6,8 @@ import (
 	"regexp"
 	"strconv"
 	"unicode"
+
+	"github.com/twolodzko/gosch/types"
 )
 
 type Parser struct {
@@ -13,7 +15,7 @@ type Parser struct {
 	pos int
 }
 
-func newParser(str string) *Parser {
+func NewParser(str string) *Parser {
 	return &Parser{[]rune(str), 0}
 }
 
@@ -25,8 +27,8 @@ func (p *Parser) Head() rune {
 	return p.str[p.pos]
 }
 
-func (p *Parser) Read() ([]Any, error) {
-	var sexprs []Any
+func (p *Parser) Read() ([]types.Any, error) {
+	var sexprs []types.Any
 	for p.HasNext() {
 		if unicode.IsSpace(p.Head()) {
 			p.pos++
@@ -56,9 +58,9 @@ func (p *Parser) readAtomValue() (interface{}, error) {
 		case isInt(str):
 			return strconv.Atoi(str)
 		case str == "#t":
-			return Bool(true), nil
+			return types.Bool(true), nil
 		case str == "#f":
-			return Bool(false), nil
+			return types.Bool(false), nil
 		default:
 			return str, nil
 		}
@@ -72,16 +74,16 @@ func isInt(str string) bool {
 	return matched
 }
 
-func (p *Parser) readPair() (*Pair, error) {
+func (p *Parser) readPair() (*types.Pair, error) {
 	p.pos++
-	var sexprs []Any
+	var sexprs []types.Any
 	for p.HasNext() {
 		switch {
 		case unicode.IsSpace(p.Head()):
 			p.pos++
 		case p.Head() == ')':
 			p.pos++
-			return newPair(sexprs), nil
+			return types.PairFromArray(sexprs), nil
 		default:
 			elem, err := p.readSexpr()
 			if err != nil {
@@ -90,12 +92,12 @@ func (p *Parser) readPair() (*Pair, error) {
 			sexprs = append(sexprs, elem)
 		}
 	}
-	return nil, fmt.Errorf("pair was not closed with )")
+	return nil, fmt.Errorf("list was not closed with )")
 }
 
-func (p *Parser) readSexpr() (Any, error) {
+func (p *Parser) readSexpr() (types.Any, error) {
 	var (
-		val Any
+		val types.Any
 		err error
 	)
 	quotes := 0
@@ -107,7 +109,7 @@ func (p *Parser) readSexpr() (Any, error) {
 		case '(':
 			val, err = p.readPair()
 			for i := 0; i < quotes; i++ {
-				val = quote(val)
+				val = types.Quote(val)
 			}
 			return val, err
 		case ')':
@@ -115,14 +117,10 @@ func (p *Parser) readSexpr() (Any, error) {
 		default:
 			val, err = p.readAtomValue()
 			for i := 0; i < quotes; i++ {
-				val = quote(val)
+				val = types.Quote(val)
 			}
 			return val, err
 		}
 	}
 	return nil, io.EOF
-}
-
-func quote(sexpr Any) Any {
-	return &Pair{"quote", &Pair{sexpr, nil}}
 }

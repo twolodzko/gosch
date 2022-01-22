@@ -1,41 +1,42 @@
-package main
+package parser
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/twolodzko/gosch/types"
 )
 
 func Test_Parse(t *testing.T) {
 	var testCases = []struct {
 		input    string
-		expected Any
+		expected types.Any
 	}{
 		{"a", "a"},
 		{"42", 42},
 		{"-100", -100},
 		{"nil", "nil"},
-		{"#t", Bool(true)},
-		{"#f", Bool(false)},
-		{"()", &Pair{}},
-		{"(a)", &Pair{"a", nil}},
-		{"(())", &Pair{&Pair{}, nil}},
-		{"(1 2 3)", &Pair{1, &Pair{2, &Pair{3, nil}}}},
-		{"((1 2) 3)", &Pair{&Pair{1, &Pair{2, nil}}, &Pair{3, nil}}},
-		{"(1 (2 3))", &Pair{1, &Pair{&Pair{2, &Pair{3, nil}}, nil}}},
-		{"'a", quote("a")},
-		{"'(a)", quote(&Pair{"a", nil})},
-		{"('a)", &Pair{quote("a"), nil}},
-		{"'''a", quote(quote(quote("a")))},
-		{"'()", quote(&Pair{})},
-		{"''()", quote(quote(&Pair{}))},
+		{"#t", types.Bool(true)},
+		{"#f", types.Bool(false)},
+		{"()", &types.Pair{}},
+		{"(a)", types.NewPair("a", nil)},
+		{"(())", types.NewPair(&types.Pair{}, nil)},
+		{"(1 2 3)", types.NewPair(1, types.NewPair(2, types.NewPair(3, nil)))},
+		{"((1 2) 3)", types.NewPair(types.NewPair(1, types.NewPair(2, nil)), types.NewPair(3, nil))},
+		{"(1 (2 3))", types.NewPair(1, types.NewPair(types.NewPair(2, types.NewPair(3, nil)), nil))},
+		{"'a", types.Quote("a")},
+		{"'(a)", types.Quote(types.NewPair("a", nil))},
+		{"('a)", types.NewPair(types.Quote("a"), nil)},
+		{"'''a", types.Quote(types.Quote(types.Quote("a")))},
+		{"'()", types.Quote(&types.Pair{})},
+		{"''()", types.Quote(types.Quote(&types.Pair{}))},
 		{"  \n\ta", "a"},
-		{"\n  \t\n(\n   a\t\n)  ", &Pair{"a", nil}},
+		{"\n  \t\n(\n   a\t\n)  ", types.NewPair("a", nil)},
 	}
 
 	for _, tt := range testCases {
-		parser := newParser(tt.input)
+		parser := NewParser(tt.input)
 		result, err := parser.Read()
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
@@ -46,10 +47,10 @@ func Test_Parse(t *testing.T) {
 	}
 }
 
-func Test_ParseMany(t *testing.T) {
+func Test_ParseAny(t *testing.T) {
 	input := "1 2 3"
-	expected := []Any{1, 2, 3}
-	parser := newParser(input)
+	expected := []types.Any{1, 2, 3}
+	parser := NewParser(input)
 	result, err := parser.Read()
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -68,7 +69,7 @@ func Test_ParseAndPrint(t *testing.T) {
 	}
 
 	for _, input := range testCases {
-		parser := newParser(input)
+		parser := NewParser(input)
 		result, err := parser.Read()
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
@@ -91,7 +92,7 @@ func Test_ReadAtomValue(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		parser := newParser(tt.input)
+		parser := NewParser(tt.input)
 		result, err := parser.readAtomValue()
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
@@ -107,13 +108,13 @@ func Test_ParseExpectError(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"(", "pair was not closed with )"},
-		{"(a", "pair was not closed with )"},
-		{"(lorem ipsum", "pair was not closed with )"},
+		{"(", "list was not closed with )"},
+		{"(a", "list was not closed with )"},
+		{"(lorem ipsum", "list was not closed with )"},
 		{"lorem ipsum)", "unexpected )"},
 	}
 	for _, tt := range testCases {
-		parser := newParser(tt.input)
+		parser := NewParser(tt.input)
 		if _, err := parser.Read(); err.Error() != tt.expected {
 			t.Errorf("for %q expected an error %q, got: %q", tt.input, tt.expected, err)
 		}

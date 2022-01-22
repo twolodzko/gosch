@@ -1,22 +1,25 @@
-package main
+package eval
 
 import (
 	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/twolodzko/gosch/envir"
+	"github.com/twolodzko/gosch/parser"
+	"github.com/twolodzko/gosch/types"
 )
 
 func Test_QuotedEval(t *testing.T) {
-	var testCases = []Any{
+	var testCases = []types.Any{
 		"a",
-		Pair{},
-		Pair{quote("a"), nil},
+		types.Pair{},
+		types.NewPair(types.Quote("a"), nil),
 	}
 
 	for _, input := range testCases {
-		env := NewEnv()
-		result, err := Eval(quote(input), env)
+		env := envir.NewEnv()
+		result, err := Eval(types.Quote(input), env)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -27,25 +30,25 @@ func Test_QuotedEval(t *testing.T) {
 }
 
 func Test_EvalDoesntMutate(t *testing.T) {
-	input := quote(Pair{quote("a"), nil})
-	env := NewEnv()
+	input := types.Quote(types.NewPair(types.Quote("a"), nil))
+	env := envir.NewEnv()
 	if _, err := Eval(input, env); err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
-	if !cmp.Equal(input, quote(Pair{quote("a"), nil})) {
+	if !cmp.Equal(input, types.Quote(types.NewPair(types.Quote("a"), nil))) {
 		t.Errorf("%v mutated after eval", input)
 	}
 }
 
 func Test_EvalExpectError(t *testing.T) {
-	var testCases = []Any{
+	var testCases = []types.Any{
 		"a",
-		&Pair{"a", nil},
+		types.NewPair("a", nil),
 		// FIXME
-		// {&Pair{"quote", nil}},
+		// {types.NewPair("quote", nil)),
 	}
 	for _, input := range testCases {
-		env := NewEnv()
+		env := envir.NewEnv()
 		if _, err := Eval(input, env); err == nil {
 			t.Errorf("for %q expected an error", input)
 		}
@@ -54,24 +57,24 @@ func Test_EvalExpectError(t *testing.T) {
 
 func Test_Eval(t *testing.T) {
 	var testCases = []struct {
-		input    Any
-		expected Any
+		input    types.Any
+		expected types.Any
 	}{
 		{nil, nil},
-		{quote("a"), "a"},
-		{quote(Pair{"+", &Pair{2, &Pair{2, nil}}}), Pair{"+", &Pair{2, &Pair{2, nil}}}},
+		{types.Quote("a"), "a"},
+		{types.Quote(types.NewPair("+", types.NewPair(2, types.NewPair(2, nil)))), types.NewPair("+", types.NewPair(2, types.NewPair(2, nil)))},
 		{42, 42},
 		{"a", "xxx"},
-		{"l", &Pair{1, &Pair{2, nil}}},
+		{"l", types.NewPair(1, types.NewPair(2, nil))},
 		{"b", 26},
 	}
 
-	env := NewEnv()
-	env.Set("a", quote("xxx"))
+	env := envir.NewEnv()
+	env.Set("a", types.Quote("xxx"))
 	env.Set("b", "c")
 	env.Set("c", "d")
 	env.Set("d", 26)
-	env.Set("l", quote(&Pair{1, &Pair{2, nil}}))
+	env.Set("l", types.Quote(types.NewPair(1, types.NewPair(2, nil))))
 
 	for _, tt := range testCases {
 		result, err := Eval(tt.input, env)
@@ -86,107 +89,107 @@ func Test_Eval(t *testing.T) {
 
 func Test_EvalPair(t *testing.T) {
 	var testCases = []struct {
-		input    *Pair
-		expected Any
+		input    *types.Pair
+		expected types.Any
 	}{
 		{
-			&Pair{}, &Pair{},
+			&types.Pair{}, &types.Pair{},
 		},
 		{
-			&Pair{"car", &Pair{quote(&Pair{}), nil}},
+			types.NewPair("car", types.NewPair(types.Quote(&types.Pair{}), nil)),
 			nil,
 		},
 		{
-			&Pair{"car", &Pair{quote(&Pair{"a", nil}), nil}},
+			types.NewPair("car", types.NewPair(types.Quote(types.NewPair("a", nil)), nil)),
 			"a",
 		},
 		{
-			&Pair{"car", &Pair{quote(&Pair{"a", &Pair{"b", &Pair{"c", nil}}}), nil}},
+			types.NewPair("car", types.NewPair(types.Quote(types.NewPair("a", types.NewPair("b", types.NewPair("c", nil)))), nil)),
 			"a",
 		},
 		{
-			&Pair{"cdr", &Pair{quote(&Pair{}), nil}},
+			types.NewPair("cdr", types.NewPair(types.Quote(&types.Pair{}), nil)),
 			nil,
 		},
 		{
-			&Pair{"cdr", &Pair{quote(&Pair{"a", nil}), nil}},
+			types.NewPair("cdr", types.NewPair(types.Quote(types.NewPair("a", nil)), nil)),
 			nil,
 		},
 		{
-			&Pair{"cdr", &Pair{quote(&Pair{"a", &Pair{"b", &Pair{"c", nil}}}), nil}},
-			&Pair{"b", &Pair{"c", nil}},
+			types.NewPair("cdr", types.NewPair(types.Quote(types.NewPair("a", types.NewPair("b", types.NewPair("c", nil)))), nil)),
+			types.NewPair("b", types.NewPair("c", nil)),
 		},
 		{
-			&Pair{"null?", &Pair{quote(&Pair{}), nil}},
-			Bool(true),
+			types.NewPair("null?", types.NewPair(types.Quote(&types.Pair{}), nil)),
+			types.Bool(true),
 		},
 		{
-			&Pair{"null?", &Pair{quote("a"), nil}},
-			Bool(false),
+			types.NewPair("null?", types.NewPair(types.Quote("a"), nil)),
+			types.Bool(false),
 		},
 		{
-			&Pair{"null?", &Pair{quote(&Pair{"a", nil}), nil}},
-			Bool(false),
+			types.NewPair("null?", types.NewPair(types.Quote(types.NewPair("a", nil)), nil)),
+			types.Bool(false),
 		},
 		{
-			&Pair{"pair?", &Pair{quote(&Pair{}), nil}},
-			Bool(false),
+			types.NewPair("pair?", types.NewPair(types.Quote(&types.Pair{}), nil)),
+			types.Bool(false),
 		},
 		{
-			&Pair{"pair?", &Pair{quote("a"), nil}},
-			Bool(false),
+			types.NewPair("pair?", types.NewPair(types.Quote("a"), nil)),
+			types.Bool(false),
 		},
 		{
-			&Pair{"pair?", &Pair{quote(&Pair{"a", nil}), nil}},
-			Bool(true),
+			types.NewPair("pair?", types.NewPair(types.Quote(types.NewPair("a", nil)), nil)),
+			types.Bool(true),
 		},
 		{
-			&Pair{"pair?", &Pair{quote(&Pair{"a", &Pair{"b", nil}}), nil}},
-			Bool(true),
+			types.NewPair("pair?", types.NewPair(types.Quote(types.NewPair("a", types.NewPair("b", nil))), nil)),
+			types.Bool(true),
 		},
 		{
-			&Pair{"cons", &Pair{quote("a"), &Pair{quote(&Pair{}), nil}}},
-			&Pair{"a", nil},
+			types.NewPair("cons", types.NewPair(types.Quote("a"), types.NewPair(types.Quote(&types.Pair{}), nil))),
+			types.NewPair("a", nil),
 		},
 		{
-			&Pair{"cons", &Pair{1, &Pair{2, nil}}},
-			&Pair{1, &Pair{2, nil}},
+			types.NewPair("cons", types.NewPair(1, types.NewPair(2, nil))),
+			types.NewPair(1, types.NewPair(2, nil)),
 		},
 		{
-			&Pair{"list", &Pair{1, &Pair{2, nil}}},
-			&Pair{1, &Pair{2, nil}},
+			types.NewPair("list", types.NewPair(1, types.NewPair(2, nil))),
+			types.NewPair(1, types.NewPair(2, nil)),
 		},
 		{
-			&Pair{"list", nil},
-			&Pair{},
+			types.NewPair("list", nil),
+			&types.Pair{},
 		},
 		{
-			&Pair{"list", &Pair{1, &Pair{2, &Pair{3, nil}}}},
-			&Pair{1, &Pair{2, &Pair{3, nil}}},
+			types.NewPair("list", types.NewPair(1, types.NewPair(2, types.NewPair(3, nil)))),
+			types.NewPair(1, types.NewPair(2, types.NewPair(3, nil))),
 		},
 		{
-			&Pair{"not", &Pair{Bool(false), nil}},
-			Bool(true),
+			types.NewPair("not", types.NewPair(types.Bool(false), nil)),
+			types.Bool(true),
 		},
 		{
-			&Pair{"not", &Pair{Bool(true), nil}},
-			Bool(false),
+			types.NewPair("not", types.NewPair(types.Bool(true), nil)),
+			types.Bool(false),
 		},
 		{
-			&Pair{"not", &Pair{3, nil}},
-			Bool(false),
+			types.NewPair("not", types.NewPair(3, nil)),
+			types.Bool(false),
 		},
 		{
-			&Pair{"quote", &Pair{"a", nil}},
+			types.NewPair("quote", types.NewPair("a", nil)),
 			"a",
 		},
 		{
-			&Pair{"quote", &Pair{&Pair{"list", &Pair{2, nil}}, nil}},
-			&Pair{"list", &Pair{2, nil}},
+			types.NewPair("quote", types.NewPair(types.NewPair("list", types.NewPair(2, nil)), nil)),
+			types.NewPair("list", types.NewPair(2, nil)),
 		},
 	}
 
-	env := NewEnv()
+	env := envir.NewEnv()
 	for _, tt := range testCases {
 		result, err := Eval(tt.input, env)
 		if err != nil {
@@ -199,9 +202,9 @@ func Test_EvalPair(t *testing.T) {
 }
 
 func Test_EvalArgs(t *testing.T) {
-	input := newPair([]Any{quote("a"), quote("b")})
-	expected := newPair([]Any{"a", "b"})
-	env := NewEnv()
+	input := types.PairFromArray([]types.Any{types.Quote("a"), types.Quote("b")})
+	expected := types.PairFromArray([]types.Any{"a", "b"})
+	env := envir.NewEnv()
 
 	result, err := evalArgs(input, env)
 	if err != nil {
@@ -212,7 +215,7 @@ func Test_EvalArgs(t *testing.T) {
 	}
 
 	// Eval should not mutate the input
-	inputCopy := newPair([]Any{quote("a"), quote("b")})
+	inputCopy := types.PairFromArray([]types.Any{types.Quote("a"), types.Quote("b")})
 	if !cmp.Equal(input, inputCopy) {
 		t.Errorf("input %v has changed to %v", inputCopy, input)
 	}
@@ -324,13 +327,13 @@ func Test_ParseEvalPrint(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		parser := newParser(tt.input)
+		parser := parser.NewParser(tt.input)
 		sexprs, err := parser.Read()
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
 
-		env := NewEnv()
+		env := envir.NewEnv()
 		for _, sexpr := range sexprs {
 			result, err := Eval(sexpr, env)
 			if err != nil {
@@ -344,12 +347,12 @@ func Test_ParseEvalPrint(t *testing.T) {
 }
 
 func Test_AliasToFunction(t *testing.T) {
-	expected := &Pair{1, &Pair{2, nil}}
+	expected := types.NewPair(1, types.NewPair(2, nil))
 
-	env := NewEnv()
-	env.vars["my-list"] = "list"
+	env := envir.NewEnv()
+	env.Vars["my-list"] = "list"
 
-	result, err := Eval(&Pair{"my-list", &Pair{1, &Pair{2, nil}}}, env)
+	result, err := Eval(types.NewPair("my-list", types.NewPair(1, types.NewPair(2, nil))), env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -359,23 +362,23 @@ func Test_AliasToFunction(t *testing.T) {
 }
 
 func Test_Define(t *testing.T) {
-	env := NewEnv()
+	env := envir.NewEnv()
 
-	_, err := Eval(&Pair{"define", &Pair{"x", &Pair{42, nil}}}, env)
+	_, err := Eval(types.NewPair("define", types.NewPair("x", types.NewPair(42, nil))), env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	result, ok := env.vars["x"]
+	result, ok := env.Vars["x"]
 	if !ok || result != 42 {
 		t.Errorf("variable was not set correctly: %v", result)
 	}
 }
 
 func Test_LetBindsLocally(t *testing.T) {
-	env := NewEnv()
+	env := envir.NewEnv()
 
-	parser := newParser("(let ((x 3)) (+ x 5))")
+	parser := parser.NewParser("(let ((x 3)) (+ x 5))")
 	sexprs, err := parser.Read()
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -386,14 +389,14 @@ func Test_LetBindsLocally(t *testing.T) {
 		t.Errorf("evaluating %v resulted in an unexpected error: %v", sexprs[0], err)
 	}
 	// we don't expect this variable to be set in parent env
-	if _, found := env.vars["x"]; found {
+	if _, found := env.Vars["x"]; found {
 		t.Errorf("let assigned variable to parent env: %v", env)
 	}
 }
 
 func Test_QuoteDoesntMutate(t *testing.T) {
-	example := quote("a")
-	env := NewEnv()
+	example := types.Quote("a")
+	env := envir.NewEnv()
 	result, err := Eval(example, env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -401,22 +404,22 @@ func Test_QuoteDoesntMutate(t *testing.T) {
 	if !cmp.Equal(result, "a") {
 		t.Errorf("expected %v, got %v", "a", result)
 	}
-	if !cmp.Equal(example, quote("a")) {
+	if !cmp.Equal(example, types.Quote("a")) {
 		t.Errorf("object mutated %v", example)
 	}
 }
 
 func Test_newLambda(t *testing.T) {
-	env := NewEnv()
+	env := envir.NewEnv()
 	expected := Lambda{
 		[]string{"x", "y"},
-		&Pair{"+", &Pair{&Pair{"x", &Pair{"y", nil}}, nil}},
+		types.NewPair("+", types.NewPair(types.NewPair("x", types.NewPair("y", nil)), nil)),
 	}
 	result, err := newLambda(
-		&Pair{
-			&Pair{"x", &Pair{"y", nil}},
-			&Pair{"+", &Pair{&Pair{"x", &Pair{"y", nil}}, nil}},
-		},
+		types.NewPair(
+			types.NewPair("x", types.NewPair("y", nil)),
+			types.NewPair("+", types.NewPair(types.NewPair("x", types.NewPair("y", nil)), nil)),
+		),
 		env,
 	)
 	if err != nil {

@@ -1,4 +1,4 @@
-package main
+package types
 
 import (
 	"fmt"
@@ -19,7 +19,7 @@ func Test_newPair(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		result := newPair(tt.input)
+		result := PairFromArray(tt.input)
 		if !cmp.Equal(result, tt.expected) {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
 		}
@@ -108,17 +108,17 @@ func Test_IsTrue(t *testing.T) {
 		{nil, true},
 		{Bool(true), true},
 		{Bool(false), false},
-		{quote(Bool(true)), true},
+		{Quote(Bool(true)), true},
 		// FIXME ?
 		// {quote(Bool(false)), false},
-		{quote(&Pair{}), true},
-		{quote(&Pair{1, &Pair{2, nil}}), true},
+		{Quote(&Pair{}), true},
+		{Quote(&Pair{1, &Pair{2, nil}}), true},
 		{0, true},
 		{1, true},
 	}
 
 	for _, tt := range testCases {
-		result := isTrue(tt.input)
+		result := IsTrue(tt.input)
 		if result != tt.expected {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
 		}

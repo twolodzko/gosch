@@ -1,22 +1,25 @@
-package main
+package eval
 
 import (
 	"errors"
 	"fmt"
+
+	"github.com/twolodzko/gosch/envir"
+	"github.com/twolodzko/gosch/types"
 )
 
-func car(args *Pair) (Any, error) {
+func car(args *types.Pair) (types.Any, error) {
 	switch val := args.This.(type) {
-	case *Pair:
+	case *types.Pair:
 		return val.This, nil
 	default:
 		return nil, fmt.Errorf("%v is not a list", args.This)
 	}
 }
 
-func cdr(args *Pair) (Any, error) {
+func cdr(args *types.Pair) (types.Any, error) {
 	switch val := args.This.(type) {
-	case *Pair:
+	case *types.Pair:
 		switch {
 		case val.Next == nil:
 			return nil, nil
@@ -30,62 +33,62 @@ func cdr(args *Pair) (Any, error) {
 	}
 }
 
-func cons(args *Pair) (Any, error) {
+func cons(args *types.Pair) (types.Any, error) {
 	if !args.HasNext() || args.Next.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
 	switch val := args.Next.This.(type) {
-	case *Pair:
+	case *types.Pair:
 		return val.Cons(args.This), nil
 	default:
 		return list(args)
 	}
 }
 
-func list(args *Pair) (Any, error) {
+func list(args *types.Pair) (types.Any, error) {
 	return args, nil
 }
 
-func not(args *Pair) (Any, error) {
-	return !isTrue(args.This), nil
+func not(args *types.Pair) (types.Any, error) {
+	return !types.IsTrue(args.This), nil
 }
 
-func eq(args *Pair) (Any, error) {
+func eq(args *types.Pair) (types.Any, error) {
 	if !args.HasNext() || args.Next.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
-	return Bool(args.This == args.Next.This), nil
+	return types.Bool(args.This == args.Next.This), nil
 }
 
-func and(args *Pair) (Any, error) {
+func and(args *types.Pair) (types.Any, error) {
 	if args.This == nil {
-		return Bool(true), nil
+		return types.Bool(true), nil
 	}
 	head := args
 	for head != nil {
-		if !isTrue(head.This) {
-			return Bool(false), nil
+		if !types.IsTrue(head.This) {
+			return types.Bool(false), nil
 		}
 		head = head.Next
 	}
-	return Bool(true), nil
+	return types.Bool(true), nil
 }
 
-func or(args *Pair) (Any, error) {
+func or(args *types.Pair) (types.Any, error) {
 	if args.This == nil {
-		return Bool(true), nil
+		return types.Bool(true), nil
 	}
 	head := args
 	for head != nil {
-		if isTrue(head.This) {
-			return Bool(true), nil
+		if types.IsTrue(head.This) {
+			return types.Bool(true), nil
 		}
 		head = head.Next
 	}
-	return Bool(false), nil
+	return types.Bool(false), nil
 }
 
-func define(args *Pair, env *Env) (Any, error) {
+func define(args *types.Pair, env *envir.Env) (types.Any, error) {
 	switch name := args.This.(type) {
 	case string:
 		val, err := Eval(args.Next.This, env)
@@ -99,56 +102,56 @@ func define(args *Pair, env *Env) (Any, error) {
 	}
 }
 
-func isNull(args *Pair) (Any, error) {
+func isNull(args *types.Pair) (types.Any, error) {
 	switch val := args.This.(type) {
-	case *Pair:
+	case *types.Pair:
 		return val.IsNull(), nil
 	default:
-		return Bool(false), nil
+		return types.Bool(false), nil
 	}
 }
 
-func isPair(args *Pair) (Any, error) {
+func isPair(args *types.Pair) (types.Any, error) {
 	switch val := args.This.(type) {
-	case *Pair:
+	case *types.Pair:
 		return !val.IsNull(), nil
 	default:
-		return Bool(false), nil
+		return types.Bool(false), nil
 	}
 }
 
-func isNumber(args *Pair) (Any, error) {
+func isNumber(args *types.Pair) (types.Any, error) {
 	switch args.This.(type) {
 	case int:
-		return Bool(true), nil
+		return types.Bool(true), nil
 	default:
-		return Bool(false), nil
+		return types.Bool(false), nil
 	}
 }
 
-func isBool(args *Pair) (Any, error) {
+func isBool(args *types.Pair) (types.Any, error) {
 	switch args.This.(type) {
-	case Bool:
-		return Bool(true), nil
+	case types.Bool:
+		return types.Bool(true), nil
 	default:
-		return Bool(false), nil
+		return types.Bool(false), nil
 	}
 }
 
-func isSymbol(args *Pair) (Any, error) {
+func isSymbol(args *types.Pair) (types.Any, error) {
 	switch args.This.(type) {
 	case string:
-		return Bool(true), nil
+		return types.Bool(true), nil
 	default:
-		return Bool(false), nil
+		return types.Bool(false), nil
 	}
 }
 
-func isNil(args *Pair) (Any, error) {
-	return Bool(args.This == nil), nil
+func isNil(args *types.Pair) (types.Any, error) {
+	return types.Bool(args.This == nil), nil
 }
 
-func set(args *Pair, env *Env) (Any, error) {
+func set(args *types.Pair, env *envir.Env) (types.Any, error) {
 	val, err := Eval(args.Next.This, env)
 	if err != nil {
 		return nil, err

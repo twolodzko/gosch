@@ -1,20 +1,23 @@
-package main
+package eval
 
 import (
 	"errors"
 	"fmt"
 	"strings"
+
+	"github.com/twolodzko/gosch/envir"
+	"github.com/twolodzko/gosch/types"
 )
 
 type Lambda struct {
 	Vars []string
-	Body *Pair
+	Body *types.Pair
 }
 
-func newLambda(args *Pair, env *Env) (Any, error) {
+func newLambda(args *types.Pair, env *envir.Env) (types.Any, error) {
 	var vars []string
 	switch pair := args.This.(type) {
-	case *Pair:
+	case *types.Pair:
 		head := pair
 		for head != nil {
 			if name, ok := head.This.(string); ok {
@@ -30,9 +33,9 @@ func newLambda(args *Pair, env *Env) (Any, error) {
 	return Lambda{vars, args.Next}, nil
 }
 
-func (l Lambda) Call(args *Pair, env *Env) (Any, *Env, error) {
-	local := NewEnv()
-	local.parent = env
+func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+	local := envir.NewEnv()
+	local.Parent = env
 
 	head := args
 	for _, name := range l.Vars {

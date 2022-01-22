@@ -1,8 +1,13 @@
-package main
+package eval
+
+import (
+	"github.com/twolodzko/gosch/envir"
+	"github.com/twolodzko/gosch/types"
+)
 
 type (
-	Primitive = func(*Pair) (Any, error)
-	Procedure = func(*Pair, *Env) (Any, error)
+	Primitive = func(*types.Pair) (types.Any, error)
+	Procedure = func(*types.Pair, *envir.Env) (types.Any, error)
 )
 
 func procedure(name string) (Procedure, bool) {
@@ -45,7 +50,7 @@ func procedure(name string) (Procedure, bool) {
 	case "set!":
 		return set, true
 	case "quote":
-		return func(args *Pair, env *Env) (Any, error) {
+		return func(args *types.Pair, env *envir.Env) (types.Any, error) {
 			return args.This, nil
 		}, true
 	case "lambda":
@@ -69,7 +74,7 @@ func procedure(name string) (Procedure, bool) {
 }
 
 func primitiveWrapper(fn Primitive) Procedure {
-	return func(args *Pair, env *Env) (Any, error) {
+	return func(args *types.Pair, env *envir.Env) (types.Any, error) {
 		args, err := evalArgs(args, env)
 		if err != nil {
 			return nil, err
@@ -78,10 +83,10 @@ func primitiveWrapper(fn Primitive) Procedure {
 	}
 }
 
-func evalArgs(pair *Pair, env *Env) (*Pair, error) {
+func evalArgs(pair *types.Pair, env *envir.Env) (*types.Pair, error) {
 	var (
-		head *Pair
-		args []Any
+		head *types.Pair
+		args []types.Any
 	)
 	head = pair
 	for head != nil {
@@ -93,5 +98,5 @@ func evalArgs(pair *Pair, env *Env) (*Pair, error) {
 		head = head.Next
 	}
 	// TODO: avoid re-packing
-	return newPair(args), nil
+	return types.PairFromArray(args), nil
 }

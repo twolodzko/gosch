@@ -1,11 +1,14 @@
-package main
+package eval
 
 import (
 	"errors"
 	"fmt"
+
+	"github.com/twolodzko/gosch/envir"
+	"github.com/twolodzko/gosch/types"
 )
 
-type TcoProcedure = func(*Pair, *Env) (Any, *Env, error)
+type TcoProcedure = func(*types.Pair, *envir.Env) (types.Any, *envir.Env, error)
 
 func tcoProcedure(name string) (TcoProcedure, bool) {
 	switch name {
@@ -20,12 +23,12 @@ func tcoProcedure(name string) (TcoProcedure, bool) {
 	}
 }
 
-func let(args *Pair, env *Env) (Any, *Env, error) {
-	local := NewEnv()
-	local.parent = env
+func let(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+	local := envir.NewEnv()
+	local.Parent = env
 
 	// bind variables
-	bindings, ok := args.This.(*Pair)
+	bindings, ok := args.This.(*types.Pair)
 	if !ok {
 		return nil, env, fmt.Errorf("%v is not a list", args.This)
 	}
@@ -42,7 +45,7 @@ func let(args *Pair, env *Env) (Any, *Env, error) {
 }
 
 // Iterate through the bindings ((name1 value1) (name2 value2) ...) and set them to an environment
-func setBindings(bindings *Pair, env *Env) error {
+func setBindings(bindings *types.Pair, env *envir.Env) error {
 	if bindings.IsNull() {
 		return nil
 	}
@@ -50,7 +53,7 @@ func setBindings(bindings *Pair, env *Env) error {
 	head := bindings
 	for head != nil {
 		switch pair := head.This.(type) {
-		case *Pair:
+		case *types.Pair:
 			err := bind(pair, env)
 			if err != nil {
 				return err
@@ -63,7 +66,7 @@ func setBindings(bindings *Pair, env *Env) error {
 	return nil
 }
 
-func bind(binding *Pair, env *Env) error {
+func bind(binding *types.Pair, env *envir.Env) error {
 	if name, ok := binding.This.(string); ok {
 		if !binding.HasNext() {
 			return fmt.Errorf("%v has not value to bind", binding)
@@ -74,7 +77,7 @@ func bind(binding *Pair, env *Env) error {
 	return fmt.Errorf("binding %v does not use proper name", binding)
 }
 
-func ifFn(args *Pair, env *Env) (Any, *Env, error) {
+func ifFn(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
 	if bool(args.IsNull()) || !args.HasNext() {
 		return nil, env, errors.New("wrong number of arguments")
 	}
@@ -84,7 +87,7 @@ func ifFn(args *Pair, env *Env) (Any, *Env, error) {
 		return nil, nil, err
 	}
 
-	if isTrue(condition) {
+	if types.IsTrue(condition) {
 		return args.Next.This, env, nil
 	} else {
 		if !args.Next.HasNext() {
@@ -95,7 +98,7 @@ func ifFn(args *Pair, env *Env) (Any, *Env, error) {
 }
 
 // Evaluate all but last args, return last arg and enclosing environment
-func partialEval(args *Pair, env *Env) (Any, *Env, error) {
+func partialEval(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
 	current := args
 	for current.HasNext() {
 		_, err := Eval(current.This, env)

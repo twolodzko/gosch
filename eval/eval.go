@@ -1,10 +1,16 @@
-package main
+package eval
 
-import "fmt"
+import (
+	"fmt"
 
-func EvalString(code string, env *Env) ([]Any, *Env, error) {
-	var out []Any
-	parser := newParser(code)
+	"github.com/twolodzko/gosch/envir"
+	"github.com/twolodzko/gosch/parser"
+	"github.com/twolodzko/gosch/types"
+)
+
+func EvalString(code string, env *envir.Env) ([]types.Any, *envir.Env, error) {
+	var out []types.Any
+	parser := parser.NewParser(code)
 	sexprs, err := parser.Read()
 	if err != nil {
 		return nil, env, err
@@ -19,14 +25,14 @@ func EvalString(code string, env *Env) ([]Any, *Env, error) {
 	return out, env, err
 }
 
-func Eval(sexpr Any, env *Env) (Any, error) {
+func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	var err error
 	localEnv := env
 	for {
 		switch val := sexpr.(type) {
-		case *Pair:
+		case *types.Pair:
 			if val.IsNull() {
-				return &Pair{}, nil
+				return &types.Pair{}, nil
 			}
 
 			callable, err := getCallable(val.This, localEnv)
@@ -61,7 +67,7 @@ func Eval(sexpr Any, env *Env) (Any, error) {
 	}
 }
 
-func getCallable(sexpr Any, env *Env) (interface{}, error) {
+func getCallable(sexpr types.Any, env *envir.Env) (interface{}, error) {
 	var err error
 	for {
 		switch obj := sexpr.(type) {
@@ -79,7 +85,7 @@ func getCallable(sexpr Any, env *Env) (interface{}, error) {
 			}
 		case Lambda:
 			return obj, nil
-		case *Pair:
+		case *types.Pair:
 			sexpr, err = Eval(obj, env)
 			if err != nil {
 				return nil, err

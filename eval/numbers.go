@@ -1,12 +1,14 @@
-package main
+package eval
 
 import (
 	"errors"
 	"fmt"
 	"strconv"
+
+	"github.com/twolodzko/gosch/types"
 )
 
-func toInt(obj Any) (int, error) {
+func toInt(obj types.Any) (int, error) {
 	switch x := obj.(type) {
 	case int:
 		return x, nil
@@ -21,7 +23,7 @@ func toInt(obj Any) (int, error) {
 	}
 }
 
-func sum(args *Pair) (Any, error) {
+func sum(args *types.Pair) (types.Any, error) {
 	var result int = 0
 	if args.This == nil {
 		return result, nil
@@ -38,7 +40,7 @@ func sum(args *Pair) (Any, error) {
 	return result, nil
 }
 
-func dif(args *Pair) (Any, error) {
+func dif(args *types.Pair) (types.Any, error) {
 	if args.This == nil {
 		return 0, nil
 	}
@@ -61,7 +63,7 @@ func dif(args *Pair) (Any, error) {
 	return result, nil
 }
 
-func mul(args *Pair) (Any, error) {
+func mul(args *types.Pair) (types.Any, error) {
 	var result int = 1
 	if args.This == nil {
 		return result, nil
@@ -78,7 +80,7 @@ func mul(args *Pair) (Any, error) {
 	return result, nil
 }
 
-func div(args *Pair) (Any, error) {
+func div(args *types.Pair) (types.Any, error) {
 	if args.This == nil {
 		return 1, nil
 	}
@@ -101,7 +103,7 @@ func div(args *Pair) (Any, error) {
 	return result, nil
 }
 
-func mod(args *Pair) (Any, error) {
+func mod(args *types.Pair) (types.Any, error) {
 	if args.This == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -116,9 +118,9 @@ func mod(args *Pair) (Any, error) {
 	return a % n, nil
 }
 
-func equal(args *Pair) (Any, error) {
+func equal(args *types.Pair) (types.Any, error) {
 	if args.This == nil || !args.HasNext() {
-		return Bool(true), nil
+		return types.Bool(true), nil
 	}
 	prev, err := toInt(args.This)
 	if err != nil {
@@ -132,16 +134,16 @@ func equal(args *Pair) (Any, error) {
 			return nil, err
 		}
 		if prev != curr {
-			return Bool(false), nil
+			return types.Bool(false), nil
 		}
 		prev = curr
 	}
-	return Bool(true), nil
+	return types.Bool(true), nil
 }
 
-func lower(args *Pair) (Any, error) {
+func lower(args *types.Pair) (types.Any, error) {
 	if args.This == nil || !args.HasNext() {
-		return Bool(true), nil
+		return types.Bool(true), nil
 	}
 	prev, err := toInt(args.This)
 	if err != nil {
@@ -155,16 +157,16 @@ func lower(args *Pair) (Any, error) {
 			return nil, err
 		}
 		if prev >= curr {
-			return Bool(false), nil
+			return types.Bool(false), nil
 		}
 		prev = curr
 	}
-	return Bool(true), nil
+	return types.Bool(true), nil
 }
 
-func higher(args *Pair) (Any, error) {
+func higher(args *types.Pair) (types.Any, error) {
 	if args.This == nil || !args.HasNext() {
-		return Bool(true), nil
+		return types.Bool(true), nil
 	}
 	prev, err := toInt(args.This)
 	if err != nil {
@@ -178,9 +180,9 @@ func higher(args *Pair) (Any, error) {
 			return nil, err
 		}
 		if prev <= curr {
-			return Bool(false), nil
+			return types.Bool(false), nil
 		}
 		prev = curr
 	}
-	return Bool(true), nil
+	return types.Bool(true), nil
 }

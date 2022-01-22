@@ -1,4 +1,4 @@
-package main
+package types
 
 import "fmt"
 
@@ -10,6 +10,10 @@ type (
 type Pair struct {
 	This Any
 	Next *Pair
+}
+
+func NewPair(this Any, next *Pair) *Pair {
+	return &Pair{this, next}
 }
 
 func (p Pair) HasNext() bool {
@@ -57,7 +61,7 @@ func (p Pair) String() string {
 	return fmt.Sprintf("(%s)", elems)
 }
 
-func newPair(elems []Any) *Pair {
+func PairFromArray(elems []Any) *Pair {
 	switch len(elems) {
 	case 0:
 		return &Pair{}
@@ -65,7 +69,7 @@ func newPair(elems []Any) *Pair {
 		return &Pair{elems[0], nil}
 	default:
 		this := elems[0]
-		next := newPair(elems[1:])
+		next := PairFromArray(elems[1:])
 		return &Pair{this, next}
 	}
 }
@@ -77,11 +81,15 @@ func (b Bool) String() string {
 	return "#f"
 }
 
-func isTrue(s Any) Bool {
+func IsTrue(s Any) Bool {
 	switch val := s.(type) {
 	case Bool:
 		return val
 	default:
 		return true
 	}
+}
+
+func Quote(sexpr Any) Any {
+	return &Pair{"quote", &Pair{sexpr, nil}}
 }

@@ -1,15 +1,16 @@
-package main
+package envir
 
 import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/twolodzko/gosch/types"
 )
 
 func Test_EnvGet(t *testing.T) {
 	var testCases = []struct {
 		name  string
-		value Any
+		value types.Any
 	}{
 		{"a", "xxx"},
 		{"b", 42},
@@ -34,7 +35,7 @@ func Test_EnvGet(t *testing.T) {
 func Test_EnvGetUnbound(t *testing.T) {
 	var values = []struct {
 		name  string
-		value Any
+		value types.Any
 	}{
 		{"a", "xxx"},
 		{"b", 42},
@@ -55,12 +56,12 @@ func Test_NestedEnvGet(t *testing.T) {
 	parent := NewEnv()
 	parent.Set("x", 1)
 	sybling := NewEnv()
-	sybling.parent = parent
+	sybling.Parent = parent
 	sybling.Set("y", 2)
 
 	var testCases = []struct {
 		name     string
-		expected Any
+		expected types.Any
 	}{
 		{"x", 1},
 		{"y", 2},

@@ -60,3 +60,112 @@ func Test_MapFunction(t *testing.T) {
 		t.Errorf("for %v expected %v, got %v", code, expected, result)
 	}
 }
+
+func Test_Fibonacci(t *testing.T) {
+	env := envir.NewEnv()
+
+	code := `
+	(define fibo (lambda (n)
+		(if (= n 0) 0
+			(if (= n 1) 1
+				(+ (fibo (- n 1))
+				   (fibo (- n 2)))))))
+	`
+
+	_, _, err := eval.EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	var testCases = []struct {
+		input    string
+		expected int
+	}{
+		{"(fibo 0)", 0},
+		{"(fibo 1)", 1},
+		{"(fibo 2)", 1},
+		{"(fibo 3)", 2},
+		{"(fibo 7)", 13},
+		{"(fibo 9)", 34},
+		{"(fibo 20)", 6765},
+	}
+
+	for _, tt := range testCases {
+		result, _, err := eval.EvalString(tt.input, env)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		if !cmp.Equal(result[0], tt.expected) {
+			t.Errorf("expected %v, got %s", tt.expected, result[0])
+		}
+	}
+}
+
+func Benchmark_FibonacciRecursive(b *testing.B) {
+	var err error
+	env := envir.NewEnv()
+
+	code := `
+	(define fibo (lambda (n)
+		(if (= n 0) 0
+			(if (= n 1) 1
+				(+ (fibo (- n 1))
+				   (fibo (- n 2)))))))
+	`
+
+	_, _, err = eval.EvalString(code, env)
+	if err != nil {
+		b.Errorf("unexpected error: %v", err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		_, _, err = eval.EvalString("(fibo 5)", env)
+		if err != nil {
+			b.Errorf("unexpected error: %v", err)
+		}
+
+		_, _, err = eval.EvalString("(fibo 10)", env)
+		if err != nil {
+			b.Errorf("unexpected error: %v", err)
+		}
+
+		_, _, err = eval.EvalString("(fibo 20)", env)
+		if err != nil {
+			b.Errorf("unexpected error: %v", err)
+		}
+	}
+}
+
+func Benchmark_FibonacciTailRecursive(b *testing.B) {
+	var err error
+	env := envir.NewEnv()
+
+	code := `
+	(define fibo (lambda (term val prev)
+		(if (= term 0) prev
+			(fibo (- term 1) (+ prev val) val))))
+	`
+
+	_, _, err = eval.EvalString(code, env)
+	if err != nil {
+		b.Errorf("unexpected error: %v", err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		_, _, err = eval.EvalString("(fibo 5 1 0)", env)
+		if err != nil {
+			b.Errorf("unexpected error: %v", err)
+		}
+
+		_, _, err = eval.EvalString("(fibo 10 1 0)", env)
+		if err != nil {
+			b.Errorf("unexpected error: %v", err)
+		}
+
+		_, _, err = eval.EvalString("(fibo 20 1 0)", env)
+		if err != nil {
+			b.Errorf("unexpected error: %v", err)
+		}
+	}
+}

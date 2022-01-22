@@ -25,6 +25,9 @@ cogn:
 	# go get github.com/uudashr/gocognit/cmd/gocognit
 	gocognit -top 10 .
 
+benchmarks:
+	go test -bench=. ./...
+
 fmt:
 	go fmt ./...
 

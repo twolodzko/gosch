@@ -1,6 +1,8 @@
 package eval
 
 import (
+	"fmt"
+
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/types"
 )
@@ -59,6 +61,8 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return isNumber, true
 	case "boolean?":
 		return isBool, true
+	case "string?":
+		return isString, true
 	case "symbol?":
 		return isSymbol, true
 	case "procedure?":
@@ -75,6 +79,19 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return div, true
 	case "%":
 		return mod, true
+	case "string":
+		return func(args *types.Pair) (types.Any, error) {
+			return types.String(toString(args, "")), nil
+		}, true
+	case "display":
+		return display, true
+	case "newline":
+		return func(args *types.Pair) (types.Any, error) {
+			fmt.Println()
+			return nil, nil
+		}, true
+	case "error":
+		return raiseError, true
 	default:
 		return nil, false
 	}

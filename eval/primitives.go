@@ -139,6 +139,15 @@ func isBool(args *types.Pair) (types.Any, error) {
 	}
 }
 
+func isString(args *types.Pair) (types.Any, error) {
+	switch args.This.(type) {
+	case types.String:
+		return types.Bool(true), nil
+	default:
+		return types.Bool(false), nil
+	}
+}
+
 func isSymbol(args *types.Pair) (types.Any, error) {
 	switch args.This.(type) {
 	case types.Symbol:
@@ -159,6 +168,34 @@ func isProcedure(args *types.Pair) (types.Any, error) {
 	default:
 		return types.Bool(false), nil
 	}
+}
+
+func toString(args *types.Pair, sep string) string {
+	var out string
+	head := args
+	for head != nil {
+		switch val := head.This.(type) {
+		case types.String:
+			out += fmt.Sprintf("%v", string(val))
+		default:
+			out += fmt.Sprintf("%v", val)
+		}
+
+		if head.HasNext() {
+			out += sep
+		}
+		head = head.Next
+	}
+	return out
+}
+
+func display(args *types.Pair) (types.Any, error) {
+	fmt.Printf("%s\n", toString(args, " "))
+	return nil, nil
+}
+
+func raiseError(args *types.Pair) (types.Any, error) {
+	return nil, fmt.Errorf("%s", toString(args, " "))
 }
 
 func set(args *types.Pair, env *envir.Env) (types.Any, error) {

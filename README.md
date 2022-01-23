@@ -39,7 +39,7 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 - Arithmetic operators `+`, `-`, `*`, `/`, e.g. `(+ x1 x2 ...)` and `(% x1 x2)` for modulo.
 - Numerical comparison operators `<`, `=`, `>`, e.g. `(< x1 x2 ...)`.
 - Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `string?`, `symbol?`, `procedure?`, and other
-checkers: `null?` and `nil?`.
+checkers: `null?` (empty list) and `nil?` (null value).
 - `(string expr ...)` converts *expr*'s to string, `(display expr ...)` prints them, `(newline)` prints empty line,
 `(error expr ...)` raises exceptions with *expr*'s as message.
 - `(load path)` reads and executes the code from *path* and returns the result of last expression in the file.

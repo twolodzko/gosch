@@ -15,9 +15,17 @@ type Lambda struct {
 }
 
 func newLambda(args *types.Pair, env *envir.Env) (types.Any, error) {
+	if args.IsNull() || !args.HasNext() {
+		return nil, errors.New("wrong number of arguments")
+	}
+
 	var vars []types.Symbol
 	switch pair := args.This.(type) {
 	case *types.Pair:
+		if pair.IsNull() {
+			return Lambda{nil, args.Next}, nil
+		}
+
 		head := pair
 		for head != nil {
 			if name, ok := head.This.(types.Symbol); ok {

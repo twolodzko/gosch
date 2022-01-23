@@ -35,6 +35,7 @@ for example `(if #f 'ok)` returns `<nil>`.
 `null?` and `nil?`.
 - `(string expr ...)` converts *expr*'s to string, `(display expr ...)` prints them, `(newline)` prints empty line,
 `(error expr ...)` raises exceptions with *expr*'s as message.
+- `(load path)` reads and executes the code from *path* and returns the result of last expression in the file.
 
 
  [pairs]: https://web.mit.edu/scheme_v9.2/doc/mit-scheme-ref/Lists.html#Lists

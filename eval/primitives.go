@@ -198,6 +198,28 @@ func raiseError(args *types.Pair) (types.Any, error) {
 	return nil, fmt.Errorf("%s", toString(args, " "))
 }
 
+func load(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+	if args == nil {
+		return nil, env, errors.New("wrong number of arguments")
+	}
+	head, err := Eval(args.This, env)
+	if err != nil {
+		return nil, env, err
+	}
+	path, ok := head.(types.String)
+	if !ok {
+		return nil, env, fmt.Errorf("invalid path: %v", head)
+	}
+	sexprs, env, err := LoadEval(string(path), env)
+	if err != nil {
+		return nil, env, err
+	}
+	if len(sexprs) > 0 {
+		return sexprs[len(sexprs)-1], env, nil
+	}
+	return nil, env, nil
+}
+
 func set(args *types.Pair, env *envir.Env) (types.Any, error) {
 	if args.IsNull() || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")

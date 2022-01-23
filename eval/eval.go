@@ -4,26 +4,8 @@ import (
 	"fmt"
 
 	"github.com/twolodzko/gosch/envir"
-	"github.com/twolodzko/gosch/parser"
 	"github.com/twolodzko/gosch/types"
 )
-
-func EvalString(code string, env *envir.Env) ([]types.Any, *envir.Env, error) {
-	var out []types.Any
-	parser := parser.NewParser(code)
-	sexprs, err := parser.Read()
-	if err != nil {
-		return nil, env, err
-	}
-	for _, sexpr := range sexprs {
-		result, err := Eval(sexpr, env)
-		if err != nil {
-			return nil, env, err
-		}
-		out = append(out, result)
-	}
-	return out, env, err
-}
 
 func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	for {

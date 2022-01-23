@@ -37,6 +37,15 @@ func Test_EnvAndVariables(t *testing.T) {
 	}
 }
 
+func Test_Load(t *testing.T) {
+	env := envir.NewEnv()
+
+	_, _, err := eval.EvalString(`(load "examples/hello.scm")`, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
 func Test_MapFunction(t *testing.T) {
 	env := envir.NewEnv()
 

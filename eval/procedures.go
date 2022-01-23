@@ -92,6 +92,8 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		}, true
 	case "error":
 		return raiseError, true
+	case "load":
+		return load, true
 	default:
 		return nil, false
 	}

@@ -302,6 +302,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(if (< 2 5) 'smaller 'bigger)", "smaller"},
 		{"(if (< 8 (+ 2 2)) 'smaller 'bigger)", "bigger"},
 		{"(if #t (+ 2 2))", "4"},
+		{"((lambda () 42))", "42"},
 		{"(lambda (x) x)", "(lambda (x) x)"},
 		{"((lambda (x) x) 3)", "3"},
 		{"((lambda (x) (let ((y 2)) (+ x y))) 3)", "5"},
@@ -341,6 +342,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(define x (+ 2 (/ 10 5)))", "4"},
 		{"(set! x (+ 2 (/ 10 5)))", "4"},
 		{`(string 1 "+" 2 "=" (+ 1 2))`, `"1+2=3"`},
+		{`(load (string ".." "/" "examples" "/" "trivial.scm"))`, "9"},
 	}
 
 	for _, tt := range testCases {

@@ -33,6 +33,8 @@ func Test_Parse(t *testing.T) {
 		{"''()", types.Quote(types.Quote(&types.Pair{}))},
 		{"  \n\ta", "a"},
 		{"\n  \t\n(\n   a\t\n)  ", types.NewPair(types.Symbol("a"), nil)},
+		{`"hello world!"`, types.String("hello world!")},
+		{`"William Joseph \"Wild Bill\" Donovan"`, types.String(`William Joseph "Wild Bill" Donovan`)},
 	}
 
 	for _, tt := range testCases {

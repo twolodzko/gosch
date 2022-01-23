@@ -6,6 +6,7 @@ type (
 	Bool   bool
 	Any    = interface{}
 	Symbol = string
+	String string
 )
 
 type Pair struct {
@@ -93,4 +94,8 @@ func IsTrue(s Any) Bool {
 
 func Quote(sexpr Any) Any {
 	return &Pair{"quote", &Pair{sexpr, nil}}
+}
+
+func (s String) String() string {
+	return `"` + string(s) + `"`
 }

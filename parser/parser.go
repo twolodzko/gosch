@@ -95,6 +95,33 @@ func (p *Parser) readPair() (*types.Pair, error) {
 	return nil, fmt.Errorf("list was not closed with )")
 }
 
+func (p *Parser) readString() (types.String, error) {
+	p.pos++
+	var (
+		runes  []rune
+		quoted bool = false
+	)
+	for p.HasNext() {
+		if !quoted {
+			if p.Head() == '\\' {
+				quoted = true
+				p.pos++
+				continue
+			}
+			if p.Head() == '"' {
+				p.pos++
+				return types.String(runes), nil
+			}
+		}
+		runes = append(runes, p.Head())
+		if quoted {
+			quoted = false
+		}
+		p.pos++
+	}
+	return "", io.EOF
+}
+
 func (p *Parser) readSexpr() (types.Any, error) {
 	var (
 		val types.Any
@@ -108,19 +135,23 @@ func (p *Parser) readSexpr() (types.Any, error) {
 			p.pos++
 		case '(':
 			val, err = p.readPair()
-			for i := 0; i < quotes; i++ {
-				val = types.Quote(val)
-			}
-			return val, err
+			return quote(val, quotes), err
 		case ')':
 			return nil, fmt.Errorf("unexpected )")
+		case '"':
+			val, err = p.readString()
+			return quote(val, quotes), err
 		default:
 			val, err = p.readAtomValue()
-			for i := 0; i < quotes; i++ {
-				val = types.Quote(val)
-			}
-			return val, err
+			return quote(val, quotes), err
 		}
 	}
 	return nil, io.EOF
+}
+
+func quote(obj types.Any, num int) types.Any {
+	for i := 0; i < num; i++ {
+		obj = types.Quote(obj)
+	}
+	return obj
 }

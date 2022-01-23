@@ -243,6 +243,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(cons '() '())", "(())"},
 		{"(cons '() '(a b c))", "(() a b c)"},
 		{"(cons '(a b c) '())", "((a b c))"},
+		{`(cons "hello" '("world"))`, `("hello" "world")`},
 		{"(list)", "()"},
 		{"(list 1)", "(1)"},
 		{"(list 1 2 3)", "(1 2 3)"},

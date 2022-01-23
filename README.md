@@ -9,10 +9,10 @@
 
 As in classic LISPs, **gosch** recognizes only two data structures *atoms* and *[pairs]*
 (*aka* [linked lists]). There are no plans to implement more advanced data structures like
-vectors. Also, the variety of available data types for atoms is limited, for example, 
-the only available numerical type is an integer. The implementation is [properly tail-recursive]
-as required of Scheme. Unlike the classic Scheme, there is the null type and in many undefined cases
-the procedures return it, for example `(if #f 'ok)` returns `<nil>`.
+vectors. Also, the variety of available data types for atoms is limited to numbers (integers), booleans
+(`#t` and `#f`), and strings. The implementation is [properly tail-recursive] as required of Scheme.
+Unlike the classic Scheme, there is the null type and in many undefined cases the procedures return it,
+for example `(if #f 'ok)` returns `<nil>`.
 
 **gosch** implements the following primitives:
 

@@ -1,6 +1,6 @@
 .PHONY: build test cov staticcheck vet cycl cogn fmt clean
 
-build:
+gosch:
 	go build
 
 test: staticcheck vet
@@ -27,6 +27,9 @@ cogn:
 
 benchmarks:
 	go test -bench=. ./...
+
+repl: gosch
+	@ ./gosch
 
 fmt:
 	go fmt ./...

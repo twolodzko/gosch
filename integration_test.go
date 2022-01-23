@@ -7,6 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
+	"github.com/twolodzko/gosch/types"
 )
 
 func Test_EnvAndVariables(t *testing.T) {
@@ -59,6 +60,27 @@ func Test_MapFunction(t *testing.T) {
 	(map add1 '(1 2 3))
 	`
 	expected := []int{2, 3, 4}
+
+	result, _, err := eval.EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if cmp.Equal(result, expected) {
+		t.Errorf("for %v expected %v, got %v", code, expected, result)
+	}
+}
+
+func Test_IsAtom(t *testing.T) {
+	env := envir.NewEnv()
+
+	code := `
+	(define atom?
+		(lambda (x)
+			(and (not (pair? x)) (not (null? x)))))
+	(atom? 'a)
+	`
+	expected := []types.Any{types.Bool(true)}
 
 	result, _, err := eval.EvalString(code, env)
 	if err != nil {

@@ -12,9 +12,8 @@ var DEBUG = false
 func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	for {
 		if DEBUG {
-			fmt.Printf("   Evaluating:  %v\n", sexpr)
-			fmt.Printf("   Environment: %v\n", env)
-			fmt.Println()
+			fmt.Printf(" ↪ Step: %v\n", sexpr)
+			fmt.Printf("   Env:  %v\n", env)
 		}
 
 		switch val := sexpr.(type) {

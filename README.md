@@ -20,13 +20,11 @@ for example `(if #f 'ok)` returns `<nil>`. `nil` is one of the possible values i
 
 **gosch** implements the following primitives:
 
-- `(car pair)` returns first element of the *pair*.
-- `(cdr pair)` returns second element (tail) of the *pair*.
+- `(car pair)` returns first element, and `(cdr pair)` returns second element (tail) of the *pair*.
 - `(cons obj1 obj2)` creates pair where *obj1* is car and *obj2* is cdr.
 - `(list obj1 obj2 ...)` is the same as `(cons obj1 (cons obj2 (cons obj3 ...)))`.
 - `(eq? obj1 obj2)` compares if two objects are equal, for pairs only checks if they point to the same memory location.
-- `(define name value)` assigns *value* to a *name* in the current envir.
-- `(set! name value)` if *name* exists in the current or enclosing environment, it sets it to the *value*, otherwise it
+- `(define name value)` assigns *value* to a *name* in the current envir. `(set! name value)` if *name* exists in the current or enclosing environment, it sets it to the *value*, otherwise it
 assigns *value* to a *name* in the current envir.
 - `(quote obj)` returns *obj* without evaluating it.
 - `(lambda (arg1 arg2 ...) expr1 expr2 ...)` defines a [lambda expression] (*aka* function).
@@ -36,7 +34,7 @@ with *name1*, *name2*, ... variables present; returns the result of evaluating t
 condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 - `(begin expr1 expr2 ...)` evaluates *expr1*, *expr2*, ..., returns the result of evaluating the last *exprN* expression.
 - Logical `(not obj)`, `and`, and `or`, e.g. `(and obj1 obj2 ...)`.
-- Arithmetic operators `+`, `-`, `*`, `/`, e.g. `(+ x1 x2 ...)` and `(% x1 x2)` for modulo.
+- Arithmetic operators `+`, `-`, `*`, `/`, e.g. `(+ x1 x2 ...)`, and `(% x1 x2)` for modulo.
 - Numerical comparison operators `<`, `=`, `>`, e.g. `(< x1 x2 ...)`.
 - Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `string?`, `symbol?`, `procedure?`, and other
 checkers: `null?` (empty list) and `nil?` (null value).

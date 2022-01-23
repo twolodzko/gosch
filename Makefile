@@ -1,6 +1,6 @@
-.PHONY: build test cov staticcheck vet cycl cogn fmt clean
+.PHONY: test cov staticcheck vet cycl cogn benchmarks repl fmt clean
 
-build:
+gosch: $(shell find . -name "*.go")
 	go build
 
 test: staticcheck vet
@@ -28,7 +28,7 @@ cogn:
 benchmarks:
 	go test -bench=. ./...
 
-repl: build
+repl: gosch
 	@ ./gosch
 
 fmt:

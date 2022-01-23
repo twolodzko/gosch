@@ -9,6 +9,8 @@
 
 (source https://xkcd.com/297/)
 
+## Oh, gosch
+
 As in classic LISPs, **gosch** recognizes only two data structures *atoms* and *[pairs]*
 (*aka* [linked lists]). There are no plans to implement more advanced data structures like
 vectors. Also, the variety of available data types for atoms is limited to numbers (integers), booleans

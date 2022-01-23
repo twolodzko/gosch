@@ -56,6 +56,7 @@ func bind(binding *types.Pair, local, parent *envir.Env) error {
 		if !binding.HasNext() {
 			return fmt.Errorf("%v has not value to bind", binding)
 		}
+		// arguments are evaluated in env enclosing let
 		val, err := Eval(binding.Next.This, parent)
 		if err != nil {
 			return err

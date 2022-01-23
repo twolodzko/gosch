@@ -9,7 +9,7 @@ import (
 )
 
 func let(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
-	if args.IsNull() || !args.HasNext() {
+	if args == nil || !args.HasNext() {
 		return nil, env, errors.New("wrong number of arguments")
 	}
 
@@ -68,7 +68,7 @@ func bind(binding *types.Pair, local, parent *envir.Env) error {
 }
 
 func ifFn(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
-	if args.IsNull() || !args.HasNext() {
+	if args == nil || !args.HasNext() {
 		return nil, env, errors.New("wrong number of arguments")
 	}
 
@@ -85,4 +85,31 @@ func ifFn(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
 		}
 		return args.Next.Next.This, env, nil
 	}
+}
+
+func cond(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+	if args == nil {
+		return nil, env, errors.New("wrong number of arguments")
+	}
+
+	head := args
+	for head != nil {
+		switch pair := head.This.(type) {
+		case *types.Pair:
+			if pair.IsNull() || !pair.HasNext() || pair.Next.HasNext() {
+				return nil, env, fmt.Errorf("invalid argument %v", pair)
+			}
+			condition, err := Eval(pair.This, env)
+			if err != nil {
+				return nil, env, err
+			}
+			if types.IsTrue(condition) {
+				return pair.Next.This, env, nil
+			}
+		default:
+			return nil, env, fmt.Errorf("invalid argument %v", head.This)
+		}
+		head = head.Next
+	}
+	return nil, env, nil
 }

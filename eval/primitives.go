@@ -35,7 +35,7 @@ func cdr(args *types.Pair) (types.Any, error) {
 }
 
 func cons(args *types.Pair) (types.Any, error) {
-	if args.IsNull() || !args.HasNext() {
+	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
 	switch val := args.Next.This.(type) {
@@ -55,7 +55,7 @@ func not(args *types.Pair) (types.Any, error) {
 }
 
 func eq(args *types.Pair) (types.Any, error) {
-	if args.IsNull() || !args.HasNext() {
+	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
 	return types.Bool(args.This == args.Next.This), nil
@@ -90,6 +90,9 @@ func or(args *types.Pair) (types.Any, error) {
 }
 
 func define(args *types.Pair, env *envir.Env) (types.Any, error) {
+	if args == nil || !args.HasNext() {
+		return nil, errors.New("wrong number of arguments")
+	}
 	switch name := args.This.(type) {
 	case types.Symbol:
 		val, err := Eval(args.Next.This, env)
@@ -97,6 +100,29 @@ func define(args *types.Pair, env *envir.Env) (types.Any, error) {
 			return nil, err
 		}
 		env.Set(name, val)
+		return val, nil
+	default:
+		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
+	}
+}
+
+func set(args *types.Pair, env *envir.Env) (types.Any, error) {
+	if args == nil || !args.HasNext() {
+		return nil, errors.New("wrong number of arguments")
+	}
+
+	val, err := Eval(args.Next.This, env)
+	if err != nil {
+		return nil, err
+	}
+
+	switch name := args.This.(type) {
+	case types.Symbol:
+		if localEnv, ok := env.FindEnv(name); ok {
+			localEnv.Set(name, val)
+		} else {
+			env.Set(name, val)
+		}
 		return val, nil
 	default:
 		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
@@ -171,6 +197,9 @@ func isProcedure(args *types.Pair) (types.Any, error) {
 }
 
 func toString(args *types.Pair, sep string) string {
+	if args.IsNull() {
+		return ""
+	}
 	var out string
 	head := args
 	for head != nil {
@@ -218,27 +247,4 @@ func load(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
 		return sexprs[len(sexprs)-1], env, nil
 	}
 	return nil, env, nil
-}
-
-func set(args *types.Pair, env *envir.Env) (types.Any, error) {
-	if args.IsNull() || !args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
-	}
-
-	val, err := Eval(args.Next.This, env)
-	if err != nil {
-		return nil, err
-	}
-
-	switch name := args.This.(type) {
-	case types.Symbol:
-		if localEnv, ok := env.FindEnv(name); ok {
-			localEnv.Set(name, val)
-		} else {
-			env.Set(name, val)
-		}
-		return val, nil
-	default:
-		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
-	}
 }

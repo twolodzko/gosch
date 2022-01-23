@@ -343,6 +343,11 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(set! x (+ 2 (/ 10 5)))", "4"},
 		{`(string 1 "+" 2 "=" (+ 1 2))`, `"1+2=3"`},
 		{`(load (string ".." "/" "examples" "/" "trivial.scm"))`, "9"},
+		{"else", "#t"},
+		{"(cond ((< 5 2) 'one) ((> 7 2) 'two) (else 'three))", "two"},
+		{"(cond ((< 5 2) 'one) (#f 'two) (else 'three))", "three"},
+		{"(cond (#f 'one))", "<nil>"},
+		{"(cond (else 'one) (#t 'two))", "one"},
 	}
 
 	for _, tt := range testCases {

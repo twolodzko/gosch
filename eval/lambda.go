@@ -15,7 +15,7 @@ type Lambda struct {
 }
 
 func newLambda(args *types.Pair, env *envir.Env) (types.Any, error) {
-	if args.IsNull() || !args.HasNext() {
+	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
 

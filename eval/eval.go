@@ -71,6 +71,9 @@ func evalSymbol(sexpr types.Any, env *envir.Env) (types.Any, error) {
 
 // Evaluate all but last args, return last arg and enclosing environment
 func partialEval(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+	if args == nil {
+		return nil, env, nil
+	}
 	current := args
 	for current.HasNext() {
 		_, err := Eval(current.This, env)

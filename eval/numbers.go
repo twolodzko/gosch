@@ -104,7 +104,7 @@ func div(args *types.Pair) (types.Any, error) {
 }
 
 func mod(args *types.Pair) (types.Any, error) {
-	if args.IsNull() || !args.HasNext() {
+	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
 	a, err := toInt(args.This)
@@ -119,7 +119,7 @@ func mod(args *types.Pair) (types.Any, error) {
 }
 
 func equal(args *types.Pair) (types.Any, error) {
-	if args.IsNull() || !args.HasNext() {
+	if args == nil || !args.HasNext() {
 		return types.Bool(true), nil
 	}
 	prev, err := toInt(args.This)
@@ -142,7 +142,7 @@ func equal(args *types.Pair) (types.Any, error) {
 }
 
 func lower(args *types.Pair) (types.Any, error) {
-	if args.IsNull() || !args.HasNext() {
+	if args == nil || !args.HasNext() {
 		return types.Bool(true), nil
 	}
 	prev, err := toInt(args.This)
@@ -165,7 +165,7 @@ func lower(args *types.Pair) (types.Any, error) {
 }
 
 func higher(args *types.Pair) (types.Any, error) {
-	if args.IsNull() || !args.HasNext() {
+	if args == nil || !args.HasNext() {
 		return types.Bool(true), nil
 	}
 	prev, err := toInt(args.This)

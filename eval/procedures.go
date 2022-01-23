@@ -1,6 +1,7 @@
 package eval
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/twolodzko/gosch/envir"
@@ -43,6 +44,9 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return set, true
 	case "quote":
 		return func(args *types.Pair, env *envir.Env) (types.Any, error) {
+			if args == nil {
+				return nil, errors.New("wrong number of arguments")
+			}
 			return args.This, nil
 		}, true
 	case "lambda":
@@ -51,6 +55,10 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return let, true
 	case "if":
 		return ifFn, true
+	case "cond":
+		return cond, true
+	case "else":
+		return types.Bool(true), true
 	case "begin":
 		return partialEval, true
 	case "null?":

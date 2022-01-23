@@ -7,9 +7,16 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
+var DEBUG = false
+
 func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	for {
-		// fmt.Printf("%v\n", sexpr)
+		if DEBUG {
+			fmt.Printf("   Evaluating:  %v\n", sexpr)
+			fmt.Printf("   Environment: %v\n", env)
+			fmt.Println()
+		}
+
 		switch val := sexpr.(type) {
 		case types.Symbol:
 			return evalSymbol(val, env)

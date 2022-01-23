@@ -42,7 +42,7 @@ func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, e
 		if head == nil {
 			return nil, local, errors.New("wrong number of arguments")
 		}
-		val, err := Eval(head.This, local)
+		val, err := Eval(head.This, env)
 		if err != nil {
 			return nil, local, err
 		}

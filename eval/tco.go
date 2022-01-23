@@ -21,7 +21,7 @@ func let(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
 	if !ok {
 		return nil, local, fmt.Errorf("%v is not a list", args.This)
 	}
-	err := setBindings(bindings, local)
+	err := setBindings(bindings, local, env)
 	if err != nil {
 		return nil, local, err
 	}
@@ -30,7 +30,7 @@ func let(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
 }
 
 // Iterate through the bindings ((name1 value1) (name2 value2) ...) and set them to an environment
-func setBindings(bindings *types.Pair, env *envir.Env) error {
+func setBindings(bindings *types.Pair, local, parent *envir.Env) error {
 	if bindings.IsNull() {
 		return nil
 	}
@@ -39,7 +39,7 @@ func setBindings(bindings *types.Pair, env *envir.Env) error {
 	for head != nil {
 		switch pair := head.This.(type) {
 		case *types.Pair:
-			err := bind(pair, env)
+			err := bind(pair, local, parent)
 			if err != nil {
 				return err
 			}
@@ -51,16 +51,16 @@ func setBindings(bindings *types.Pair, env *envir.Env) error {
 	return nil
 }
 
-func bind(binding *types.Pair, env *envir.Env) error {
+func bind(binding *types.Pair, local, parent *envir.Env) error {
 	if name, ok := binding.This.(string); ok {
 		if !binding.HasNext() {
 			return fmt.Errorf("%v has not value to bind", binding)
 		}
-		val, err := Eval(binding.Next.This, env)
+		val, err := Eval(binding.Next.This, parent)
 		if err != nil {
 			return err
 		}
-		env.Set(name, val)
+		local.Set(name, val)
 		return nil
 	}
 	return fmt.Errorf("binding %v does not use proper name", binding)

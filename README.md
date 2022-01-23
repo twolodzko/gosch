@@ -16,7 +16,7 @@ As in classic LISPs, **gosch** recognizes only two data structures *atoms* and *
 vectors. Also, the variety of available data types for atoms is limited to numbers (integers), booleans
 (`#t` and `#f`), and strings. The implementation is [properly tail-recursive] as required of Scheme.
 Unlike the classic Scheme, there is the null type and in many undefined cases the procedures return it,
-for example `(if #f 'ok)` returns `<nil>`.
+for example `(if #f 'ok)` returns `<nil>`. `nil` is one of the possible values in **gosch**.
 
 **gosch** implements the following primitives:
 

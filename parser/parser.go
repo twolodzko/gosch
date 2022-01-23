@@ -62,6 +62,9 @@ func (p *Parser) readAtomValue() (interface{}, error) {
 		case str == "#f":
 			return types.Bool(false), nil
 		default:
+			if str == "nil" {
+				return nil, nil
+			}
 			return types.Symbol(str), nil
 		}
 	} else {

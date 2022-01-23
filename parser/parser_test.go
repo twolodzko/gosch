@@ -16,7 +16,7 @@ func Test_Parse(t *testing.T) {
 		{"a", "a"},
 		{"42", 42},
 		{"-100", -100},
-		{"nil", types.Symbol("nil")},
+		{"nil", nil},
 		{"#t", types.Bool(true)},
 		{"#f", types.Bool(false)},
 		{"()", &types.Pair{}},

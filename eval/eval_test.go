@@ -453,3 +453,13 @@ func Test_newLambda(t *testing.T) {
 		t.Errorf("expected: %v, got %v", expected, result)
 	}
 }
+
+func Test_Error(t *testing.T) {
+	env := envir.NewEnv()
+	expected := "this is an error"
+
+	_, _, err := EvalString(fmt.Sprintf(`(error "%s")`, expected), env)
+	if err.Error() != expected {
+		t.Errorf("expected an error: %v, got %v", expected, err)
+	}
+}

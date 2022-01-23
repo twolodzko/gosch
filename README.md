@@ -21,8 +21,7 @@ for example `(if #f 'ok)` returns `<nil>`. `nil` is one of the possible values i
 **gosch** implements the following primitives:
 
 - `(car pair)` returns first element, and `(cdr pair)` returns second element (tail) of the *pair*.
-- `(cons obj1 obj2)` creates pair where *obj1* is car and *obj2* is cdr.
-- `(list obj1 obj2 ...)` is the same as `(cons obj1 (cons obj2 (cons obj3 ...)))`.
+- `(cons obj1 obj2)` creates pair where *obj1* is car and *obj2* is cdr. `(list obj1 obj2 ...)` is the same as `(cons obj1 (cons obj2 (cons obj3 ...)))`.
 - `(eq? obj1 obj2)` compares if two objects are equal, for pairs only checks if they point to the same memory location.
 - `(define name value)` assigns *value* to a *name* in the current envir. `(set! name value)` if *name* exists in the current or enclosing environment, it sets it to the *value*, otherwise it
 assigns *value* to a *name* in the current envir.

@@ -100,26 +100,18 @@ func (p *Parser) readPair() (*types.Pair, error) {
 
 func (p *Parser) readString() (types.String, error) {
 	p.pos++
-	var (
-		runes  []rune
-		quoted bool = false
-	)
+	var runes []rune
 	for p.HasNext() {
-		if !quoted {
-			if p.Head() == '\\' {
-				quoted = true
-				p.pos++
-				continue
-			}
-			if p.Head() == '"' {
-				p.pos++
-				return types.String(runes), nil
-			}
+		if p.Head() == '\\' && len(p.str) > (p.pos+1) && p.str[p.pos+1] == '"' {
+			runes = append(runes, '"')
+			p.pos = p.pos + 2
+			continue
+		}
+		if p.Head() == '"' {
+			p.pos++
+			return types.String(runes), nil
 		}
 		runes = append(runes, p.Head())
-		if quoted {
-			quoted = false
-		}
 		p.pos++
 	}
 	return "", io.EOF

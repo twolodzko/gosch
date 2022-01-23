@@ -3,8 +3,9 @@ package types
 import "fmt"
 
 type (
-	Bool bool
-	Any  = interface{}
+	Bool   bool
+	Any    = interface{}
+	Symbol = string
 )
 
 type Pair struct {

@@ -3,7 +3,6 @@ package eval
 import (
 	"errors"
 	"fmt"
-	"strconv"
 
 	"github.com/twolodzko/gosch/types"
 )
@@ -12,12 +11,13 @@ func toInt(obj types.Any) (int, error) {
 	switch x := obj.(type) {
 	case int:
 		return x, nil
-	case string:
-		number, err := strconv.Atoi(x)
-		if err != nil {
-			return 0, err
-		}
-		return number, nil
+	// TODO: this should work for String types, not symbols
+	// case string:
+	// 	number, err := strconv.Atoi(x)
+	// 	if err != nil {
+	// 		return 0, err
+	// 	}
+	// 	return number, nil
 	default:
 		return 0, fmt.Errorf("%v is not a number", obj)
 	}

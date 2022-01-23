@@ -422,13 +422,13 @@ func Test_QuoteDoesntMutate(t *testing.T) {
 func Test_newLambda(t *testing.T) {
 	env := envir.NewEnv()
 	expected := Lambda{
-		[]string{"x", "y"},
-		types.NewPair("+", types.NewPair(types.NewPair("x", types.NewPair("y", nil)), nil)),
+		[]types.Symbol{"x", "y"},
+		types.NewPair(types.Symbol("+"), types.NewPair(types.NewPair(types.Symbol("x"), types.NewPair(types.Symbol("y"), nil)), nil)),
 	}
 	result, err := newLambda(
 		types.NewPair(
-			types.NewPair("x", types.NewPair("y", nil)),
-			types.NewPair("+", types.NewPair(types.NewPair("x", types.NewPair("y", nil)), nil)),
+			types.NewPair(types.Symbol("x"), types.NewPair(types.Symbol("y"), nil)),
+			types.NewPair(types.Symbol("+"), types.NewPair(types.NewPair(types.Symbol("x"), types.NewPair(types.Symbol("y"), nil)), nil)),
 		),
 		env,
 	)

@@ -29,7 +29,7 @@ func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	for {
 		// fmt.Printf("%v\n", sexpr)
 		switch val := sexpr.(type) {
-		case string:
+		case types.Symbol:
 			return evalSymbol(val, env)
 		case *types.Pair:
 			if val.IsNull() {
@@ -73,7 +73,7 @@ func evalSymbol(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	var err error
 	for {
 		switch val := sexpr.(type) {
-		case string:
+		case types.Symbol:
 			if fn, ok := procedure(val); ok {
 				return fn, nil
 			}

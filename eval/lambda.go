@@ -10,17 +10,17 @@ import (
 )
 
 type Lambda struct {
-	Vars []string
+	Vars []types.Symbol
 	Body *types.Pair
 }
 
 func newLambda(args *types.Pair, env *envir.Env) (types.Any, error) {
-	var vars []string
+	var vars []types.Symbol
 	switch pair := args.This.(type) {
 	case *types.Pair:
 		head := pair
 		for head != nil {
-			if name, ok := head.This.(string); ok {
+			if name, ok := head.This.(types.Symbol); ok {
 				vars = append(vars, name)
 			} else {
 				return Lambda{}, fmt.Errorf("%v is not a valid argument name", pair.This)

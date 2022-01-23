@@ -7,21 +7,21 @@ import (
 )
 
 type Env struct {
-	Vars   map[string]types.Any
+	Vars   map[types.Symbol]types.Any
 	Parent *Env
 }
 
 func NewEnv() *Env {
-	vars := make(map[string]types.Any)
+	vars := make(map[types.Symbol]types.Any)
 	return &Env{vars, nil}
 }
 
-func (e *Env) Set(name string, value types.Any) {
+func (e *Env) Set(name types.Symbol, value types.Any) {
 	e.Vars[name] = value
 }
 
 // Find an enclosing environment for the variable
-func (e *Env) FindEnv(name string) (*Env, bool) {
+func (e *Env) FindEnv(name types.Symbol) (*Env, bool) {
 	current := e
 	for current != nil {
 		if _, ok := current.Vars[name]; ok {
@@ -32,7 +32,7 @@ func (e *Env) FindEnv(name string) (*Env, bool) {
 	return nil, false
 }
 
-func (e *Env) Get(name string) (types.Any, error) {
+func (e *Env) Get(name types.Symbol) (types.Any, error) {
 	if env, ok := e.FindEnv(name); ok {
 		return env.Vars[name], nil
 	}

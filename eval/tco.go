@@ -52,7 +52,7 @@ func setBindings(bindings *types.Pair, local, parent *envir.Env) error {
 }
 
 func bind(binding *types.Pair, local, parent *envir.Env) error {
-	if name, ok := binding.This.(string); ok {
+	if name, ok := binding.This.(types.Symbol); ok {
 		if !binding.HasNext() {
 			return fmt.Errorf("%v has not value to bind", binding)
 		}

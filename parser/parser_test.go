@@ -16,23 +16,23 @@ func Test_Parse(t *testing.T) {
 		{"a", "a"},
 		{"42", 42},
 		{"-100", -100},
-		{"nil", "nil"},
+		{"nil", types.Symbol("nil")},
 		{"#t", types.Bool(true)},
 		{"#f", types.Bool(false)},
 		{"()", &types.Pair{}},
-		{"(a)", types.NewPair("a", nil)},
+		{"(a)", types.NewPair(types.Symbol("a"), nil)},
 		{"(())", types.NewPair(&types.Pair{}, nil)},
 		{"(1 2 3)", types.NewPair(1, types.NewPair(2, types.NewPair(3, nil)))},
 		{"((1 2) 3)", types.NewPair(types.NewPair(1, types.NewPair(2, nil)), types.NewPair(3, nil))},
 		{"(1 (2 3))", types.NewPair(1, types.NewPair(types.NewPair(2, types.NewPair(3, nil)), nil))},
-		{"'a", types.Quote("a")},
-		{"'(a)", types.Quote(types.NewPair("a", nil))},
-		{"('a)", types.NewPair(types.Quote("a"), nil)},
-		{"'''a", types.Quote(types.Quote(types.Quote("a")))},
+		{"'a", types.Quote(types.Symbol("a"))},
+		{"'(a)", types.Quote(types.NewPair(types.Symbol("a"), nil))},
+		{"('a)", types.NewPair(types.Quote(types.Symbol("a")), nil)},
+		{"'''a", types.Quote(types.Quote(types.Quote(types.Symbol("a"))))},
 		{"'()", types.Quote(&types.Pair{})},
 		{"''()", types.Quote(types.Quote(&types.Pair{}))},
 		{"  \n\ta", "a"},
-		{"\n  \t\n(\n   a\t\n)  ", types.NewPair("a", nil)},
+		{"\n  \t\n(\n   a\t\n)  ", types.NewPair(types.Symbol("a"), nil)},
 	}
 
 	for _, tt := range testCases {
@@ -83,7 +83,7 @@ func Test_ParseAndPrint(t *testing.T) {
 func Test_ReadAtomValue(t *testing.T) {
 	var testCases = []struct {
 		input    string
-		expected string
+		expected types.Symbol
 	}{
 		{"a", "a"},
 		{"a   ", "a"},

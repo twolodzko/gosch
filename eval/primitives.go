@@ -91,7 +91,7 @@ func or(args *types.Pair) (types.Any, error) {
 
 func define(args *types.Pair, env *envir.Env) (types.Any, error) {
 	switch name := args.This.(type) {
-	case string:
+	case types.Symbol:
 		val, err := Eval(args.Next.This, env)
 		if err != nil {
 			return nil, err
@@ -141,7 +141,7 @@ func isBool(args *types.Pair) (types.Any, error) {
 
 func isSymbol(args *types.Pair) (types.Any, error) {
 	switch args.This.(type) {
-	case string:
+	case types.Symbol:
 		return types.Bool(true), nil
 	default:
 		return types.Bool(false), nil
@@ -172,7 +172,7 @@ func set(args *types.Pair, env *envir.Env) (types.Any, error) {
 	}
 
 	switch name := args.This.(type) {
-	case string:
+	case types.Symbol:
 		if localEnv, ok := env.FindEnv(name); ok {
 			localEnv.Set(name, val)
 		} else {

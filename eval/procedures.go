@@ -11,7 +11,7 @@ type (
 	TcoProcedure = func(*types.Pair, *envir.Env) (types.Any, *envir.Env, error)
 )
 
-func procedure(name string) (interface{}, bool) {
+func procedure(name types.Symbol) (interface{}, bool) {
 	switch name {
 	case "car":
 		return car, true

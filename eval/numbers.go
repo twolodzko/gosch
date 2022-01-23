@@ -18,7 +18,7 @@ func toInt(obj types.Any) (int, error) {
 
 func sum(args *types.Pair) (types.Any, error) {
 	var result int = 0
-	if args.This == nil {
+	if args.IsNull() {
 		return result, nil
 	}
 	head := args
@@ -34,7 +34,7 @@ func sum(args *types.Pair) (types.Any, error) {
 }
 
 func dif(args *types.Pair) (types.Any, error) {
-	if args.This == nil {
+	if args.IsNull() {
 		return 0, nil
 	}
 	result, err := toInt(args.This)
@@ -58,7 +58,7 @@ func dif(args *types.Pair) (types.Any, error) {
 
 func mul(args *types.Pair) (types.Any, error) {
 	var result int = 1
-	if args.This == nil {
+	if args.IsNull() {
 		return result, nil
 	}
 	head := args
@@ -74,7 +74,7 @@ func mul(args *types.Pair) (types.Any, error) {
 }
 
 func div(args *types.Pair) (types.Any, error) {
-	if args.This == nil {
+	if args.IsNull() {
 		return 1, nil
 	}
 	result, err := toInt(args.This)

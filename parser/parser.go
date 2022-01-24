@@ -1,6 +1,7 @@
 package parser
 
 import (
+	"errors"
 	"fmt"
 	"io"
 	"regexp"
@@ -34,10 +35,12 @@ func (p *Parser) Read() ([]types.Any, error) {
 			p.pos++
 		} else {
 			sexpr, err := p.readSexpr()
-			if err != nil {
+			if err != nil && err != io.EOF {
 				return nil, err
 			}
-			sexprs = append(sexprs, sexpr)
+			if err != io.EOF {
+				sexprs = append(sexprs, sexpr)
+			}
 		}
 	}
 	return sexprs, nil
@@ -114,7 +117,7 @@ func (p *Parser) readString() (types.String, error) {
 		runes = append(runes, p.Head())
 		p.pos++
 	}
-	return "", io.EOF
+	return "", errors.New("string was not closed with \"")
 }
 
 func (p *Parser) skipLine() {
@@ -134,6 +137,11 @@ func (p *Parser) readSexpr() (types.Any, error) {
 	)
 	quotes := 0
 	for p.HasNext() {
+		if unicode.IsSpace(p.Head()) {
+			p.pos++
+			continue
+		}
+
 		switch p.Head() {
 		case '\'':
 			quotes++

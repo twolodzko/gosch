@@ -467,3 +467,11 @@ func Test_Error(t *testing.T) {
 		t.Errorf("expected an error: %v, got %v", expected, err)
 	}
 }
+
+func Test_LoadEvalComments(t *testing.T) {
+	env := envir.NewEnv()
+	_, _, err := LoadEval("../examples/comments.scm", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+}

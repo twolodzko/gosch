@@ -104,11 +104,15 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return load, true
 	case "debug":
 		return func(args *types.Pair) (types.Any, error) {
-			if args.IsNull() || args.HasNext() {
+			if args == nil {
+				DEBUG = true
+				return nil, nil
+			}
+			if args.HasNext() {
 				return nil, errors.New("wrong number of arguments")
 			}
 			DEBUG = bool(types.IsTrue(args.This))
-			return args.This, nil
+			return nil, nil
 		}, true
 	default:
 		return nil, false
@@ -116,6 +120,9 @@ func procedure(name types.Symbol) (interface{}, bool) {
 }
 
 func evalArgs(pair *types.Pair, env *envir.Env) (*types.Pair, error) {
+	if pair == nil {
+		return nil, nil
+	}
 	var (
 		head *types.Pair
 		args []types.Any

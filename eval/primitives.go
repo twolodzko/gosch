@@ -9,6 +9,9 @@ import (
 )
 
 func car(args *types.Pair) (types.Any, error) {
+	if args == nil {
+		return nil, errors.New("wrong number of arguments")
+	}
 	switch val := args.This.(type) {
 	case *types.Pair:
 		return val.This, nil
@@ -18,6 +21,9 @@ func car(args *types.Pair) (types.Any, error) {
 }
 
 func cdr(args *types.Pair) (types.Any, error) {
+	if args == nil {
+		return nil, errors.New("wrong number of arguments")
+	}
 	switch val := args.This.(type) {
 	case *types.Pair:
 		if val.IsNull() {
@@ -47,10 +53,16 @@ func cons(args *types.Pair) (types.Any, error) {
 }
 
 func list(args *types.Pair) (types.Any, error) {
+	if args == nil {
+		return &types.Pair{}, nil
+	}
 	return args, nil
 }
 
 func not(args *types.Pair) (types.Any, error) {
+	if args == nil {
+		return types.Bool(false), nil
+	}
 	return !types.IsTrue(args.This), nil
 }
 
@@ -130,6 +142,9 @@ func set(args *types.Pair, env *envir.Env) (types.Any, error) {
 }
 
 func isNull(args *types.Pair) (types.Any, error) {
+	if args == nil {
+		return nil, errors.New("wrong number of arguments")
+	}
 	switch val := args.This.(type) {
 	case *types.Pair:
 		return val.IsNull(), nil
@@ -139,6 +154,9 @@ func isNull(args *types.Pair) (types.Any, error) {
 }
 
 func isPair(args *types.Pair) (types.Any, error) {
+	if args == nil {
+		return nil, errors.New("wrong number of arguments")
+	}
 	switch val := args.This.(type) {
 	case *types.Pair:
 		return !val.IsNull(), nil
@@ -148,6 +166,9 @@ func isPair(args *types.Pair) (types.Any, error) {
 }
 
 func isNumber(args *types.Pair) (types.Any, error) {
+	if args == nil {
+		return nil, errors.New("wrong number of arguments")
+	}
 	switch args.This.(type) {
 	case int:
 		return types.Bool(true), nil
@@ -157,6 +178,9 @@ func isNumber(args *types.Pair) (types.Any, error) {
 }
 
 func isBool(args *types.Pair) (types.Any, error) {
+	if args == nil {
+		return nil, errors.New("wrong number of arguments")
+	}
 	switch args.This.(type) {
 	case types.Bool:
 		return types.Bool(true), nil
@@ -166,6 +190,9 @@ func isBool(args *types.Pair) (types.Any, error) {
 }
 
 func isString(args *types.Pair) (types.Any, error) {
+	if args == nil {
+		return nil, errors.New("wrong number of arguments")
+	}
 	switch args.This.(type) {
 	case types.String:
 		return types.Bool(true), nil
@@ -175,6 +202,9 @@ func isString(args *types.Pair) (types.Any, error) {
 }
 
 func isSymbol(args *types.Pair) (types.Any, error) {
+	if args == nil {
+		return nil, errors.New("wrong number of arguments")
+	}
 	switch args.This.(type) {
 	case types.Symbol:
 		return types.Bool(true), nil
@@ -184,10 +214,16 @@ func isSymbol(args *types.Pair) (types.Any, error) {
 }
 
 func isNil(args *types.Pair) (types.Any, error) {
+	if args == nil {
+		return nil, errors.New("wrong number of arguments")
+	}
 	return types.Bool(args.This == nil), nil
 }
 
 func isProcedure(args *types.Pair) (types.Any, error) {
+	if args == nil {
+		return nil, errors.New("wrong number of arguments")
+	}
 	switch args.This.(type) {
 	case Procedure, Primitive, TcoProcedure, Lambda:
 		return types.Bool(true), nil
@@ -197,7 +233,7 @@ func isProcedure(args *types.Pair) (types.Any, error) {
 }
 
 func toString(args *types.Pair, sep string) string {
-	if args.IsNull() {
+	if args == nil {
 		return ""
 	}
 	var out string

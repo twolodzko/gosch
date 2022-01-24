@@ -7,7 +7,7 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-var DEBUG = false
+var DEBUG bool = false
 
 func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	for {

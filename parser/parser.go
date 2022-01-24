@@ -117,6 +117,16 @@ func (p *Parser) readString() (types.String, error) {
 	return "", io.EOF
 }
 
+func (p *Parser) skipLine() {
+	for p.HasNext() {
+		if p.Head() == '\n' {
+			p.pos++
+			return
+		}
+		p.pos++
+	}
+}
+
 func (p *Parser) readSexpr() (types.Any, error) {
 	var (
 		val types.Any
@@ -136,6 +146,8 @@ func (p *Parser) readSexpr() (types.Any, error) {
 		case '"':
 			val, err = p.readString()
 			return quote(val, quotes), err
+		case ';':
+			p.skipLine()
 		default:
 			val, err = p.readAtomValue()
 			return quote(val, quotes), err

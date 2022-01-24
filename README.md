@@ -16,7 +16,7 @@ As in classic LISPs, **gosch** recognizes only two data structures *atoms* and *
 vectors. Also, the variety of available data types for atoms is limited to numbers (integers), booleans
 (`#t` and `#f`), and strings. The implementation is [properly tail-recursive] as [required of Scheme][tco required].
 Unlike the classic Scheme, there is a null type `nil` and procedures return it instead of undefined results,
-for example `(if #f 'ok)` returns `<nil>`.
+for example `(if #f 'ok)` returns `<nil>`. 
 
 **gosch** implements the following primitives:
 
@@ -42,6 +42,9 @@ checkers: `null?` (empty list) and `nil?` (null value).
 - `(load path)` reads and executes the code from *path* and returns the result of last expression in the file.
 - You can run `(debug #t/#f)` to turn debug mode on and off. In debug mode, all the evaluated expressions and
 their enclosing environments are printed.
+
+Comments begin with `;` and everything that follows, from the semicolon until the end of the line, is ignored.
+
 
 
  [pairs]: https://web.mit.edu/scheme_v9.2/doc/mit-scheme-ref/Lists.html#Lists

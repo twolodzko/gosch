@@ -35,6 +35,7 @@ func Test_Parse(t *testing.T) {
 		{"\n  \t\n(\n   a\t\n)  ", types.NewPair(types.Symbol("a"), nil)},
 		{`"hello world!"`, types.String("hello world!")},
 		{`"William Joseph \"Wild Bill\" Donovan"`, types.String(`William Joseph "Wild Bill" Donovan`)},
+		{"(list 1 2 ;; a comment\n3)", types.NewPair(types.Symbol("list"), types.NewPair(1, types.NewPair(2, types.NewPair(3, nil))))},
 	}
 
 	for _, tt := range testCases {

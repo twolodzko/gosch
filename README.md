@@ -14,8 +14,8 @@
 As in classic LISPs, **gosch** recognizes only two data structures *atoms* and *[pairs]*
 (*aka* [linked lists]). There are no plans to implement more advanced data structures like
 vectors. Also, the variety of available data types for atoms is limited to numbers (integers), booleans
-(`#t` and `#f`), and strings. The implementation is [properly tail-recursive] as required of Scheme.
-Unlike the classic Scheme, there is the null type and in many undefined cases the procedures return it,
+(`#t` and `#f`), and strings. The implementation is [properly tail-recursive] as [required of Scheme][tco required].
+Unlike the classic Scheme, there is a null type and procedures return it instead of undefined results,
 for example `(if #f 'ok)` returns `<nil>`. `nil` is one of the possible values in **gosch**.
 
 **gosch** implements the following primitives:
@@ -48,4 +48,5 @@ their enclosing environments are printed.
  [linked lists]: https://en.wikipedia.org/wiki/Linked_list
  [disjoint types]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_5.html#SEC23
  [lambda expression]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_6.html#SEC30
- [properly tail-recursive]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_3.html#SEC6
+ [properly tail-recursive]: https://github.com/kanaka/mal/blob/master/process/guide.md#step-5-tail-call-optimization
+ [tco required]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_3.html#SEC6

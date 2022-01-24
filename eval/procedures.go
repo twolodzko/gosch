@@ -106,13 +106,13 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return func(args *types.Pair) (types.Any, error) {
 			if args == nil {
 				DEBUG = true
-				return nil, nil
+				return types.Bool(DEBUG), nil
 			}
 			if args.HasNext() {
 				return nil, errors.New("wrong number of arguments")
 			}
 			DEBUG = bool(types.IsTrue(args.This))
-			return nil, nil
+			return types.Bool(DEBUG), nil
 		}, true
 	default:
 		return nil, false

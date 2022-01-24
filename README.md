@@ -13,8 +13,8 @@
 
 As in classic LISPs, **gosch** recognizes only two data structures *atoms* and *[pairs]*
 (*aka* [linked lists]). There are no plans to implement more advanced data structures like
-vectors. Also, the variety of available data types for atoms is limited to numbers (integers), booleans
-(`#t` and `#f`), and strings. The implementation is [properly tail-recursive] as [required of Scheme][tco required].
+vectors. Also, the variety of available data types for atoms is limited to *numbers* (integers), *booleans*
+(`#t` and `#f`), and *strings*. The implementation is [properly tail-recursive] as [required of Scheme][tco required].
 Unlike the classic Scheme, there is a null type `nil` and procedures return it instead of undefined results,
 for example `(if #f 'ok)` returns `<nil>`. 
 
@@ -38,7 +38,8 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 - Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `string?`, `symbol?`, `procedure?`, and other
 checkers: `null?` (empty list) and `nil?` (null value).
 - `(string expr ...)` converts *expr*'s to string, `(display expr ...)` prints them, and `(error expr ...)` raises
-exceptions with *expr*'s as message.
+exceptions with *expr*'s as message. `(substring str start end)` cuts the *start:end* slice of the *str* string.
+`(string-length str)` returns length of a string.
 - `(load path)` reads and executes the code from *path* and returns the result of last expression in the file.
 - You can run `(debug #t/#f)` to turn debug mode on and off. In debug mode, all the evaluated expressions and
 their enclosing environments are printed.

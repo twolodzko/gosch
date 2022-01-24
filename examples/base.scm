@@ -19,3 +19,6 @@
 
 (define newline
     (lambda () (display)))
+
+(define string-null?
+    (lambda (s) (eq? s "")))

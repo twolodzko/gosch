@@ -90,6 +90,10 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return func(args *types.Pair) (types.Any, error) {
 			return types.String(toString(args, "")), nil
 		}, true
+	case "substring":
+		return substring, true
+	case "string-length":
+		return stringLength, true
 	case "display":
 		return display, true
 	case "error":

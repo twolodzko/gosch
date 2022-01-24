@@ -254,6 +254,39 @@ func toString(args *types.Pair, sep string) string {
 	return out
 }
 
+func substring(args *types.Pair) (types.Any, error) {
+	if args == nil || !args.HasNext() || !args.Next.HasNext() {
+		return nil, errors.New("wrong number of arguments")
+	}
+	str, ok := args.This.(types.String)
+	if !ok {
+		return nil, fmt.Errorf("%v is not a string", args.This)
+	}
+	start, err := toInt(args.Next.This)
+	if err != nil {
+		return nil, err
+	}
+	end, err := toInt(args.Next.Next.This)
+	if err != nil {
+		return nil, err
+	}
+	if start < 0 || end < start || end > len(str) {
+		return nil, fmt.Errorf("cannot produce substring %v:%v", start, end)
+	}
+	return str[start:end], nil
+}
+
+func stringLength(args *types.Pair) (types.Any, error) {
+	if args == nil || args.HasNext() {
+		return nil, errors.New("wrong number of arguments")
+	}
+	str, ok := args.This.(types.String)
+	if !ok {
+		return nil, fmt.Errorf("%v is not a string", args.This)
+	}
+	return len(str), nil
+}
+
 func display(args *types.Pair) (types.Any, error) {
 	fmt.Printf("%s\n", toString(args, " "))
 	return nil, nil

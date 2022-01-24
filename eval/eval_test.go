@@ -349,6 +349,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(cond ((< 5 2) 'one) (#f 'two) (else 'three))", "three"},
 		{"(cond (#f 'one))", "<nil>"},
 		{"(cond (else 'one) (#t 'two))", "one"},
+		{"(begin (define x 5) (+ x 3))", "8"},
 	}
 
 	for _, tt := range testCases {

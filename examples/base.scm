@@ -9,8 +9,13 @@
 
 (define atom?
     (lambda (x)
-        (and (not (pair? x)) (not (null? x)))))
+        (and
+            (not (pair? x))
+            (not (null? x)))))
 
 (define zero?
     (lambda (x)
         (= x 0)))
+
+(define newline
+    (lambda () (display)))

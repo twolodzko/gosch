@@ -37,8 +37,8 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 - Numerical comparison operators `<`, `=`, `>`, e.g. `(< x1 x2 ...)`.
 - Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `string?`, `symbol?`, `procedure?`, and other
 checkers: `null?` (empty list) and `nil?` (null value).
-- `(string expr ...)` converts *expr*'s to string, `(display expr ...)` prints them, `(newline)` prints empty line,
-`(error expr ...)` raises exceptions with *expr*'s as message.
+- `(string expr ...)` converts *expr*'s to string, `(display expr ...)` prints them, and `(error expr ...)` raises
+exceptions with *expr*'s as message.
 - `(load path)` reads and executes the code from *path* and returns the result of last expression in the file.
 - You can run `(debug #t/#f)` to turn debug mode on and off. In debug mode, all the evaluated expressions and
 their enclosing environments are printed.

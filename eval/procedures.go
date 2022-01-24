@@ -2,7 +2,6 @@ package eval
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/types"
@@ -93,11 +92,6 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		}, true
 	case "display":
 		return display, true
-	case "newline":
-		return func(args *types.Pair) (types.Any, error) {
-			fmt.Println()
-			return nil, nil
-		}, true
 	case "error":
 		return raiseError, true
 	case "load":

@@ -350,6 +350,10 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(cond (#f 'one))", "<nil>"},
 		{"(cond (else 'one) (#t 'two))", "one"},
 		{"(begin (define x 5) (+ x 3))", "8"},
+		{"(((lambda (x) (lambda (y) (+ x y))) 3 ) 4)", "7"},
+		{"(let ((x 72)) ((lambda (y) (+ x y)) -12))", "60"},
+		{"(let ((x 5)) (let ((y 4)) (+ x y)))", "9"},
+		{"((lambda (x) (let ((y 2)) (+ x y))) 9)", "11"},
 	}
 
 	for _, tt := range testCases {

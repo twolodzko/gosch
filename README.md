@@ -40,6 +40,8 @@ checkers: `null?` (empty list) and `nil?` (null value).
 - `(string expr ...)` converts *expr*'s to string, `(display expr ...)` prints them, `(newline)` prints empty line,
 `(error expr ...)` raises exceptions with *expr*'s as message.
 - `(load path)` reads and executes the code from *path* and returns the result of last expression in the file.
+- You can run `(debug #t/#f)` to turn debug mode on and off. In debug mode, all the evaluated expressions and
+their enclosing environments are printed.
 
 
  [pairs]: https://web.mit.edu/scheme_v9.2/doc/mit-scheme-ref/Lists.html#Lists

@@ -55,7 +55,7 @@ func Test_EvalExpectError(t *testing.T) {
 	}
 }
 
-func Test_Eval(t *testing.T) {
+func Test_EvalSimpleObjects(t *testing.T) {
 	var testCases = []struct {
 		input    types.Any
 		expected types.Any
@@ -64,14 +64,11 @@ func Test_Eval(t *testing.T) {
 		{types.Quote("a"), "a"},
 		{types.Quote(types.NewPair("+", types.NewPair(2, types.NewPair(2, nil)))), types.NewPair("+", types.NewPair(2, types.NewPair(2, nil)))},
 		{42, 42},
-		{"b", 26},
+		{"d", 26},
 	}
 
 	env := envir.NewEnv()
-	env.Set("b", "c")
-	env.Set("c", "d")
 	env.Set("d", 26)
-	env.Set("l", types.Quote(types.NewPair(1, types.NewPair(2, nil))))
 
 	for _, tt := range testCases {
 		result, err := Eval(tt.input, env)
@@ -371,17 +368,20 @@ func Test_ParseEvalPrint(t *testing.T) {
 }
 
 func Test_AliasToFunction(t *testing.T) {
-	expected := types.NewPair(1, types.NewPair(2, nil))
-
 	env := envir.NewEnv()
-	env.Vars["my-list"] = "list"
 
-	result, err := Eval(types.NewPair("my-list", types.NewPair(1, types.NewPair(2, nil))), env)
+	_, env, err := EvalString("(define my-list list)", env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
-	if !cmp.Equal(result, expected) {
-		t.Errorf("expected: %v, got %v", expected, result)
+
+	expected := types.NewPair(1, types.NewPair(2, nil))
+	result, _, err := EvalString("(my-list 1 2)", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if !cmp.Equal(result[0], expected) {
+		t.Errorf("expected: %v, got %v", expected, result[0])
 	}
 }
 

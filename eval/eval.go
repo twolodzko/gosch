@@ -18,7 +18,7 @@ func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 
 		switch val := sexpr.(type) {
 		case types.Symbol:
-			return evalSymbol(val, env)
+			return getSymbol(val, env)
 		case *types.Pair:
 			if val.IsNull() {
 				return &types.Pair{}, nil
@@ -57,21 +57,15 @@ func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	}
 }
 
-func evalSymbol(sexpr types.Any, env *envir.Env) (types.Any, error) {
-	var err error
-	for {
-		switch val := sexpr.(type) {
-		case types.Symbol:
-			if fn, ok := procedure(val); ok {
-				return fn, nil
-			}
-			sexpr, err = env.Get(val)
-			if err != nil {
-				return nil, err
-			}
-		default:
-			return val, nil
+func getSymbol(sexpr types.Any, env *envir.Env) (types.Any, error) {
+	switch val := sexpr.(type) {
+	case types.Symbol:
+		if fn, ok := procedure(val); ok {
+			return fn, nil
 		}
+		return env.Get(val)
+	default:
+		return val, nil
 	}
 }
 

@@ -14,6 +14,15 @@ type (
 	SpecialProcedure = func(*types.Pair, *envir.Env) (types.Any, *envir.Env, error)
 )
 
+func isCallable(obj types.Any) bool {
+	switch obj.(type) {
+	case Procedure, Primitive, SpecialProcedure, Lambda:
+		return true
+	default:
+		return false
+	}
+}
+
 func procedure(name types.Symbol) (interface{}, bool) {
 	switch name {
 	case "car":

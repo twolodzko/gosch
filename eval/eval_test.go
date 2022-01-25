@@ -477,12 +477,12 @@ func Test_LambdaClosures(t *testing.T) {
 				(+ x n))))
 	`
 
-	_, env, err = EvalString(input, env)
+	_, _, err = EvalString(input, env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	result, env, err = EvalString("((addN x) 6)", env)
+	result, _, err = EvalString("((addN x) 6)", env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -490,7 +490,7 @@ func Test_LambdaClosures(t *testing.T) {
 		t.Errorf("expected 10, got %v", result[0])
 	}
 
-	_, env, err = EvalString("(set! x 1)", env)
+	_, _, err = EvalString("(set! x 1)", env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -538,7 +538,7 @@ func Test_Error(t *testing.T) {
 
 func Test_LoadEvalComments(t *testing.T) {
 	env := envir.NewEnv()
-	_, _, err := LoadEval("../examples/comments.scm", env)
+	_, err := LoadEval("../examples/comments.scm", env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}

@@ -20,7 +20,7 @@ func main() {
 			return
 		}
 		env := envir.NewEnv()
-		sexprs, _, err := eval.LoadEval(os.Args[1], env)
+		sexprs, err := eval.LoadEval(os.Args[1], env)
 		if err != nil {
 			log.Fatalf("ERROR: %v\n", err)
 		}

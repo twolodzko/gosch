@@ -25,10 +25,11 @@ func EvalString(code string, env *envir.Env) ([]types.Any, *envir.Env, error) {
 	return out, env, err
 }
 
-func LoadEval(path string, env *envir.Env) ([]types.Any, *envir.Env, error) {
+func LoadEval(path string, env *envir.Env) ([]types.Any, error) {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, env, err
+		return nil, err
 	}
-	return EvalString(string(content), env)
+	sexprs, _, err := EvalString(string(content), env)
+	return sexprs, err
 }

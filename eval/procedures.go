@@ -150,24 +150,24 @@ func set(args *types.Pair, env *envir.Env) (types.Any, error) {
 	}
 }
 
-func load(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+func load(args *types.Pair, env *envir.Env) (types.Any, error) {
 	if args == nil {
-		return nil, env, errors.New("wrong number of arguments")
+		return nil, errors.New("wrong number of arguments")
 	}
 	head, err := Eval(args.This, env)
 	if err != nil {
-		return nil, env, err
+		return nil, err
 	}
 	path, ok := head.(types.String)
 	if !ok {
-		return nil, env, fmt.Errorf("invalid path: %v", head)
+		return nil, fmt.Errorf("invalid path: %v", head)
 	}
-	sexprs, env, err := LoadEval(string(path), env)
+	sexprs, err := LoadEval(string(path), env)
 	if err != nil {
-		return nil, env, err
+		return nil, err
 	}
 	if len(sexprs) > 0 {
-		return sexprs[len(sexprs)-1], env, nil
+		return sexprs[len(sexprs)-1], nil
 	}
-	return nil, env, nil
+	return nil, nil
 }

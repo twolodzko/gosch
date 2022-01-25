@@ -201,11 +201,11 @@
       (else (o+ (car tup) (addtup (cdr tup)))))))
 
 ;; Multiples two non-negative integer numbers
-(define ×
+(define o*
   (lambda (n m)
     (cond
       ((zero? m) 0)
-      (else (+ n (× n (sub1 m)))))))
+      (else (o+ n (o* n (sub1 m)))))))
 
 ;; Adds the elements of two tuples together
 (define tup+
@@ -213,7 +213,7 @@
     (cond
       ((null? tup1) tup2)
       ((null? tup2) tup1)
-      (else (cons (+ (car tup1) (car tup2))
+      (else (cons (o+ (car tup1) (car tup2))
                   (tup+ (cdr tup1) (cdr tup2)))))))
 
 ;; Determines if n > m
@@ -241,18 +241,18 @@
       (else #t))))
 
 ;; Computes n to the power of m
-(define ↑
+(define o^
   (lambda (n m)
     (cond
       ((zero? m) 1)
-      (else (× n (↑ n (sub1 m)))))))
+      (else (o* n (o^ n (sub1 m)))))))
 
 ;; Computes how many times m divides n
-(define ÷
+(define o/
   (lambda (n m)
     (cond
       ((< n m) 0)
-      (else (add1 (÷ (- n m) m))))))
+      (else (add1 (o/ (o- n m) m))))))
 
 ;; Returns the length of lat, a list of atoms
 (define length
@@ -450,19 +450,19 @@
 ;; Chapter 6
 ;;**********************************************************
 
-;; Determines if the arithmetic expression aexp contains only numbers besides +, ×, and ↑
+;; Determines if the arithmetic expression aexp contains only numbers besides +, o*, and o^
 (define numbered?
     (lambda (aexp)
       (cond
         ((atom? aexp) (number? aexp))
-        ((or (eq? (car (cdr aexp)) (quote +))
-             (eq? (car (cdr aexp)) (quote ×))
-             (eq? (car (cdr aexp)) (quote ↑))) (and (numbered? (car aexp)) (numbered? (car (cdr (cdr aexp))))))
+        ((or (eq? (car (cdr aexp)) (quote o+))
+             (eq? (car (cdr aexp)) (quote o*))
+             (eq? (car (cdr aexp)) (quote o^))) (and (numbered? (car aexp)) (numbered? (car (cdr (cdr aexp))))))
         (else #f))))
 ;; Note: the book assumes aexp is already an arithmetic expression such that we don't need to test that it is
-;; as this implementation does, looking for +, ×, and ↑.
+;; as this implementation does, looking for +, o*, and o^.
 
-;; Determines if the arithmetic expression aexp contains only numbers besides +, ×, and ↑
+;; Determines if the arithmetic expression aexp contains only numbers besides +, o*, and o^
 (define numbered?
   (lambda (aexp)
     (cond
@@ -481,13 +481,13 @@
         ((eq? (car (cdr nexp)) (quote o+))
           (o+ (value (car nexp))
               (value (car (cdr (cdr nexp))))))
-        ((eq? (car (cdr nexp)) (quote ×))
-          (× (value (car nexp))
+        ((eq? (car (cdr nexp)) (quote o*))
+          (o* (value (car nexp))
              (value (car (cdr (cdr nexp))))))
-        ((eq? (car (cdr nexp)) (quote ↑))
-          (↑ (value (car nexp))
+        ((eq? (car (cdr nexp)) (quote o^))
+          (o^ (value (car nexp))
              (value (car (cdr (cdr nexp)))))))))
-;; Note: I'm not a fan of the book's implementation, which assumes ↑.
+;; Note: I'm not a fan of the book's implementation, which assumes o^.
 
 ;; Gets the first sub-expression from an arithmetic expression
 (define 1st-sub-exp
@@ -510,10 +510,13 @@
     (lambda (nexp)
       (cond
         ((atom? nexp) nexp)
-        ((eq? (operator nexp) (quote +)) (+ (value (1st-sub-exp nexp)) (value (2nd-sub-exp nexp))))
-        ((eq? (operator nexp) (quote ×)) (× (value (1st-sub-exp nexp)) (value (2nd-sub-exp nexp))))
-        ((eq? (operator nexp) (quote ↑)) (↑ (value (1st-sub-exp nexp)) (value (2nd-sub-exp nexp)))))))
-;; Note: I'm not a fan of the book's implementation, which assumes ↑.
+        ((eq? (operator nexp) (quote o+))
+          (o+ (value (1st-sub-exp nexp)) (value (2nd-sub-exp nexp))))
+        ((eq? (operator nexp) (quote o*))
+          (o* (value (1st-sub-exp nexp)) (value (2nd-sub-exp nexp))))
+        ((eq? (operator nexp) (quote o^))
+          (o^ (value (1st-sub-exp nexp)) (value (2nd-sub-exp nexp)))))))
+;; Note: I'm not a fan of the book's implementation, which assumes o^.
 
 
 ;;**********************************************************
@@ -780,13 +783,13 @@
   (lambda (a l)
     ((insert-g seqrem) #f a l)))
 
-;; Takes '+, '×, and '↑ and returns +, ×, and ↑, respectively
+;; Takes '+, 'o*, and 'o^ and returns +, o*, and o^, respectively
 (define atom-to-function
   (lambda (x)
     (cond
       ((eq? x (quote +)) +)
-      ((eq? x (quote ×)) ×)
-      (else ↑))))
+      ((eq? x (quote o*)) o*)
+      (else o^))))
 
 ;; Evaluates the value of a numbered arithmetic expression
 ;; (Rewritten below in Chapter 10)
@@ -894,7 +897,7 @@
 ;; Determines whether the number is even or not
 (define even?
   (lambda (n)
-    (= (× (÷ n 2) 2) n)))
+    (= (o* (o/ n 2) 2) n)))
 
 ;; Removes all odd numbers from a list of nested lists
 (define evens-only*
@@ -915,18 +918,18 @@
                   (evens-only*&co (cdr l)
                                   (lambda (newl p s)
                                     (col (cons (car l) newl)
-                                         (× (car l) p) s))))
+                                         (o* (car l) p) s))))
                  (else (evens-only*&co (cdr l)
                                        (lambda (newl p s)
                                          (col newl
-                                              p (+ (car l) s)))))))
+                                              p (o+ (car l) s)))))))
           (else (evens-only*&co (car l)
                                 (lambda (al ap as)
                                   (evens-only*&co (cdr l)
                                                   (lambda (dl dp ds)
                                                     (col (cons al dl)
-                                                         (× ap dp)
-                                                         (+ as ds))))))))))
+                                                         (o* ap dp)
+                                                         (o+ as ds))))))))))
 
 (define the-last-friend
   (lambda (newl product sum)
@@ -971,13 +974,13 @@
 (define length*
   (lambda (pora)
     (cond ((atom? pora) 1)
-          (else (+ (length* (first pora))
+          (else (o+ (length* (first pora))
                    (length* (second pora)))))))
 
 (define weight*
   (lambda (pora)
     (cond ((atom? pora) 1)
-          (else (+ (× (weight* (first pora)) 2)
+          (else (o+ (o* (weight* (first pora)) 2)
                    (weight* (second pora)))))))
 
 (define shuffle
@@ -990,8 +993,8 @@
 (define C
   (lambda (n)
     (cond ((one? n) 1)
-          (else (cond ((even? n) (C (÷ n 2)))
-                      (else (C (add1 (× 3 n)))))))))
+          (else (cond ((even? n) (C (o/ n 2)))
+                      (else (C (add1 (o* 3 n)))))))))
 
 (define A
   (lambda (n m)

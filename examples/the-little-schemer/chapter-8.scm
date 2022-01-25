@@ -43,7 +43,7 @@
               +)
 
 ;; Added test not in the book
-(check-equal? (value '(× 2 3)) 6)
+(check-equal? (value '(o* 2 3)) 6)
 
 (check-equal? ((multirember-f2 eq?) 'tuna '(shrimp salad tuna salad and tuna))
               '(shrimp salad salad and))

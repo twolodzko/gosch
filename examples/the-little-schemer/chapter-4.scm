@@ -41,9 +41,9 @@
 ;; it: (zero? n) and else.
 ;;**********************************************************
 
-(check-equal? (× 5 3) 15)
+(check-equal? (o* 5 3) 15)
 
-(check-equal? (× 13 4) 52)
+(check-equal? (o* 13 4) 52)
 
 ;;**********************************************************
 ;; The Fourth Commandment (first revision)
@@ -55,7 +55,7 @@
 ;; when using sub1, test termination with zero?.
 ;;**********************************************************
 
-(check-equal? (× 12 3) 36)
+(check-equal? (o* 12 3) 36)
 
 ;;**********************************************************
 ;; The Fifth Commandment
@@ -63,7 +63,7 @@
 ;; When building a value with +, always use 0 for the value of the
 ;; terminating line, for adding 0 does not change the value of an
 ;; addition.
-;; When building a value with ×, always use 1 for the value of the
+;; When building a value with o*, always use 1 for the value of the
 ;; terminating line, for multiplying by 1 does not change the value
 ;; of a multiplication.
 ;; When building a value with cons, always consider () for the value
@@ -101,13 +101,13 @@
 ;; Added test not in the book
 (check-false (o= 0 9))
 
-(check-equal? (↑ 1 1) 1)
+(check-equal? (o^ 1 1) 1)
 
-(check-equal? (↑ 2 3) 8)
+(check-equal? (o^ 2 3) 8)
 
-(check-equal? (↑ 5 3) 125)
+(check-equal? (o^ 5 3) 125)
 
-(check-equal? (÷ 15 4) 3)
+(check-equal? (o/ 15 4) 3)
 
 (check-equal? (length '(hotdogs with mustard sauerkraut and pickles))
               6)

@@ -8,9 +8,9 @@
 
 (check-not-equal? (quote +) +)
 
-(check-equal? (quote ×) '×)
+(check-equal? (quote o*) 'o*)
 
-(check-not-equal? (quote +) ×)
+(check-not-equal? (quote +) o*)
 
 (check-true (eq? (quote a) 'a))
 
@@ -18,9 +18,9 @@
 
 (check-true (numbered? 1))
 
-(check-true (numbered? '(3 + (4 ↑ 5))))
+(check-true (numbered? '(3 + (4 o^ 5))))
 
-(check-false (numbered? '(2 × sausage)))
+(check-false (numbered? '(2 o* sausage)))
 
 (check-equal? (value 13) 13)
 
@@ -28,7 +28,7 @@
 (check-equal? (value '(1 + 3)) 4)
 
 ;; value is rewritten for another representation
-(check-equal? (value '(1 + (3 ↑ 4))) 82)
+(check-equal? (value '(1 + (3 o^ 4))) 82)
 
 ;;**********************************************************
 ;; The Seventh Commandment
@@ -51,7 +51,7 @@
 (check-equal? (value '(+ 1 3)) 4)
 
 ;; Added test not in the book
-(check-equal? (value '(+ 1 (↑ 3 4))) 82)
+(check-equal? (value '(+ 1 (o^ 3 4))) 82)
 
 ;;**********************************************************
 ;; The Eighth Commandment

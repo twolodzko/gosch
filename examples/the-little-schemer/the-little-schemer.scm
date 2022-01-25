@@ -3,9 +3,9 @@
 ;; Preface
 ;;**********************************************************
 
-(define exact-nonnegative-integer?
+(define non-negative?
   (lambda (x)
-    (and (number? x) (> x 0))))
+    (if (number? x) (> x 0) #f)))
 
 (define andmap
   (lambda (f l)
@@ -195,7 +195,7 @@
 ;; (Primitive)
 ;; Predicate for determining if a list is a list of non-negative numbers or not
 (define tup? (lambda (x)
-  (andmap exact-nonnegative-integer? x)))
+  (andmap non-negative? x)))
 
 ;; Adds all the numbers in a tuple together
 (define addtup
@@ -693,7 +693,7 @@
 
 (define rember-f
   (lambda (test? a l)
-    ((rember-f' test?) a l)))
+    ((rember-f2 test?) a l)))
 
 ;; Returns a function that tests equality against the atom a
 (define eq?-c
@@ -705,17 +705,17 @@
 (define eq?-salad (eq?-c 'salad))
 
 ;; Removes the first occurence of the atom a where (test? a) is true in the list of atoms
-(define rember-f'
+(define rember-f2
   (lambda (test?)
     (lambda (a l)
       (cond
         ((null? l) '())
         ((test? a (car l)) (cdr l))
         (else (cons (car l)
-                    ((rember-f' test?) a (cdr l))))))))
+                    ((rember-f2 test?) a (cdr l))))))))
 
 ;; Removes the first occurence of the atom a, using eq?, in the list of atoms
-(define rember-eq? (rember-f' eq?))
+(define rember-eq? (rember-f2 eq?))
 
 ;; Inserts new before the first occurrence, if any, of old in lat, a list of atoms
 (define insertL-f
@@ -1204,23 +1204,23 @@
 
 (define check-true
     (lambda (test)
-        (if (not test) (error "assertion failed"))))
+        (if (not test) (error "assertion failed") 'ok)))
 
 (define check-false
     (lambda (test)
-        (if test (error "assertion failed"))))
+        (if test (error "assertion failed") 'ok)))
 
 (define check-equal?
      (lambda (x y)
-        (if (not (equal? x y)) (error "assertion failed"))))
+        (if (not (equal? x y)) (error "assertion failed") 'ok)))
 
 (define check-pred
      (lambda (f expr)
-        (if (not (f expr)) (error "assertion failed"))))
+        (if (not (f expr)) (error "assertion failed") 'ok)))
 
 (define check-not-equal?
      (lambda (x y)
-        (if (equal? x y) (error "assertion failed"))))
+        (if (equal? x y) (error "assertion failed") 'ok)))
 
 (check-false (atom? (quote ())))
 

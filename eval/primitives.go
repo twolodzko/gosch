@@ -3,7 +3,9 @@ package eval
 import (
 	"errors"
 	"fmt"
+	"reflect"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -69,7 +71,27 @@ func eq(args *types.Pair) (types.Any, error) {
 	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
+	// you can't compare functions and structs directly in Go
+	if isCallable(args.This) {
+		return types.Bool(sameCallables(args.This, args.Next.This)), nil
+	}
 	return types.Bool(args.This == args.Next.This), nil
+}
+
+func sameCallables(obj1, obj2 types.Any) bool {
+	v1 := reflect.ValueOf(obj1)
+	v2 := reflect.ValueOf(obj2)
+	if v1.Kind() == reflect.Func {
+		if v2.Kind() == reflect.Func {
+			return v1.Pointer() == v2.Pointer()
+		}
+	}
+	if v1, ok := obj1.(Lambda); ok {
+		if v2, ok := obj2.(Lambda); ok {
+			return cmp.Equal(v1, v2)
+		}
+	}
+	return false
 }
 
 func isNull(args *types.Pair) (types.Any, error) {
@@ -155,12 +177,7 @@ func isProcedure(args *types.Pair) (types.Any, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}
-	switch args.This.(type) {
-	case Procedure, Primitive, SpecialProcedure, Lambda:
-		return types.Bool(true), nil
-	default:
-		return types.Bool(false), nil
-	}
+	return types.Bool(isCallable(args.This)), nil
 }
 
 func toString(args *types.Pair, sep string) string {

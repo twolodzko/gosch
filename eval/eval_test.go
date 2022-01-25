@@ -211,6 +211,23 @@ func Test_EvalArgs(t *testing.T) {
 	}
 }
 
+func Test_QuoteIsLikeList(t *testing.T) {
+	env := envir.NewEnv()
+
+	quoteResult, _, err := EvalString("(quote ('a 1 + #t))", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	listResult, _, err := EvalString("(list 'a 1 + #t)", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if !cmp.Equal(quoteResult, listResult) {
+		t.Errorf("expected %v and %v to be the same", quoteResult, listResult)
+	}
+}
+
 func Test_ParseEvalPrint(t *testing.T) {
 	var testCases = []struct {
 		input    string
@@ -355,6 +372,11 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(let ((x 5)) (let ((y 4)) (+ x y)))", "9"},
 		{"((lambda (x) (let ((y 2)) (+ x y))) 9)", "11"},
 		{"(and (number? 'a) (> 0 'a))", "#f"},
+		// FIXME
+		// {"(eq? + (car '(+ - * /)))", "#t"},
+		// {"(eq? / (car '(+ - * /)))", "#f"},
+		// {"((car '(+ - * /)) 2 2)", "4"},
+		{"((car (list + - * /)) 2 2)", "4"},
 	}
 
 	for _, tt := range testCases {

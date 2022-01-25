@@ -354,6 +354,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(let ((x 72)) ((lambda (y) (+ x y)) -12))", "60"},
 		{"(let ((x 5)) (let ((y 4)) (+ x y)))", "9"},
 		{"((lambda (x) (let ((y 2)) (+ x y))) 9)", "11"},
+		{"(and (number? 'a) (> 0 'a))", "#f"},
 	}
 
 	for _, tt := range testCases {

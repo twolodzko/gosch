@@ -103,6 +103,42 @@ func procedure(name types.Symbol) (interface{}, bool) {
 	}
 }
 
+func and(args *types.Pair, env *envir.Env) (types.Any, error) {
+	if args.This == nil {
+		return types.Bool(true), nil
+	}
+	head := args
+	for head != nil {
+		test, err := Eval(head.This, env)
+		if err != nil {
+			return nil, err
+		}
+		if !types.IsTrue(test) {
+			return types.Bool(false), nil
+		}
+		head = head.Next
+	}
+	return types.Bool(true), nil
+}
+
+func or(args *types.Pair, env *envir.Env) (types.Any, error) {
+	if args.This == nil {
+		return types.Bool(true), nil
+	}
+	head := args
+	for head != nil {
+		test, err := Eval(head.This, env)
+		if err != nil {
+			return nil, err
+		}
+		if types.IsTrue(test) {
+			return types.Bool(true), nil
+		}
+		head = head.Next
+	}
+	return types.Bool(false), nil
+}
+
 func quote(args *types.Pair, env *envir.Env) (types.Any, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")

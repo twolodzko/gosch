@@ -72,34 +72,6 @@ func eq(args *types.Pair) (types.Any, error) {
 	return types.Bool(args.This == args.Next.This), nil
 }
 
-func and(args *types.Pair) (types.Any, error) {
-	if args.This == nil {
-		return types.Bool(true), nil
-	}
-	head := args
-	for head != nil {
-		if !types.IsTrue(head.This) {
-			return types.Bool(false), nil
-		}
-		head = head.Next
-	}
-	return types.Bool(true), nil
-}
-
-func or(args *types.Pair) (types.Any, error) {
-	if args.This == nil {
-		return types.Bool(true), nil
-	}
-	head := args
-	for head != nil {
-		if types.IsTrue(head.This) {
-			return types.Bool(true), nil
-		}
-		head = head.Next
-	}
-	return types.Bool(false), nil
-}
-
 func isNull(args *types.Pair) (types.Any, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")

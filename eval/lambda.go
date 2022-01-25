@@ -43,16 +43,30 @@ func newLambda(args *types.Pair, env *envir.Env) (types.Any, error) {
 }
 
 func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
-	// local env inherits from the env where lambda was first created
+	// Example:
+	//
+	// (define x 4)    ;; parent env
+	// (define addX
+	//   (lambda (n)   ;; n would be defined at function call
+	// 	   (+ x n)))   ;; this x comes from parent env
+	// (let ((x 3))    ;; setting up local env
+	//   (addX
+	//     (+ x 7)))   ;; this x comes from local env
+	// => (+ 4 (+ 3 7)) = 14
+	//      /     |  \
+	//  parent  local  calling env
+
+	// local env inherits from the env where the lambda was defined
 	local := envir.NewEnv()
 	local.Parent = l.ParentEnv
 
+	// setup local env
 	head := args
 	for _, name := range l.Vars {
 		if head == nil {
 			return nil, local, errors.New("wrong number of arguments")
 		}
-		// arguments are evaluated in the env enclosing the lambda
+		// arguments are evaluated in the env enclosing the lambda call
 		val, err := Eval(head.This, env)
 		if err != nil {
 			return nil, local, err
@@ -60,7 +74,8 @@ func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, e
 		local.Set(name, val)
 		head = head.Next
 	}
-	// the body of the function is evaluated in the local env
+
+	// the body of the function is evaluated in the local env of the lambda
 	return partialEval(l.Body, local)
 }
 

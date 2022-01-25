@@ -2,15 +2,16 @@ package eval
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/types"
 )
 
 type (
-	Primitive    = func(*types.Pair) (types.Any, error)
-	Procedure    = func(*types.Pair, *envir.Env) (types.Any, error)
-	TcoProcedure = func(*types.Pair, *envir.Env) (types.Any, *envir.Env, error)
+	Primitive        = func(*types.Pair) (types.Any, error)
+	Procedure        = func(*types.Pair, *envir.Env) (types.Any, error)
+	SpecialProcedure = func(*types.Pair, *envir.Env) (types.Any, *envir.Env, error)
 )
 
 func procedure(name types.Symbol) (interface{}, bool) {
@@ -42,12 +43,7 @@ func procedure(name types.Symbol) (interface{}, bool) {
 	case "set!":
 		return set, true
 	case "quote":
-		return func(args *types.Pair, env *envir.Env) (types.Any, error) {
-			if args == nil {
-				return nil, errors.New("wrong number of arguments")
-			}
-			return args.This, nil
-		}, true
+		return quote, true
 	case "lambda":
 		return newLambda, true
 	case "let":
@@ -101,39 +97,77 @@ func procedure(name types.Symbol) (interface{}, bool) {
 	case "load":
 		return load, true
 	case "debug":
-		return func(args *types.Pair) (types.Any, error) {
-			if args == nil {
-				DEBUG = true
-				return types.Bool(DEBUG), nil
-			}
-			if args.HasNext() {
-				return nil, errors.New("wrong number of arguments")
-			}
-			DEBUG = bool(types.IsTrue(args.This))
-			return types.Bool(DEBUG), nil
-		}, true
+		return debug, true
 	default:
 		return nil, false
 	}
 }
 
-func evalArgs(pair *types.Pair, env *envir.Env) (*types.Pair, error) {
-	if pair == nil {
-		return nil, nil
+func quote(args *types.Pair, env *envir.Env) (types.Any, error) {
+	if args == nil {
+		return nil, errors.New("wrong number of arguments")
 	}
-	var (
-		head *types.Pair
-		args []types.Any
-	)
-	head = pair
-	for head != nil {
-		sexpr, err := Eval(head.This, env)
+	return args.This, nil
+}
+
+func define(args *types.Pair, env *envir.Env) (types.Any, error) {
+	if args == nil || !args.HasNext() {
+		return nil, errors.New("wrong number of arguments")
+	}
+	switch name := args.This.(type) {
+	case types.Symbol:
+		val, err := Eval(args.Next.This, env)
 		if err != nil {
 			return nil, err
 		}
-		args = append(args, sexpr)
-		head = head.Next
+		env.Set(name, val)
+		return val, nil
+	default:
+		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
 	}
-	// TODO: avoid re-packing
-	return types.PairFromArray(args), nil
+}
+
+func set(args *types.Pair, env *envir.Env) (types.Any, error) {
+	if args == nil || !args.HasNext() {
+		return nil, errors.New("wrong number of arguments")
+	}
+
+	val, err := Eval(args.Next.This, env)
+	if err != nil {
+		return nil, err
+	}
+
+	switch name := args.This.(type) {
+	case types.Symbol:
+		if localEnv, ok := env.FindEnv(name); ok {
+			localEnv.Set(name, val)
+		} else {
+			env.Set(name, val)
+		}
+		return val, nil
+	default:
+		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
+	}
+}
+
+func load(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+	if args == nil {
+		return nil, env, errors.New("wrong number of arguments")
+	}
+	head, err := Eval(args.This, env)
+	if err != nil {
+		return nil, env, err
+	}
+	path, ok := head.(types.String)
+	if !ok {
+		return nil, env, fmt.Errorf("invalid path: %v", head)
+	}
+	sexprs, env, err := LoadEval(string(path), env)
+	if err != nil {
+		return nil, env, err
+	}
+	if len(sexprs) > 0 {
+		return sexprs[len(sexprs)-1], env, nil
+	}
+	return nil, env, nil
 }

@@ -504,6 +504,28 @@ func Test_LambdaClosures(t *testing.T) {
 	}
 }
 
+func Test_LambdaLocalVsParentEnv(t *testing.T) {
+	env := envir.NewEnv()
+
+	input := `
+	(define x 4)
+	(define addX
+		(lambda (n)
+			(+ x n)))
+	(let ((x 3))
+	   (addX (+ x 7)))
+	`
+	expected := "14"
+
+	result, _, err := EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if fmt.Sprintf("%v", result[2]) != expected {
+		t.Errorf("expected %v, got %v", expected, result[2])
+	}
+}
+
 func Test_Error(t *testing.T) {
 	env := envir.NewEnv()
 	expected := "this is an error"

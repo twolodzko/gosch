@@ -38,7 +38,7 @@ func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 				return fn(args)
 			case Procedure:
 				return fn(val.Next, env)
-			case TcoProcedure:
+			case SpecialProcedure:
 				sexpr, env, err = fn(val.Next, env)
 				if err != nil {
 					return nil, err
@@ -69,18 +69,23 @@ func getSymbol(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	}
 }
 
-// Evaluate all but last args, return last arg and enclosing environment
-func partialEval(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
-	if args == nil {
-		return nil, env, nil
+func evalArgs(pair *types.Pair, env *envir.Env) (*types.Pair, error) {
+	if pair == nil {
+		return nil, nil
 	}
-	current := args
-	for current.HasNext() {
-		_, err := Eval(current.This, env)
+	var (
+		head *types.Pair
+		args []types.Any
+	)
+	head = pair
+	for head != nil {
+		sexpr, err := Eval(head.This, env)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		current = current.Next
+		args = append(args, sexpr)
+		head = head.Next
 	}
-	return current.This, env, nil
+	// TODO: avoid re-packing
+	return types.PairFromArray(args), nil
 }

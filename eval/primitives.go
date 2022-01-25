@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -101,46 +100,6 @@ func or(args *types.Pair) (types.Any, error) {
 	return types.Bool(false), nil
 }
 
-func define(args *types.Pair, env *envir.Env) (types.Any, error) {
-	if args == nil || !args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
-	}
-	switch name := args.This.(type) {
-	case types.Symbol:
-		val, err := Eval(args.Next.This, env)
-		if err != nil {
-			return nil, err
-		}
-		env.Set(name, val)
-		return val, nil
-	default:
-		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
-	}
-}
-
-func set(args *types.Pair, env *envir.Env) (types.Any, error) {
-	if args == nil || !args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
-	}
-
-	val, err := Eval(args.Next.This, env)
-	if err != nil {
-		return nil, err
-	}
-
-	switch name := args.This.(type) {
-	case types.Symbol:
-		if localEnv, ok := env.FindEnv(name); ok {
-			localEnv.Set(name, val)
-		} else {
-			env.Set(name, val)
-		}
-		return val, nil
-	default:
-		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
-	}
-}
-
 func isNull(args *types.Pair) (types.Any, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
@@ -225,7 +184,7 @@ func isProcedure(args *types.Pair) (types.Any, error) {
 		return nil, errors.New("wrong number of arguments")
 	}
 	switch args.This.(type) {
-	case Procedure, Primitive, TcoProcedure, Lambda:
+	case Procedure, Primitive, SpecialProcedure, Lambda:
 		return types.Bool(true), nil
 	default:
 		return types.Bool(false), nil
@@ -296,24 +255,14 @@ func raiseError(args *types.Pair) (types.Any, error) {
 	return nil, fmt.Errorf("%s", toString(args, " "))
 }
 
-func load(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+func debug(args *types.Pair) (types.Any, error) {
 	if args == nil {
-		return nil, env, errors.New("wrong number of arguments")
+		DEBUG = true
+		return types.Bool(DEBUG), nil
 	}
-	head, err := Eval(args.This, env)
-	if err != nil {
-		return nil, env, err
+	if args.HasNext() {
+		return nil, errors.New("wrong number of arguments")
 	}
-	path, ok := head.(types.String)
-	if !ok {
-		return nil, env, fmt.Errorf("invalid path: %v", head)
-	}
-	sexprs, env, err := LoadEval(string(path), env)
-	if err != nil {
-		return nil, env, err
-	}
-	if len(sexprs) > 0 {
-		return sexprs[len(sexprs)-1], env, nil
-	}
-	return nil, env, nil
+	DEBUG = bool(types.IsTrue(args.This))
+	return types.Bool(DEBUG), nil
 }

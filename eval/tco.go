@@ -8,6 +8,25 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
+// Tail call optimized procedures
+// see: https://github.com/kanaka/mal/blob/master/process/guide.md#step-5-tail-call-optimization
+
+// Evaluate all but last args, return last arg and enclosing environment
+func partialEval(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+	if args == nil {
+		return nil, env, nil
+	}
+	current := args
+	for current.HasNext() {
+		_, err := Eval(current.This, env)
+		if err != nil {
+			return nil, nil, err
+		}
+		current = current.Next
+	}
+	return current.This, env, nil
+}
+
 func let(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
 	if args == nil || !args.HasNext() {
 		return nil, env, errors.New("wrong number of arguments")

@@ -1,3 +1,4 @@
+;; The commented files don't work for gosch (yet) but don't for MIT Scheme either.
 
 (load "the-little-schemer.scm")
 (load "chapter-1.scm")

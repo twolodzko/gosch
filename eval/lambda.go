@@ -10,8 +10,9 @@ import (
 )
 
 type Lambda struct {
-	Vars []types.Symbol
-	Body *types.Pair
+	Vars      []types.Symbol
+	Body      *types.Pair
+	ParentEnv *envir.Env
 }
 
 func newLambda(args *types.Pair, env *envir.Env) (types.Any, error) {
@@ -23,7 +24,7 @@ func newLambda(args *types.Pair, env *envir.Env) (types.Any, error) {
 	switch pair := args.This.(type) {
 	case *types.Pair:
 		if pair.IsNull() {
-			return Lambda{nil, args.Next}, nil
+			return Lambda{nil, args.Next, env}, nil
 		}
 
 		head := pair
@@ -38,12 +39,13 @@ func newLambda(args *types.Pair, env *envir.Env) (types.Any, error) {
 	default:
 		return Lambda{}, fmt.Errorf("%v is not a list", args.This)
 	}
-	return Lambda{vars, args.Next}, nil
+	return Lambda{vars, args.Next, env}, nil
 }
 
 func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+	// local env inherits from the env where lambda was first created
 	local := envir.NewEnv()
-	local.Parent = env
+	local.Parent = l.ParentEnv
 
 	head := args
 	for _, name := range l.Vars {
@@ -58,6 +60,7 @@ func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, e
 		local.Set(name, val)
 		head = head.Next
 	}
+	// the body of the function is evaluated in the local env
 	return partialEval(l.Body, local)
 }
 

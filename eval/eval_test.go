@@ -447,6 +447,7 @@ func Test_newLambda(t *testing.T) {
 	expected := Lambda{
 		[]types.Symbol{"x", "y"},
 		types.NewPair(types.Symbol("+"), types.NewPair(types.NewPair(types.Symbol("x"), types.NewPair(types.Symbol("y"), nil)), nil)),
+		env,
 	}
 	result, err := newLambda(
 		types.NewPair(
@@ -460,6 +461,46 @@ func Test_newLambda(t *testing.T) {
 	}
 	if !cmp.Equal(result, expected) {
 		t.Errorf("expected: %v, got %v", expected, result)
+	}
+}
+
+func Test_LambdaClosures(t *testing.T) {
+	var err error
+	var result []types.Any
+	env := envir.NewEnv()
+
+	input := `
+	(define x 4)
+	(define addN
+		(lambda (n)
+			(lambda (x)
+				(+ x n))))
+	`
+
+	_, env, err = EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	result, env, err = EvalString("((addN x) 6)", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if fmt.Sprintf("%v", result[0]) != "10" {
+		t.Errorf("expected 10, got %v", result[0])
+	}
+
+	_, env, err = EvalString("(set! x 1)", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	result, _, err = EvalString("((addN x) 6)", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if fmt.Sprintf("%v", result[0]) != "7" {
+		t.Errorf("expected 7, got %v", result[0])
 	}
 }
 

@@ -30,33 +30,33 @@
 ;; value is rewritten for another representation
 (check-equal? (value '(1 + (3 ↑ 4))) 82)
 
-;; ;;**********************************************************
-;; ;; The Seventh Commandment
-;; ;;
-;; ;; Recur on the subparts that are of the same nature:
-;; ;; * On the sublists of a list.
-;; ;; * On the subexpressions of an arithmetic expression.
-;; ;;**********************************************************
+;;**********************************************************
+;; The Seventh Commandment
+;;
+;; Recur on the subparts that are of the same nature:
+;; * On the sublists of a list.
+;; * On the subexpressions of an arithmetic expression.
+;;**********************************************************
 
-;; (check-false (atom? '(+ 1 3)))
+(check-false (atom? '(+ 1 3)))
 
-;; (check-true (eq? (car '(+ 1 3)) (quote +)))
+(check-true (eq? (car '(+ 1 3)) (quote +)))
 
-;; (check-equal? (cdr '(+ 1 3)) '(1 3))
+(check-equal? (cdr '(+ 1 3)) '(1 3))
 
-;; ;; Added test not in the book
-;; (check-equal? (value '(+ 1 3)) 4)
+;; Added test not in the book
+(check-equal? (value '(+ 1 3)) 4)
 
-;; ;; Added test not in the book
-;; (check-equal? (value '(+ 1 3)) 4)
+;; Added test not in the book
+(check-equal? (value '(+ 1 3)) 4)
 
-;; ;; Added test not in the book
-;; (check-equal? (value '(+ 1 (↑ 3 4))) 82)
+;; Added test not in the book
+(check-equal? (value '(+ 1 (↑ 3 4))) 82)
 
-;; ;;**********************************************************
-;; ;; The Eighth Commandment
-;; ;;
-;; ;; Use help functions to abstract from representations.
-;; ;;**********************************************************
+;;**********************************************************
+;; The Eighth Commandment
+;;
+;; Use help functions to abstract from representations.
+;;**********************************************************
 
-;; ;; The definitions and tests for the alternative number representation are not implemented.
+;; The definitions and tests for the alternative number representation are not implemented.

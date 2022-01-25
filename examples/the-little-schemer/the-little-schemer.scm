@@ -24,10 +24,6 @@
 ;; The definition of this is found in the preface.
 (define atom? (lambda (x)
   (and (not (pair? x)) (not (null? x)))))
-;; Note that we need to use the racket-null? and not our newly contracted null?
-;; becuase x may be an atom, which racket-null? supports and null? (as defined
-;; in the book and thus our contracted version) does not.
-
 
 ;;**********************************************************
 ;; Chapter 1
@@ -482,9 +478,15 @@
     (lambda (nexp)
       (cond
         ((atom? nexp) nexp) ; Really should ask number? and not just atom?
-        ((eq? (car (cdr nexp)) (quote +)) (+ (value (car nexp)) (value (car (cdr (cdr nexp))))))
-        ((eq? (car (cdr nexp)) (quote ×)) (× (value (car nexp)) (value (car (cdr (cdr nexp))))))
-        ((eq? (car (cdr nexp)) (quote ↑)) (↑ (value (car nexp)) (value (car (cdr (cdr nexp)))))))))
+        ((eq? (car (cdr nexp)) (quote o+))
+          (o+ (value (car nexp))
+              (value (car (cdr (cdr nexp))))))
+        ((eq? (car (cdr nexp)) (quote ×))
+          (× (value (car nexp))
+             (value (car (cdr (cdr nexp))))))
+        ((eq? (car (cdr nexp)) (quote ↑))
+          (↑ (value (car nexp))
+             (value (car (cdr (cdr nexp)))))))))
 ;; Note: I'm not a fan of the book's implementation, which assumes ↑.
 
 ;; Gets the first sub-expression from an arithmetic expression

@@ -129,7 +129,7 @@ Comments begin with `;` and everything that follows, from the semicolon until th
             case Symbol:
                 return getSymbol(val, env)
             case *Pair:
-                fn := Eval(val.This. env)
+                fn := Eval(val.This, env)
                 switch fn := fn.(type) {
                 case Primitive:
                     return fn(val.Next, env)

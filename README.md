@@ -14,7 +14,7 @@
 As in classic LISPs, **gosch** recognizes only two data structures *atoms* and *[pairs]*
 (*aka* [linked lists]). There are no plans to implement more advanced data structures like
 vectors. Also, the variety of available data types for atoms is limited to *numbers* (integers), *booleans*
-(`#t` and `#f`), and *strings*. The implementation is [properly tail-recursive] as [required of Scheme][tco required].
+(`#t` and `#f`), and *strings*. The implementation is [properly tail-recursive] as [required of Scheme].
 Unlike the classic Scheme, there is a null type `nil` and procedures return it instead of undefined results,
 for example `(if #f 'ok)` returns `<nil>`. 
 
@@ -24,8 +24,9 @@ for example `(if #f 'ok)` returns `<nil>`.
 - `(cons obj1 obj2)` creates pair where *obj1* is car and *obj2* is cdr. `(list obj1 obj2 ...)` is the same as
 `(cons obj1 (cons obj2 (cons obj3 ...)))`.
 - `(eq? obj1 obj2)` compares if two objects are equal, for pairs only checks if they point to the same memory location.
-- `(define name value)` assigns *value* to a *name* in the current envir. `(set! name value)` if *name* exists in the current or enclosing environment, it sets it to the *value*, otherwise it
-assigns *value* to a *name* in the current envir.
+- `(define name value)` assigns *value* to a *name* in the current environment. `(set! name value)` if *name* exists
+in the current or enclosing environment, it sets it to the *value*, otherwise it assigns *value* to a *name* in the
+current environment.
 - `(quote obj)` or `'obj` returns *obj* without evaluating it. While `quote` is commonly used for constructing lists,
 [it is not the same] as `list`.
 - `(lambda (arg1 arg2 ...) expr1 expr2 ...)` defines a [lambda expression] (*aka* function).
@@ -49,11 +50,109 @@ their enclosing environments are printed.
 Comments begin with `;` and everything that follows, from the semicolon until the end of the line, is ignored.
 
 
+## Details of the LISP design
+
+1. Everything is an *[S-expression]*.
+2. There are two kinds of S-expressions: *atom* and *pair* of S-expressions.
+3. Atoms are the basic data types like booleans, numbers, strings, etc.
+4. Pairs (lists) are implemented as [linked lists]:
+
+   ```go
+   type Pair struct {
+      This Sexpr
+      Next *Pair
+   }
+   ```
+   as in every LISP, they are written as `(this next)`. Pair has head and tail,
+   that can be accessed using the `car` and `cdr` procedures.
+
+   ```
+     ( elem1 ( elem2 ( elem3 ( ... ))))
+   1    car    -------- cdr ---------
+   2            car    ---- cdr ----
+   3                    car    cdr
+   ```
+
+   Pairs can be empty `()`, we call them the *null* lists.
+
+   Accessing the first element of the linked list, removing it, or prepending pair
+   with a new value have $O(1)$ complexity, so those operations would happen the
+   most often in LISPs.
+5. A *procedure* (function) is also just a pair, where the name of the procedure
+   is the first element of the pair, and the arguments are the following elements.
+   For example, `(+ 1 2 3)` is a function that calculates the sum of the three numbers.
+6. There is a special kind of atom, a *symbol* that can be used by itself or
+   as a placeholder.
+7. When evaluating an S-expression, the following rules apply:  
+   1. *symbol* is evaluated by looking up for the value it points to in the
+      surrounding environment (see below).
+   2. other *atoms* are evaluated to themselves.
+   3. a *pair* is evaluated by evaluating each of its elements, and then
+      calling the procedure named by the first element of the pair with
+      arguments at the following elements of the pair.
+8. There are some procedures with special rules of evaluation, for example
+   `(quote sexpr)` returns `sexpr` without evaluating it; `if` and `cond`
+   will evaluate the arguments conditionally; `and` and `or` will evaluate
+   the arguments sequentially, possibly stopping before evaluating
+   every argument.
+9. Everything residues within some surrounding *environment*. By default,
+   this is a global environment, but there are procedures (`let` and `lambda`)
+   that can create their environments. For example:
+
+   ```scheme
+   (define x 3)    ;; define x in global environment
+   (let ((y 4))    ;; define y in local environment
+        (+ x y))   ;; => 7
+   (+ x y)         ;; => ERROR
+   ```
+
+   The local environment has access to its objects, but also to the parent environment,
+   but not the other way around. We call it [*lexical scoping* or *closures*].
+10. `lambda` is a special procedure that returns a procedure. It is defined in
+   terms of its arguments and the body of the function to be executed.
+
+    ```scheme
+    (define add (lambda (x y) (+ x y)))
+    (add 2 5)       ;; => 7
+    ```
+
+11. Some procedures are [tail-call optimized], this includes `begin`, `if`, `cond`,
+    `let`, and `lambda`. While regular procedures are evaluated by returning the
+    result of the computation, in tail-call optimized procedures the last expression
+    in the body of the procedure is returned unevaluated. This transforms recursive
+    calls into a for loop. The simplified code below illustrates this:
+
+    ```go
+    func Eval(sexpr Sexpr, env *Env) Any {
+        for {
+            switch val := sexpr.(type) {
+            case Symbol:
+                return getSymbol(val, env)
+            case *Pair:
+                fn := Eval(val.This. env)
+                switch fn := fn.(type) {
+                case Primitive:
+                    return fn(val.Next, env)
+                case TailCallOptimized:
+                    sexpr, env = fn(val.Next, env)
+                }
+            default:
+                return sexpr
+            }
+        }
+    }
+    ```
+
+That's it. Nothing more is needed to build a minimal Scheme.
+
 
  [pairs]: https://web.mit.edu/scheme_v9.2/doc/mit-scheme-ref/Lists.html#Lists
  [linked lists]: https://en.wikipedia.org/wiki/Linked_list
  [disjoint types]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_5.html#SEC23
  [lambda expression]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_6.html#SEC30
  [properly tail-recursive]: https://github.com/kanaka/mal/blob/master/process/guide.md#step-5-tail-call-optimization
- [tco required]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_3.html#SEC6
+ [required of Scheme]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_3.html#SEC6
  [it is not the same]: https://stackoverflow.com/questions/34984552/what-is-the-difference-between-quote-and-list
+ [S-expression]: https://en.wikipedia.org/wiki/S-expression
+ [*lexical scoping* or *closures*]: https://en.wikipedia.org/wiki/Closure_(computer_programming)
+ [tail-call optimized]: https://stackoverflow.com/questions/310974/what-is-tail-call-optimization

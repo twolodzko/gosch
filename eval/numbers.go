@@ -7,16 +7,16 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func toInt(obj types.Any) (int, error) {
-	switch x := obj.(type) {
+func toInt(s types.Sexpr) (int, error) {
+	switch x := s.(type) {
 	case int:
 		return x, nil
 	default:
-		return 0, fmt.Errorf("%v is not a number", obj)
+		return 0, fmt.Errorf("%v is not a number", s)
 	}
 }
 
-func sum(args *types.Pair) (types.Any, error) {
+func sum(args *types.Pair) (types.Sexpr, error) {
 	var result int = 0
 	if args == nil {
 		return result, nil
@@ -33,7 +33,7 @@ func sum(args *types.Pair) (types.Any, error) {
 	return result, nil
 }
 
-func dif(args *types.Pair) (types.Any, error) {
+func dif(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return 0, nil
 	}
@@ -56,7 +56,7 @@ func dif(args *types.Pair) (types.Any, error) {
 	return result, nil
 }
 
-func mul(args *types.Pair) (types.Any, error) {
+func mul(args *types.Pair) (types.Sexpr, error) {
 	var result int = 1
 	if args == nil {
 		return result, nil
@@ -73,7 +73,7 @@ func mul(args *types.Pair) (types.Any, error) {
 	return result, nil
 }
 
-func div(args *types.Pair) (types.Any, error) {
+func div(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return 1, nil
 	}
@@ -96,7 +96,7 @@ func div(args *types.Pair) (types.Any, error) {
 	return result, nil
 }
 
-func mod(args *types.Pair) (types.Any, error) {
+func mod(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -111,7 +111,7 @@ func mod(args *types.Pair) (types.Any, error) {
 	return a % n, nil
 }
 
-func equal(args *types.Pair) (types.Any, error) {
+func equal(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return types.Bool(true), nil
 	}
@@ -134,7 +134,7 @@ func equal(args *types.Pair) (types.Any, error) {
 	return types.Bool(true), nil
 }
 
-func lower(args *types.Pair) (types.Any, error) {
+func lower(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return types.Bool(true), nil
 	}
@@ -157,7 +157,7 @@ func lower(args *types.Pair) (types.Any, error) {
 	return types.Bool(true), nil
 }
 
-func higher(args *types.Pair) (types.Any, error) {
+func higher(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return types.Bool(true), nil
 	}

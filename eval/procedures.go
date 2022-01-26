@@ -9,14 +9,14 @@ import (
 )
 
 type (
-	Primitive        = func(*types.Pair) (types.Any, error)
-	Procedure        = func(*types.Pair, *envir.Env) (types.Any, error)
-	SpecialProcedure = func(*types.Pair, *envir.Env) (types.Any, *envir.Env, error)
+	Primitive         = func(*types.Pair) (types.Sexpr, error)
+	Procedure         = func(*types.Pair, *envir.Env) (types.Sexpr, error)
+	TailCallOptimized = func(*types.Pair, *envir.Env) (types.Sexpr, *envir.Env, error)
 )
 
-func isCallable(obj types.Any) bool {
+func isCallable(obj types.Sexpr) bool {
 	switch obj.(type) {
-	case Procedure, Primitive, SpecialProcedure, Lambda:
+	case Procedure, Primitive, TailCallOptimized, Lambda:
 		return true
 	default:
 		return false
@@ -92,7 +92,7 @@ func procedure(name types.Symbol) (interface{}, bool) {
 	case "%":
 		return mod, true
 	case "string":
-		return func(args *types.Pair) (types.Any, error) {
+		return func(args *types.Pair) (types.Sexpr, error) {
 			return types.String(toString(args, "")), nil
 		}, true
 	case "substring":
@@ -112,7 +112,7 @@ func procedure(name types.Symbol) (interface{}, bool) {
 	}
 }
 
-func and(args *types.Pair, env *envir.Env) (types.Any, error) {
+func and(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args.This == nil {
 		return types.Bool(true), nil
 	}
@@ -130,7 +130,7 @@ func and(args *types.Pair, env *envir.Env) (types.Any, error) {
 	return types.Bool(true), nil
 }
 
-func or(args *types.Pair, env *envir.Env) (types.Any, error) {
+func or(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args.This == nil {
 		return types.Bool(true), nil
 	}
@@ -148,14 +148,14 @@ func or(args *types.Pair, env *envir.Env) (types.Any, error) {
 	return types.Bool(false), nil
 }
 
-func quote(args *types.Pair, env *envir.Env) (types.Any, error) {
+func quote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}
 	return args.This, nil
 }
 
-func define(args *types.Pair, env *envir.Env) (types.Any, error) {
+func define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -172,7 +172,7 @@ func define(args *types.Pair, env *envir.Env) (types.Any, error) {
 	}
 }
 
-func set(args *types.Pair, env *envir.Env) (types.Any, error) {
+func set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -195,7 +195,7 @@ func set(args *types.Pair, env *envir.Env) (types.Any, error) {
 	}
 }
 
-func load(args *types.Pair, env *envir.Env) (types.Any, error) {
+func load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}

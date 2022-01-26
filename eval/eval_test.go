@@ -11,7 +11,7 @@ import (
 )
 
 func Test_QuotedEval(t *testing.T) {
-	var testCases = []types.Any{
+	var testCases = []types.Sexpr{
 		"a",
 		types.Pair{},
 		types.NewPair(types.Quote("a"), nil),
@@ -41,7 +41,7 @@ func Test_EvalDoesntMutate(t *testing.T) {
 }
 
 func Test_EvalExpectError(t *testing.T) {
-	var testCases = []types.Any{
+	var testCases = []types.Sexpr{
 		"a",
 		types.NewPair("a", nil),
 	}
@@ -55,8 +55,8 @@ func Test_EvalExpectError(t *testing.T) {
 
 func Test_EvalSimpleObjects(t *testing.T) {
 	var testCases = []struct {
-		input    types.Any
-		expected types.Any
+		input    types.Sexpr
+		expected types.Sexpr
 	}{
 		{nil, nil},
 		{types.Quote("a"), "a"},
@@ -82,7 +82,7 @@ func Test_EvalSimpleObjects(t *testing.T) {
 func Test_EvalPair(t *testing.T) {
 	var testCases = []struct {
 		input    *types.Pair
-		expected types.Any
+		expected types.Sexpr
 	}{
 		{
 			&types.Pair{}, &types.Pair{},
@@ -190,8 +190,8 @@ func Test_EvalPair(t *testing.T) {
 }
 
 func Test_EvalArgs(t *testing.T) {
-	input := types.PairFromArray([]types.Any{types.Quote("a"), types.Quote("b")})
-	expected := types.PairFromArray([]types.Any{"a", "b"})
+	input := types.PairFromArray([]types.Sexpr{types.Quote("a"), types.Quote("b")})
+	expected := types.PairFromArray([]types.Sexpr{"a", "b"})
 	env := envir.NewEnv()
 
 	result, err := evalArgs(input, env)
@@ -203,7 +203,7 @@ func Test_EvalArgs(t *testing.T) {
 	}
 
 	// Eval should not mutate the input
-	inputCopy := types.PairFromArray([]types.Any{types.Quote("a"), types.Quote("b")})
+	inputCopy := types.PairFromArray([]types.Sexpr{types.Quote("a"), types.Quote("b")})
 	if !cmp.Equal(input, inputCopy) {
 		t.Errorf("input %v has changed to %v", inputCopy, input)
 	}
@@ -474,7 +474,7 @@ func Test_newLambda(t *testing.T) {
 
 func Test_LambdaClosures(t *testing.T) {
 	var err error
-	var result []types.Any
+	var result []types.Sexpr
 	env := envir.NewEnv()
 
 	input := `

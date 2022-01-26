@@ -7,16 +7,16 @@ import (
 )
 
 type Env struct {
-	Vars   map[types.Symbol]types.Any
+	Vars   map[types.Symbol]types.Sexpr
 	Parent *Env
 }
 
 func NewEnv() *Env {
-	vars := make(map[types.Symbol]types.Any)
+	vars := make(map[types.Symbol]types.Sexpr)
 	return &Env{vars, nil}
 }
 
-func (e *Env) Set(name types.Symbol, value types.Any) {
+func (e *Env) Set(name types.Symbol, value types.Sexpr) {
 	e.Vars[name] = value
 }
 
@@ -32,7 +32,7 @@ func (e *Env) FindEnv(name types.Symbol) (*Env, bool) {
 	return nil, false
 }
 
-func (e *Env) Get(name types.Symbol) (types.Any, error) {
+func (e *Env) Get(name types.Symbol) (types.Sexpr, error) {
 	if env, ok := e.FindEnv(name); ok {
 		return env.Vars[name], nil
 	}

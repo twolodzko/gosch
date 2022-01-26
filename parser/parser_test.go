@@ -11,7 +11,7 @@ import (
 func Test_Parse(t *testing.T) {
 	var testCases = []struct {
 		input    string
-		expected types.Any
+		expected types.Sexpr
 	}{
 		{"a", "a"},
 		{"42", 42},
@@ -52,7 +52,7 @@ func Test_Parse(t *testing.T) {
 
 func Test_ParseAny(t *testing.T) {
 	input := "1 2 3"
-	expected := []types.Any{1, 2, 3}
+	expected := []types.Sexpr{1, 2, 3}
 	parser := NewParser(input)
 	result, err := parser.Read()
 	if err != nil {

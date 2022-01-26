@@ -15,7 +15,7 @@ type Lambda struct {
 	ParentEnv *envir.Env
 }
 
-func newLambda(args *types.Pair, env *envir.Env) (types.Any, error) {
+func newLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -42,7 +42,7 @@ func newLambda(args *types.Pair, env *envir.Env) (types.Any, error) {
 	return Lambda{vars, args.Next, env}, nil
 }
 
-func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	// Example:
 	//
 	// (define x 4)    ;; parent env

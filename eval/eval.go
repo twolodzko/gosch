@@ -9,7 +9,7 @@ import (
 
 var DEBUG bool = false
 
-func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
+func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 	for {
 		if DEBUG {
 			fmt.Printf(" ↪ Step: %v\n", sexpr)
@@ -38,7 +38,7 @@ func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 				return fn(args)
 			case Procedure:
 				return fn(val.Next, env)
-			case SpecialProcedure:
+			case TailCallOptimized:
 				sexpr, env, err = fn(val.Next, env)
 				if err != nil {
 					return nil, err
@@ -57,7 +57,7 @@ func Eval(sexpr types.Any, env *envir.Env) (types.Any, error) {
 	}
 }
 
-func getSymbol(sexpr types.Any, env *envir.Env) (types.Any, error) {
+func getSymbol(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 	switch val := sexpr.(type) {
 	case types.Symbol:
 		if fn, ok := procedure(val); ok {
@@ -75,7 +75,7 @@ func evalArgs(pair *types.Pair, env *envir.Env) (*types.Pair, error) {
 	}
 	var (
 		head *types.Pair
-		args []types.Any
+		args []types.Sexpr
 	)
 	head = pair
 	for head != nil {

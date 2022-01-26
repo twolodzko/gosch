@@ -9,8 +9,6 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-type Any = types.Any
-
 type Repl struct {
 	reader *bufio.Reader
 	env    *envir.Env
@@ -21,7 +19,7 @@ func NewRepl(in io.Reader) *Repl {
 	return &Repl{bufio.NewReader(in), env}
 }
 
-func (repl *Repl) Repl() ([]Any, error) {
+func (repl *Repl) Repl() ([]types.Sexpr, error) {
 	cmd, err := repl.read()
 	if err != nil {
 		return nil, err

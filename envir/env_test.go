@@ -10,7 +10,7 @@ import (
 func Test_EnvGet(t *testing.T) {
 	var testCases = []struct {
 		name  types.Symbol
-		value types.Any
+		value types.Sexpr
 	}{
 		{"a", types.Symbol("xxx")},
 		{"b", 42},
@@ -35,7 +35,7 @@ func Test_EnvGet(t *testing.T) {
 func Test_EnvGetUnbound(t *testing.T) {
 	var values = []struct {
 		name  types.Symbol
-		value types.Any
+		value types.Sexpr
 	}{
 		{"a", types.Symbol("xxx")},
 		{"b", 42},
@@ -61,7 +61,7 @@ func Test_NestedEnvGet(t *testing.T) {
 
 	var testCases = []struct {
 		name     types.Symbol
-		expected types.Any
+		expected types.Sexpr
 	}{
 		{"x", 1},
 		{"y", 2},

@@ -9,7 +9,7 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func car(args *types.Pair) (types.Any, error) {
+func car(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -21,7 +21,7 @@ func car(args *types.Pair) (types.Any, error) {
 	}
 }
 
-func cdr(args *types.Pair) (types.Any, error) {
+func cdr(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -41,7 +41,7 @@ func cdr(args *types.Pair) (types.Any, error) {
 	}
 }
 
-func cons(args *types.Pair) (types.Any, error) {
+func cons(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -53,21 +53,21 @@ func cons(args *types.Pair) (types.Any, error) {
 	}
 }
 
-func list(args *types.Pair) (types.Any, error) {
+func list(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return &types.Pair{}, nil
 	}
 	return args, nil
 }
 
-func not(args *types.Pair) (types.Any, error) {
+func not(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return types.Bool(false), nil
 	}
 	return !types.IsTrue(args.This), nil
 }
 
-func eq(args *types.Pair) (types.Any, error) {
+func eq(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -78,7 +78,7 @@ func eq(args *types.Pair) (types.Any, error) {
 	return types.Bool(args.This == args.Next.This), nil
 }
 
-func sameCallables(obj1, obj2 types.Any) bool {
+func sameCallables(obj1, obj2 types.Sexpr) bool {
 	v1 := reflect.ValueOf(obj1)
 	v2 := reflect.ValueOf(obj2)
 	if v1.Kind() == reflect.Func {
@@ -94,7 +94,7 @@ func sameCallables(obj1, obj2 types.Any) bool {
 	return false
 }
 
-func isNull(args *types.Pair) (types.Any, error) {
+func isNull(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -106,7 +106,7 @@ func isNull(args *types.Pair) (types.Any, error) {
 	}
 }
 
-func isPair(args *types.Pair) (types.Any, error) {
+func isPair(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -118,7 +118,7 @@ func isPair(args *types.Pair) (types.Any, error) {
 	}
 }
 
-func isNumber(args *types.Pair) (types.Any, error) {
+func isNumber(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -130,7 +130,7 @@ func isNumber(args *types.Pair) (types.Any, error) {
 	}
 }
 
-func isBool(args *types.Pair) (types.Any, error) {
+func isBool(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -142,7 +142,7 @@ func isBool(args *types.Pair) (types.Any, error) {
 	}
 }
 
-func isString(args *types.Pair) (types.Any, error) {
+func isString(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -154,7 +154,7 @@ func isString(args *types.Pair) (types.Any, error) {
 	}
 }
 
-func isSymbol(args *types.Pair) (types.Any, error) {
+func isSymbol(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -166,14 +166,14 @@ func isSymbol(args *types.Pair) (types.Any, error) {
 	}
 }
 
-func isNil(args *types.Pair) (types.Any, error) {
+func isNil(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}
 	return types.Bool(args.This == nil), nil
 }
 
-func isProcedure(args *types.Pair) (types.Any, error) {
+func isProcedure(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -202,7 +202,7 @@ func toString(args *types.Pair, sep string) string {
 	return out
 }
 
-func substring(args *types.Pair) (types.Any, error) {
+func substring(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() || !args.Next.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -224,7 +224,7 @@ func substring(args *types.Pair) (types.Any, error) {
 	return str[start:end], nil
 }
 
-func stringLength(args *types.Pair) (types.Any, error) {
+func stringLength(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
@@ -235,16 +235,16 @@ func stringLength(args *types.Pair) (types.Any, error) {
 	return len(str), nil
 }
 
-func display(args *types.Pair) (types.Any, error) {
+func display(args *types.Pair) (types.Sexpr, error) {
 	fmt.Printf("%s\n", toString(args, " "))
 	return nil, nil
 }
 
-func raiseError(args *types.Pair) (types.Any, error) {
+func raiseError(args *types.Pair) (types.Sexpr, error) {
 	return nil, fmt.Errorf("%s", toString(args, " "))
 }
 
-func debug(args *types.Pair) (types.Any, error) {
+func debug(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		DEBUG = true
 		return types.Bool(DEBUG), nil

@@ -28,8 +28,8 @@ func (p *Parser) Head() rune {
 	return p.str[p.pos]
 }
 
-func (p *Parser) Read() ([]types.Any, error) {
-	var sexprs []types.Any
+func (p *Parser) Read() ([]types.Sexpr, error) {
+	var sexprs []types.Sexpr
 	for p.HasNext() {
 		if unicode.IsSpace(p.Head()) {
 			p.pos++
@@ -82,7 +82,7 @@ func isInt(str string) bool {
 
 func (p *Parser) readPair() (*types.Pair, error) {
 	p.pos++
-	var sexprs []types.Any
+	var sexprs []types.Sexpr
 	for p.HasNext() {
 		switch {
 		case unicode.IsSpace(p.Head()):
@@ -130,9 +130,9 @@ func (p *Parser) skipLine() {
 	}
 }
 
-func (p *Parser) readSexpr() (types.Any, error) {
+func (p *Parser) readSexpr() (types.Sexpr, error) {
 	var (
-		val types.Any
+		val types.Sexpr
 		err error
 	)
 	quotes := 0
@@ -164,9 +164,9 @@ func (p *Parser) readSexpr() (types.Any, error) {
 	return nil, io.EOF
 }
 
-func quote(obj types.Any, num int) types.Any {
+func quote(s types.Sexpr, num int) types.Sexpr {
 	for i := 0; i < num; i++ {
-		obj = types.Quote(obj)
+		s = types.Quote(s)
 	}
-	return obj
+	return s
 }

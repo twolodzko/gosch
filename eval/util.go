@@ -8,8 +8,8 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func EvalString(code string, env *envir.Env) ([]types.Any, *envir.Env, error) {
-	var out []types.Any
+func EvalString(code string, env *envir.Env) ([]types.Sexpr, *envir.Env, error) {
+	var out []types.Sexpr
 	parser := parser.NewParser(code)
 	sexprs, err := parser.Read()
 	if err != nil {
@@ -25,7 +25,7 @@ func EvalString(code string, env *envir.Env) ([]types.Any, *envir.Env, error) {
 	return out, env, err
 }
 
-func LoadEval(path string, env *envir.Env) ([]types.Any, error) {
+func LoadEval(path string, env *envir.Env) ([]types.Sexpr, error) {
 	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err

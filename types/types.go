@@ -3,18 +3,18 @@ package types
 import "fmt"
 
 type (
+	Sexpr  = interface{}
 	Bool   bool
-	Any    = interface{}
 	Symbol = string
 	String string
 )
 
 type Pair struct {
-	This Any
+	This Sexpr
 	Next *Pair
 }
 
-func NewPair(this Any, next *Pair) *Pair {
+func NewPair(this Sexpr, next *Pair) *Pair {
 	return &Pair{this, next}
 }
 
@@ -26,7 +26,7 @@ func (p Pair) IsNull() Bool {
 	return p == (Pair{})
 }
 
-func (p *Pair) Cons(sexpr Any) *Pair {
+func (p *Pair) Cons(sexpr Sexpr) *Pair {
 	if p.IsNull() {
 		return &Pair{sexpr, nil}
 	}
@@ -63,7 +63,7 @@ func (p Pair) String() string {
 	return fmt.Sprintf("(%s)", elems)
 }
 
-func PairFromArray(elems []Any) *Pair {
+func PairFromArray(elems []Sexpr) *Pair {
 	switch len(elems) {
 	case 0:
 		return &Pair{}
@@ -83,7 +83,7 @@ func (b Bool) String() string {
 	return "#f"
 }
 
-func IsTrue(s Any) Bool {
+func IsTrue(s Sexpr) Bool {
 	switch val := s.(type) {
 	case Bool:
 		return val
@@ -92,8 +92,8 @@ func IsTrue(s Any) Bool {
 	}
 }
 
-func Quote(sexpr Any) Any {
-	return &Pair{"quote", &Pair{sexpr, nil}}
+func Quote(s Sexpr) Sexpr {
+	return &Pair{"quote", &Pair{s, nil}}
 }
 
 func (s String) String() string {

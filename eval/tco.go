@@ -12,7 +12,7 @@ import (
 // see: https://github.com/kanaka/mal/blob/master/process/guide.md#step-5-tail-call-optimization
 
 // Evaluate all but last args, return last arg and enclosing environment
-func partialEval(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+func partialEval(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil {
 		return nil, env, nil
 	}
@@ -27,7 +27,7 @@ func partialEval(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error
 	return current.This, env, nil
 }
 
-func let(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+func let(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil || !args.HasNext() {
 		return nil, env, errors.New("wrong number of arguments")
 	}
@@ -86,7 +86,7 @@ func bind(binding *types.Pair, local, parent *envir.Env) error {
 	return fmt.Errorf("binding %v does not use proper name", binding)
 }
 
-func ifFn(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+func ifFn(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil || !args.HasNext() {
 		return nil, env, errors.New("wrong number of arguments")
 	}
@@ -106,7 +106,7 @@ func ifFn(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
 	}
 }
 
-func cond(args *types.Pair, env *envir.Env) (types.Any, *envir.Env, error) {
+func cond(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil {
 		return nil, env, errors.New("wrong number of arguments")
 	}

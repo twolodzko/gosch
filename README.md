@@ -21,11 +21,13 @@ for example `(if #f 'ok)` returns `<nil>`.
 **gosch** implements the following primitives:
 
 - `(car pair)` returns first element, and `(cdr pair)` returns second element (tail) of the *pair*.
-- `(cons obj1 obj2)` creates pair where *obj1* is car and *obj2* is cdr. `(list obj1 obj2 ...)` is the same as `(cons obj1 (cons obj2 (cons obj3 ...)))`.
+- `(cons obj1 obj2)` creates pair where *obj1* is car and *obj2* is cdr. `(list obj1 obj2 ...)` is the same as
+`(cons obj1 (cons obj2 (cons obj3 ...)))`.
 - `(eq? obj1 obj2)` compares if two objects are equal, for pairs only checks if they point to the same memory location.
 - `(define name value)` assigns *value* to a *name* in the current envir. `(set! name value)` if *name* exists in the current or enclosing environment, it sets it to the *value*, otherwise it
 assigns *value* to a *name* in the current envir.
-- `(quote obj)` or `'obj` returns *obj* without evaluating it.
+- `(quote obj)` or `'obj` returns *obj* without evaluating it. While `quote` is commonly used for constructing lists,
+[it is not the same] as `list`.
 - `(lambda (arg1 arg2 ...) expr1 expr2 ...)` defines a [lambda expression] (*aka* function).
 - `(let ((name1 value1) (name2 value2) ...) expr1 expr2 ...)` evaluates *expr1*, *expr2*, ... in the local environment,
 with *name1*, *name2*, ... variables present; returns the result of evaluating the last *exprN* expression.
@@ -54,3 +56,4 @@ Comments begin with `;` and everything that follows, from the semicolon until th
  [lambda expression]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_6.html#SEC30
  [properly tail-recursive]: https://github.com/kanaka/mal/blob/master/process/guide.md#step-5-tail-call-optimization
  [tco required]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_3.html#SEC6
+ [it is not the same]: https://stackoverflow.com/questions/34984552/what-is-the-difference-between-quote-and-list

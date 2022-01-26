@@ -109,8 +109,6 @@ func Test_IsTrue(t *testing.T) {
 		{Bool(true), true},
 		{Bool(false), false},
 		{Quote(Bool(true)), true},
-		// FIXME ?
-		// {quote(Bool(false)), false},
 		{Quote(&Pair{}), true},
 		{Quote(&Pair{1, &Pair{2, nil}}), true},
 		{0, true},

@@ -76,7 +76,7 @@ Comments begin with `;` and everything that follows, from the semicolon until th
    Pairs can be empty `()`, we call them the *null* lists.
 
    Accessing the first element of the linked list, removing it, or prepending pair
-   with a new value have *O(1)* complexity, so those operations would happen the
+   with a new value have O(1) complexity, so those operations would happen the
    most often in LISPs.
 5. A *procedure* (function) is also just a pair, where the name of the procedure
    is the first element of the pair, and the arguments are the following elements.

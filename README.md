@@ -9,7 +9,7 @@
 
 (source https://xkcd.com/297/)
 
-## Oh, gosch
+## Oh gosch, it's Scheme
 
 As in classic LISPs, **gosch** recognizes only two data structures *atoms* and *[pairs]*
 (*aka* [linked lists]). There are no plans to implement more advanced data structures like
@@ -59,8 +59,8 @@ Comments begin with `;` and everything that follows, from the semicolon until th
 
    ```go
    type Pair struct {
-      This Sexpr
-      Next *Pair
+       This Sexpr
+       Next *Pair
    }
    ```
    as in every LISP, they are written as `(this next)`. Pair has head and tail,
@@ -76,7 +76,7 @@ Comments begin with `;` and everything that follows, from the semicolon until th
    Pairs can be empty `()`, we call them the *null* lists.
 
    Accessing the first element of the linked list, removing it, or prepending pair
-   with a new value have $O(1)$ complexity, so those operations would happen the
+   with a new value have *O(1)* complexity, so those operations would happen the
    most often in LISPs.
 5. A *procedure* (function) is also just a pair, where the name of the procedure
    is the first element of the pair, and the arguments are the following elements.

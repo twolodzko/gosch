@@ -63,7 +63,8 @@ Comments begin with `;` and everything that follows, from the semicolon until th
        Next *Pair
    }
    ```
-   as in every LISP, they are written as `(this next)`. Pair has head and tail,
+   
+   As in every LISP, they are written as `(this next)`. Pair has head and tail,
    that can be accessed using the `car` and `cdr` procedures.
 
    ```

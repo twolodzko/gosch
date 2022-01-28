@@ -362,6 +362,8 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"((lambda (x) (let ((y 2)) (+ x y))) 9)", "11"},
 		{"(and (number? 'a) (> 0 'a))", "#f"},
 		{"((car (list + - * /)) 2 2)", "4"},
+		{"(define (square x) (* x x))", "(lambda (x) (* x x))"},
+		{"(define (const) 42)", "(lambda () 42)"},
 	}
 
 	for _, tt := range testCases {
@@ -387,7 +389,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 func Test_AliasToFunction(t *testing.T) {
 	env := envir.NewEnv()
 
-	_, env, err := EvalString("(define my-list list)", env)
+	_, _, err := EvalString("(define my-list list)", env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -413,6 +415,24 @@ func Test_Define(t *testing.T) {
 	result, ok := env.Vars["x"]
 	if !ok || result != 42 {
 		t.Errorf("variable was not set correctly: %v", result)
+	}
+}
+
+func Test_DefineLambda(t *testing.T) {
+	env := envir.NewEnv()
+
+	_, _, err := EvalString("(define (square x) (* x x))", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	expected := 4
+	result, _, err := EvalString("(square 2)", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if !cmp.Equal(result[0], expected) {
+		t.Errorf("expected: %v, got %v", expected, result[0])
 	}
 }
 

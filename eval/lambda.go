@@ -19,27 +19,30 @@ func newLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
-
-	var vars []types.Symbol
 	switch pair := args.This.(type) {
 	case *types.Pair:
-		if pair.IsNull() {
-			return Lambda{nil, args.Next, env}, nil
-		}
-
-		head := pair
-		for head != nil {
-			if name, ok := head.This.(types.Symbol); ok {
-				vars = append(vars, name)
-			} else {
-				return Lambda{}, fmt.Errorf("%v is not a valid argument name", pair.This)
-			}
-			head = head.Next
-		}
+		vars, err := lambdaArgs(pair)
+		return Lambda{vars, args.Next, env}, err
 	default:
 		return Lambda{}, fmt.Errorf("%v is not a list", args.This)
 	}
-	return Lambda{vars, args.Next, env}, nil
+}
+
+func lambdaArgs(args *types.Pair) ([]types.Symbol, error) {
+	var vars []types.Symbol
+	if args == nil || args.IsNull() {
+		return vars, nil
+	}
+	head := args
+	for head != nil {
+		if name, ok := head.This.(types.Symbol); ok {
+			vars = append(vars, name)
+		} else {
+			return vars, fmt.Errorf("%v is not a valid argument name", args.This)
+		}
+		head = head.Next
+	}
+	return vars, nil
 }
 
 func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {

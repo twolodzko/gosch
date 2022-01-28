@@ -159,17 +159,36 @@ func define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, errors.New("wrong number of arguments")
 	}
-	switch name := args.This.(type) {
+	switch this := args.This.(type) {
 	case types.Symbol:
 		val, err := Eval(args.Next.This, env)
 		if err != nil {
 			return nil, err
 		}
-		env.Set(name, val)
+		env.Set(this, val)
 		return val, nil
+	case *types.Pair:
+		return defineLambda(this, args.Next, env)
 	default:
-		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
+		return nil, fmt.Errorf("%v is not a valid name", args.This)
 	}
+}
+
+func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
+	if args == nil {
+		return nil, errors.New("wrong number of arguments")
+	}
+	name, ok := args.This.(types.Symbol)
+	if !ok {
+		return nil, fmt.Errorf("%v is not a valid name", args.This)
+	}
+	vars, err := lambdaArgs(args.Next)
+	if err != nil {
+		return nil, err
+	}
+	fn := Lambda{vars, body, env}
+	env.Set(name, fn)
+	return fn, nil
 }
 
 func set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {

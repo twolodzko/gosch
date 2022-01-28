@@ -25,8 +25,13 @@ func Test_EnvAndVariables(t *testing.T) {
 	(define add1 (lambda (x) (+ x 1)))
 	(add1 5)
 	((lambda (f) (f 10)) add1)
+	(define (twice x) (set! y x) (+ x y))
+	(twice 6)
 	`
-	expected := []string{"3", "5", "10", "25", "111", "100", "7", "5", "(lambda (x) (+ x 1))", "6", "11"}
+	expected := []string{
+		"3", "5", "10", "25", "111", "100", "7", "5",
+		"(lambda (x) (+ x 1))", "6", "11", "(lambda (x) (set! y x) (+ x y))", "12",
+	}
 
 	result, _, err := eval.EvalString(code, env)
 	if err != nil {

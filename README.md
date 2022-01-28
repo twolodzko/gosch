@@ -29,7 +29,8 @@ in the current or enclosing environment, it sets it to the *value*, otherwise it
 current environment.
 - `(quote obj)` or `'obj` returns *obj* without evaluating it. While `quote` is commonly used for constructing lists,
 [it is not the same] as `list`.
-- `(lambda (arg1 arg2 ...) expr1 expr2 ...)` defines a [lambda expression] (*aka* function).
+- `(lambda (arg1 arg2 ...) expr1 expr2 ...)` defines a [lambda expression] (*aka* function). There is also an equivalent,
+shorter way of writing `(define name (lambda (arg1 arg2 ...) expr1 expr2 ...))` as `(define (name arg1 arg2 ...) expr1 expr2 ...)`.
 - `(let ((name1 value1) (name2 value2) ...) expr1 expr2 ...)` evaluates *expr1*, *expr2*, ... in the local environment,
 with *name1*, *name2*, ... variables present; returns the result of evaluating the last *exprN* expression.
 - `(if condition if-true if-false)` and `(cond (test1 expr1) (test2 expr2) ...)` conditionals with special `else`

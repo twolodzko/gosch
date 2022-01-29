@@ -70,9 +70,9 @@ Comments begin with `;` and everything that follows, from the semicolon until th
 
    ```
      ( elem1 ( elem2 ( elem3 ( ... ))))
-   1    car    -------- cdr ---------
-   2            car    ---- cdr ----
-   3                    car    cdr
+   1    car  └───────── cdr ─────────┘
+   2            car  └───── cdr ────┘
+   3                    car  └ cdr ┘
    ```
 
    Pairs can be empty `()`, we call them the *null* lists.

@@ -65,6 +65,8 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return types.Bool(true), true
 	case "begin":
 		return partialEval, true
+	case "do":
+		return do, true
 	case "null?":
 		return isNull, true
 	case "pair?":

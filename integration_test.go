@@ -97,7 +97,49 @@ func Test_IsAtom(t *testing.T) {
 	}
 }
 
-func Test_Fibonacci(t *testing.T) {
+func Test_FibonacciRecursive(t *testing.T) {
+	env := envir.NewEnv()
+
+	code := `
+	(define fibo (lambda (n)
+		(if (= n 0) 0
+			(if (= n 1) 1
+				(+ (fibo (- n 1))
+				   (fibo (- n 2)))))))
+	`
+
+	_, _, err := eval.EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	var testCases = []struct {
+		input    string
+		expected int
+	}{
+		{"(fibo 0)", 0},
+		{"(fibo 1)", 1},
+		{"(fibo 2)", 1},
+		{"(fibo 3)", 2},
+		{"(fibo 7)", 13},
+		{"(fibo 9)", 34},
+		{"(fibo 10)", 55},
+		{"(fibo 20)", 6765},
+	}
+
+	for _, tt := range testCases {
+		result, _, err := eval.EvalString(tt.input, env)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		if !cmp.Equal(result[0], tt.expected) {
+			t.Errorf("for %v expected %v, got %s", tt.input, tt.expected, result[0])
+		}
+	}
+}
+
+func Test_FibonacciTailRecursive(t *testing.T) {
 	env := envir.NewEnv()
 
 	code := `
@@ -106,6 +148,49 @@ func Test_Fibonacci(t *testing.T) {
 				(impl (- it 1) (+ first second) second))))
 
 	(define fibo (lambda (n) (impl n 1 0)))
+	`
+
+	_, _, err := eval.EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	var testCases = []struct {
+		input    string
+		expected int
+	}{
+		{"(fibo 0)", 0},
+		{"(fibo 1)", 1},
+		{"(fibo 2)", 1},
+		{"(fibo 3)", 2},
+		{"(fibo 7)", 13},
+		{"(fibo 9)", 34},
+		{"(fibo 10)", 55},
+		{"(fibo 20)", 6765},
+	}
+
+	for _, tt := range testCases {
+		result, _, err := eval.EvalString(tt.input, env)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		if !cmp.Equal(result[0], tt.expected) {
+			t.Errorf("for %v expected %v, got %s", tt.input, tt.expected, result[0])
+		}
+	}
+}
+
+func Test_FibonacciLoop(t *testing.T) {
+	env := envir.NewEnv()
+
+	code := `
+	(define fibo
+		(lambda (n)
+			(if (= n 0)
+				0
+				(do ((i n (- i 1)) (a1 1 (+ a1 a2)) (a2 0 a1))
+					((= i 1) a1)))))
 	`
 
 	_, _, err := eval.EvalString(code, env)
@@ -184,6 +269,42 @@ func Benchmark_FibonacciTailRecursive(b *testing.B) {
 				(impl (- it 1) (+ first second) second))))
 
 	(define fibo (lambda (n) (impl n 1 0)))
+	`
+
+	_, _, err = eval.EvalString(code, env)
+	if err != nil {
+		b.Errorf("unexpected error: %v", err)
+	}
+
+	for i := 0; i < b.N; i++ {
+		_, _, err = eval.EvalString("(fibo 5)", env)
+		if err != nil {
+			b.Errorf("unexpected error: %v", err)
+		}
+
+		_, _, err = eval.EvalString("(fibo 10)", env)
+		if err != nil {
+			b.Errorf("unexpected error: %v", err)
+		}
+
+		_, _, err = eval.EvalString("(fibo 20)", env)
+		if err != nil {
+			b.Errorf("unexpected error: %v", err)
+		}
+	}
+}
+
+func Benchmark_FibonacciLoop(b *testing.B) {
+	var err error
+	env := envir.NewEnv()
+
+	code := `
+	(define fibo
+		(lambda (n)
+			(if (= n 0)
+				0
+				(do ((i n (- i 1)) (a1 1 (+ a1 a2)) (a2 0 a1))
+					((= i 1) a1)))))
 	`
 
 	_, _, err = eval.EvalString(code, env)

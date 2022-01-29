@@ -36,6 +36,7 @@ with *name1*, *name2*, ... variables present; returns the result of evaluating t
 - `(if condition if-true if-false)` and `(cond (test1 expr1) (test2 expr2) ...)` conditionals with special `else`
 condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 - `(begin expr1 expr2 ...)` evaluates *expr1*, *expr2*, ..., returns the result of evaluating the last *exprN* expression.
+- `(do ((var init update) ...) (test result ...) expr ...)` [loop iterator].
 - Logical `(not obj)`, `and`, and `or`, e.g. `(and obj1 obj2 ...)`.
 - Arithmetic operators `+`, `-`, `*`, `/`, e.g. `(+ x1 x2 ...)`, and `(% x1 x2)` for modulo.
 - Numerical comparison operators `<`, `=`, `>`, e.g. `(< x1 x2 ...)`.
@@ -98,7 +99,7 @@ Comments begin with `;` and everything that follows, from the semicolon until th
    the arguments sequentially, possibly stopping before evaluating
    every argument.
 9. Everything residues within some surrounding *environment*. By default,
-   this is a global environment, but there are procedures (`let` and `lambda`)
+   this is a global environment, but there are procedures (`let`, `do`, and `lambda`)
    that can create their environments. For example:
 
    ```scheme
@@ -158,3 +159,4 @@ That's it. Nothing more is needed to build a minimal Scheme.
  [S-expression]: https://en.wikipedia.org/wiki/S-expression
  [*lexical scoping* or *closures*]: https://en.wikipedia.org/wiki/Closure_(computer_programming)
  [tail-call optimized]: https://stackoverflow.com/questions/310974/what-is-tail-call-optimization
+ [loop iterator]: https://www.schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-7.html#%_sec_4.2.4

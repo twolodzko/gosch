@@ -364,6 +364,9 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"((car (list + - * /)) 2 2)", "4"},
 		{"(define (square x) (* x x))", "(lambda (x) (* x x))"},
 		{"(define (const) 42)", "(lambda () 42)"},
+		{"(do () (#t 'ok))", "ok"},
+		{"(do ((i 0 (+ i 1))) ((= i 5) i))", "5"},
+		{"(do ((l '()) (i 1 (+ i 1))) ((> i 5) l) (set! l (cons i l)))", "(5 4 3 2 1)"},
 	}
 
 	for _, tt := range testCases {
@@ -569,5 +572,30 @@ func Test_LoadEvalComments(t *testing.T) {
 	_, err := LoadEval("../examples/comments.scm", env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
+	}
+}
+
+func Test_DoFactorial(t *testing.T) {
+	env := envir.NewEnv()
+
+	code := `
+	(define factorial
+		(lambda (n)
+			(do ((i n (- i 1)) (a 1 (* a i)))
+				((= i 0) a))))
+	`
+
+	_, _, err := EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	expected := 3628800
+	result, _, err := EvalString("(factorial 10)", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if !cmp.Equal(result[0], expected) {
+		t.Errorf("expected: %v, got %v", expected, result[0])
 	}
 }

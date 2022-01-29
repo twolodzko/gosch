@@ -1,10 +1,12 @@
+MAKEFLAGS += --no-print-directory
 
 gosch: $(shell find . -name "*.go")
 	go build
 
 .PHONY: test
-test: staticcheck vet integration-tests
+test: staticcheck vet
 	go test ./...
+	@ $(MAKE) integration-tests
 
 .PHONY: integration-tests
 integration-tests: gosch

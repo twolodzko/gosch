@@ -16,6 +16,9 @@ func Test_Parse(t *testing.T) {
 		{"a", "a"},
 		{"42", 42},
 		{"-100", -100},
+		{"3.14", 3.14},
+		{"-5.0", -5.0},
+		{"12e-8", 12e-8},
 		{"nil", nil},
 		{"#t", types.Bool(true)},
 		{"#f", types.Bool(false)},
@@ -96,7 +99,7 @@ func Test_ReadAtomValue(t *testing.T) {
 
 	for _, tt := range testCases {
 		parser := NewParser(tt.input)
-		result, err := parser.readAtomValue()
+		result, err := parser.readAtom()
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}

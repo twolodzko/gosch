@@ -38,15 +38,16 @@ func (p *Parser) Read() ([]types.Sexpr, error) {
 			if err != nil && err != io.EOF {
 				return nil, err
 			}
-			if err != io.EOF {
-				sexprs = append(sexprs, sexpr)
+			if err == io.EOF {
+				break
 			}
+			sexprs = append(sexprs, sexpr)
 		}
 	}
 	return sexprs, nil
 }
 
-func (p *Parser) readAtomValue() (interface{}, error) {
+func (p *Parser) readAtom() (types.Sexpr, error) {
 	var runes []rune
 	for p.HasNext() {
 		if unicode.IsSpace(p.Head()) || p.Head() == '(' || p.Head() == ')' {
@@ -56,27 +57,36 @@ func (p *Parser) readAtomValue() (interface{}, error) {
 		p.pos++
 	}
 	if len(runes) > 0 {
-		str := string(runes)
-		switch {
-		case isInt(str):
-			return strconv.Atoi(str)
-		case str == "#t":
-			return types.Bool(true), nil
-		case str == "#f":
-			return types.Bool(false), nil
-		default:
-			if str == "nil" {
-				return nil, nil
-			}
-			return types.Symbol(str), nil
-		}
+		return parseAtom(string(runes))
 	} else {
-		return nil, fmt.Errorf("nothing was read")
+		return nil, errors.New("nothing was read")
+	}
+}
+
+func parseAtom(str string) (types.Sexpr, error) {
+	switch {
+	case str == "#t":
+		return types.Bool(true), nil
+	case str == "#f":
+		return types.Bool(false), nil
+	case str == "nil":
+		return nil, nil
+	case isInt(str):
+		return strconv.Atoi(str)
+	case isFloat(str):
+		return strconv.ParseFloat(str, 64)
+	default:
+		return types.Symbol(str), nil
 	}
 }
 
 func isInt(str string) bool {
 	matched, _ := regexp.MatchString(`^[+-]?\d+$`, str)
+	return matched
+}
+
+func isFloat(str string) bool {
+	matched, _ := regexp.MatchString(`^[+-]?\d*\.?(?:\d+[eE]?[+-]?)?\d+$`, str)
 	return matched
 }
 
@@ -157,7 +167,7 @@ func (p *Parser) readSexpr() (types.Sexpr, error) {
 		case ';':
 			p.skipLine()
 		default:
-			val, err = p.readAtomValue()
+			val, err = p.readAtom()
 			return quote(val, quotes), err
 		}
 	}

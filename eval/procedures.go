@@ -46,7 +46,7 @@ func procedure(name types.Symbol) (interface{}, bool) {
 	case "<":
 		return lower, true
 	case ">":
-		return higher, true
+		return greater, true
 	case "define":
 		return define, true
 	case "set!":
@@ -73,6 +73,10 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return isPair, true
 	case "number?":
 		return isNumber, true
+	case "integer?":
+		return isInteger, true
+	case "float?":
+		return isFloat, true
 	case "boolean?":
 		return isBool, true
 	case "string?":

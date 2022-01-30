@@ -72,9 +72,11 @@ func parseAtom(str string) (types.Sexpr, error) {
 	case str == "nil":
 		return nil, nil
 	case isInt(str):
-		return strconv.Atoi(str)
+		val, err := strconv.Atoi(str)
+		return types.Integer(val), err
 	case isFloat(str):
-		return strconv.ParseFloat(str, 64)
+		val, err := strconv.ParseFloat(str, 64)
+		return types.Float(val), err
 	default:
 		return types.Symbol(str), nil
 	}

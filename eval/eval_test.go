@@ -2,6 +2,7 @@ package eval
 
 import (
 	"fmt"
+	"math"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -248,37 +249,6 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(not 3)", "#f"},
 		{"(not (list 3))", "#f"},
 		{"(not #f)", "#t"},
-		{"(+)", "0"},
-		{"(+ 5)", "5"},
-		{"(+ 2 2)", "4"},
-		{"(+ 1 2 3 4)", "10"},
-		{"(-)", "0"},
-		{"(- 5)", "-5"},
-		{"(- 7 4)", "3"},
-		{"(- 3 2 1)", "0"},
-		{"(*)", "1"},
-		{"(* 2)", "2"},
-		{"(* 2 2)", "4"},
-		{"(* 2 5 3)", "30"},
-		{"(/)", "1"},
-		{"(/ 1)", "1"},
-		{"(/ 6 3)", "2"},
-		{"(/ 10 5 2)", "1"},
-		{"(% 5 2)", "1"},
-		{"(=)", "#t"},
-		{"(= 2 2)", "#t"},
-		{"(= 2 2 2)", "#t"},
-		{"(= 2 3 2)", "#f"},
-		{"(<)", "#t"},
-		{"(< 2 3)", "#t"},
-		{"(< 3 2)", "#f"},
-		{"(< 1 2 3)", "#t"},
-		{"(< 2 3 1)", "#f"},
-		{"(>)", "#t"},
-		{"(> 2 3)", "#f"},
-		{"(> 3 2)", "#t"},
-		{"(> 3 2 1)", "#t"},
-		{"(> 3 1 2)", "#f"},
 		{"(eq? 'a 'a)", "#t"},
 		{"(eq? 'a 'b)", "#f"},
 		{"(eq? car car)", "#t"},
@@ -306,10 +276,6 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(lambda (x) x)", "(lambda (x) x)"},
 		{"((lambda (x) x) 3)", "3"},
 		{"((lambda (x) (let ((y 2)) (+ x y))) 3)", "5"},
-		{"(number? 5)", "#t"},
-		{"(number? 'a)", "#f"},
-		{"(number? '())", "#f"},
-		{"(number? #t)", "#f"},
 		{"(symbol? 'a)", "#t"},
 		{"(symbol? 42)", "#f"},
 		{"(symbol? '())", "#f"},
@@ -325,6 +291,16 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(boolean? 1)", "#f"},
 		{"(boolean? '())", "#f"},
 		{"(boolean? '(1 2 3))", "#f"},
+		{"(number? #t)", "#f"},
+		{"(number? 5)", "#t"},
+		{"(number? 'a)", "#f"},
+		{"(number? '())", "#f"},
+		{"(integer? 42)", "#t"},
+		{"(integer? 3.14)", "#f"},
+		{"(integer? #t)", "#f"},
+		{"(float? 42)", "#f"},
+		{"(float? 3.14)", "#t"},
+		{"(float? #t)", "#f"},
 		{"(nil? (car '()))", "#t"},
 		{"(nil? '())", "#f"},
 		{"(nil? '(1 2 3))", "#f"},
@@ -342,6 +318,55 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(procedure? (lambda (x) x))", "#t"},
 		{"(procedure? 'foo)", "#f"},
 		{"(procedure? '())", "#f"},
+		{"(=)", "#t"},
+		{"(= 2 2)", "#t"},
+		{"(= 2 2 2)", "#t"},
+		{"(= 2 3 2)", "#f"},
+		{"(<)", "#t"},
+		{"(< 2 3)", "#t"},
+		{"(< 3 2)", "#f"},
+		{"(< 1 2 3)", "#t"},
+		{"(< 2 3 1)", "#f"},
+		{"(>)", "#t"},
+		{"(> 2 3)", "#f"},
+		{"(> 3 2)", "#t"},
+		{"(> 3 2 1)", "#t"},
+		{"(> 3 1 2)", "#f"},
+		{"(-)", "0"},
+		{"(- 5)", "-5"},
+		{"(- 7 4)", "3"},
+		{"(- 3 2 1)", "0"},
+		{"(+ 1)", "1"},
+		{"(+ 1 2 3 4)", "10"},
+		{"(*)", "1"},
+		{"(* 2)", "2"},
+		{"(* 2 2)", "4"},
+		{"(* 2 5 3)", "30"},
+		{"(/)", "1"},
+		{"(/ 1)", "1"},
+		{"(/ 6 3)", "2"},
+		{"(/ 10 5 2)", "1"},
+		{"(% 5 2)", "1"},
+		{"(-)", "0"},
+		{"(- 5)", "-5"},
+		{"(- 7 4)", "3"},
+		{"(- 3 2 1)", "0"},
+		{"(*)", "1"},
+		{"(* 2)", "2"},
+		{"(* 2 2)", "4"},
+		{"(* 2 5 3)", "30"},
+		{"(/)", "1"},
+		{"(/ 1)", "1"},
+		{"(/ 6 3)", "2"},
+		{"(/ 10 5 2)", "1"},
+		{"(% 5 2)", "1"},
+		{"(+ 3.14)", "3.14"},
+		{"(+ 1.2 3.51)", "4.71"},
+		{"(+ 2 3.51)", "5.51"},
+		{"(+ 2 3.51 1)", "6.51"},
+		{"(- 3.14)", "-3.14"},
+		{"(- 3.14 2)", "1.14"},
+		{"(- 7.14 2 2.0)", "3.14"},
 		{"(define x (+ 2 (/ 10 5)))", "4"},
 		{"(set! x (+ 2 (/ 10 5)))", "4"},
 		{`(string 1 "+" 2 "=" (+ 1 2))`, `"1+2=3"`},
@@ -373,7 +398,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		parser := parser.NewParser(tt.input)
 		sexprs, err := parser.Read()
 		if err != nil {
-			t.Errorf("unexpected error: %v", err)
+			t.Errorf("for %v got an unexpected error: %v", tt.input, err)
 		}
 
 		for _, sexpr := range sexprs {
@@ -389,6 +414,48 @@ func Test_ParseEvalPrint(t *testing.T) {
 	}
 }
 
+func approxEqual(x, y types.Float) bool {
+	return math.Abs(float64(x-y)) <= 1e-4
+}
+
+func Test_ParseEvalPrintMath(t *testing.T) {
+	var testCases = []struct {
+		input    string
+		expected types.Float
+	}{
+		{"(+ 3.14)", 3.14},
+		{"(+ 1.2 3.51)", 4.71},
+		{"(+ 2 3.51)", 5.51},
+		{"(+ 2 3.51 1)", 6.51},
+		{"(- 3.14)", -3.14},
+		{"(- 3.14 2)", 1.14},
+		{"(- 7.14 2 2.0)", 3.14},
+	}
+
+	for _, tt := range testCases {
+		parser := parser.NewParser(tt.input)
+		sexprs, err := parser.Read()
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		for _, sexpr := range sexprs {
+			env := envir.NewEnv()
+			result, err := Eval(sexpr, env)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			x, ok := result.(types.Float)
+			if !ok {
+				t.Errorf("%v is not a float", result)
+			}
+			if !approxEqual(x, tt.expected) {
+				t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
+			}
+		}
+	}
+}
+
 func Test_AliasToFunction(t *testing.T) {
 	env := envir.NewEnv()
 
@@ -397,7 +464,7 @@ func Test_AliasToFunction(t *testing.T) {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	expected := types.NewPair(1, types.NewPair(2, nil))
+	expected := types.NewPair(types.Integer(1), types.NewPair(types.Integer(2), nil))
 	result, _, err := EvalString("(my-list 1 2)", env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -410,13 +477,13 @@ func Test_AliasToFunction(t *testing.T) {
 func Test_Define(t *testing.T) {
 	env := envir.NewEnv()
 
-	_, err := Eval(types.NewPair("define", types.NewPair("x", types.NewPair(42, nil))), env)
+	_, err := Eval(types.NewPair("define", types.NewPair("x", types.NewPair(types.Integer(42), nil))), env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 
 	result, ok := env.Vars["x"]
-	if !ok || result != 42 {
+	if !ok || result != types.Integer(42) {
 		t.Errorf("variable was not set correctly: %v", result)
 	}
 }
@@ -429,7 +496,7 @@ func Test_DefineLambda(t *testing.T) {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	expected := 4
+	expected := types.Integer(4)
 	result, _, err := EvalString("(square 2)", env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -590,7 +657,7 @@ func Test_DoFactorial(t *testing.T) {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	expected := 3628800
+	expected := types.Integer(3628800)
 	result, _, err := EvalString("(factorial 10)", env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)

@@ -64,7 +64,7 @@ func Test_MapFunction(t *testing.T) {
 				(map f (cdr items))))))
 	(map add1 '(1 2 3))
 	`
-	expected := []int{2, 3, 4}
+	expected := []types.Integer{2, 3, 4}
 
 	result, _, err := eval.EvalString(code, env)
 	if err != nil {
@@ -115,7 +115,7 @@ func Test_FibonacciRecursive(t *testing.T) {
 
 	var testCases = []struct {
 		input    string
-		expected int
+		expected types.Integer
 	}{
 		{"(fibo 0)", 0},
 		{"(fibo 1)", 1},
@@ -157,7 +157,7 @@ func Test_FibonacciTailRecursive(t *testing.T) {
 
 	var testCases = []struct {
 		input    string
-		expected int
+		expected types.Integer
 	}{
 		{"(fibo 0)", 0},
 		{"(fibo 1)", 1},
@@ -200,7 +200,7 @@ func Test_FibonacciLoop(t *testing.T) {
 
 	var testCases = []struct {
 		input    string
-		expected int
+		expected types.Integer
 	}{
 		{"(fibo 0)", 0},
 		{"(fibo 1)", 1},

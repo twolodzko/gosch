@@ -118,18 +118,6 @@ func isPair(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
-func isNumber(args *types.Pair) (types.Sexpr, error) {
-	if args == nil {
-		return nil, errors.New("wrong number of arguments")
-	}
-	switch args.This.(type) {
-	case int:
-		return types.Bool(true), nil
-	default:
-		return types.Bool(false), nil
-	}
-}
-
 func isBool(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, errors.New("wrong number of arguments")
@@ -202,6 +190,15 @@ func toString(args *types.Pair, sep string) string {
 	return out
 }
 
+func asInt(s types.Sexpr) (int, error) {
+	switch x := s.(type) {
+	case types.Integer:
+		return int(x), nil
+	default:
+		return 0, fmt.Errorf("%v is not an integer", s)
+	}
+}
+
 func substring(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() || !args.Next.HasNext() {
 		return nil, errors.New("wrong number of arguments")
@@ -210,11 +207,11 @@ func substring(args *types.Pair) (types.Sexpr, error) {
 	if !ok {
 		return nil, fmt.Errorf("%v is not a string", args.This)
 	}
-	start, err := toInt(args.Next.This)
+	start, err := asInt(args.Next.This)
 	if err != nil {
 		return nil, err
 	}
-	end, err := toInt(args.Next.Next.This)
+	end, err := asInt(args.Next.Next.This)
 	if err != nil {
 		return nil, err
 	}

@@ -44,7 +44,7 @@ to floats, for integer division use `//`.
 - Numerical comparison operators `<`, `=`, `>`, e.g. `(< x1 x2 ...)`.
 - Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `string?`, `symbol?`, `procedure?`, and other
 checkers: `integer?`, `float?`, `null?` (empty list) and `nil?` (null value).
-- `->int` and `->float` transformations from numbers to integers and floats.
+- `->int` and `->float` transformations from any numeric types to integers and floats.
 - `(string expr ...)` converts *expr*'s to string, `(display expr ...)` prints them, and `(error expr ...)` raises
 exceptions with *expr*'s as message. `(substring str start end)` cuts the *start:end* slice of the *str* string.
 `(string-length str)` returns length of a string.

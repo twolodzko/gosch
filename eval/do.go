@@ -7,7 +7,9 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-// (do ((var init update) ...) (test result ...) expr ...)
+// `do` procedure
+//
+//  (do ((var init update) ...) (test result ...) expr ...)
 //
 //  1. initialize variables with init steps
 //  2. iterate:
@@ -56,11 +58,13 @@ type doJob struct {
 	env    *envir.Env
 }
 
+// Evaluate the stopping condition
 func (job *doJob) shouldStop() (types.Bool, error) {
 	test, err := Eval(job.clause.This, job.env)
 	return types.IsTrue(test), err
 }
 
+// Update the variable bindings
 func (job *doJob) updateBindings() error {
 	newEnv := envir.NewEnv()
 	newEnv.Parent = job.env.Parent
@@ -77,6 +81,7 @@ func (job *doJob) updateBindings() error {
 	return nil
 }
 
+// Initialize the `do` job
 func newDoJob(args *types.Pair, env *envir.Env) (doJob, error) {
 	if args == nil || !args.HasNext() {
 		return doJob{}, ErrBadArgNumber
@@ -102,6 +107,7 @@ func newDoJob(args *types.Pair, env *envir.Env) (doJob, error) {
 	return doJob{steps, clause, body, local}, nil
 }
 
+// Initialize the variable bindings and the update steps
 func setSteps(args *types.Pair, parent, local *envir.Env) (map[types.Symbol]types.Sexpr, error) {
 	if args.IsNull() {
 		return nil, nil
@@ -143,6 +149,7 @@ func setSteps(args *types.Pair, parent, local *envir.Env) (map[types.Symbol]type
 	return steps, nil
 }
 
+// Evaluate all expressions, return the last result
 func evalAll(exprs *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	var (
 		result types.Sexpr

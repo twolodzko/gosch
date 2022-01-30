@@ -6,6 +6,7 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
+// `number?` procedure
 func isNumber(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, ErrBadArgNumber
@@ -18,6 +19,7 @@ func isNumber(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
+// `integer?` procedure
 func isInteger(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, ErrBadArgNumber
@@ -30,6 +32,7 @@ func isInteger(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
+// `float?` procedure
 func isFloat(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, ErrBadArgNumber
@@ -42,6 +45,7 @@ func isFloat(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
+// `->int` procedure
 func toInt(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
 		return nil, ErrBadArgNumber
@@ -56,6 +60,7 @@ func toInt(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
+// `->float` procedure
 func toFloat(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
 		return nil, ErrBadArgNumber
@@ -70,6 +75,7 @@ func toFloat(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
+// `+` procedure
 func sum(args *types.Pair) (types.Sexpr, error) {
 	var (
 		result types.Sexpr
@@ -103,6 +109,7 @@ func sum(args *types.Pair) (types.Sexpr, error) {
 	return result, nil
 }
 
+// `-` procedure
 func dif(args *types.Pair) (types.Sexpr, error) {
 	var (
 		result types.Sexpr
@@ -138,6 +145,7 @@ func dif(args *types.Pair) (types.Sexpr, error) {
 	return result, nil
 }
 
+// `*` procedure
 func mul(args *types.Pair) (types.Sexpr, error) {
 	var (
 		result types.Sexpr
@@ -171,6 +179,7 @@ func mul(args *types.Pair) (types.Sexpr, error) {
 	return result, nil
 }
 
+// `/` procedure
 func div(args *types.Pair) (types.Sexpr, error) {
 	var (
 		result types.Sexpr
@@ -199,6 +208,7 @@ func div(args *types.Pair) (types.Sexpr, error) {
 	return result, nil
 }
 
+// `%` procedure
 func mod(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, ErrBadArgNumber
@@ -211,6 +221,7 @@ func mod(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
+// `//` procedure
 func intDiv(args *types.Pair) (types.Sexpr, error) {
 	var (
 		result types.Sexpr

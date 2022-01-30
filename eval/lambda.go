@@ -14,6 +14,9 @@ type Lambda struct {
 	ParentEnv *envir.Env
 }
 
+// Create `lambda` function
+//
+//  (lambda (args ...) body ...)
 func newLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, ErrBadArgNumber
@@ -44,19 +47,21 @@ func lambdaArgs(args *types.Pair) ([]types.Symbol, error) {
 	return vars, nil
 }
 
+// Call `lambda` function
+//
+//  Example:
+//
+//  (define x 4)    ;; parent env
+//  (define addX
+//    (lambda (n)   ;; n would be defined at function call
+// 	    (+ x n)))   ;; this x comes from parent env
+//  (let ((x 3))    ;; setting up local env
+//    (addX
+//      (+ x 7)))   ;; this x comes from local env
+//  => (+ 4 (+ 3 7)) = 14
+//       /     |  \
+//   parent  local  calling env
 func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
-	// Example:
-	//
-	// (define x 4)    ;; parent env
-	// (define addX
-	//   (lambda (n)   ;; n would be defined at function call
-	// 	   (+ x n)))   ;; this x comes from parent env
-	// (let ((x 3))    ;; setting up local env
-	//   (addX
-	//     (+ x 7)))   ;; this x comes from local env
-	// => (+ 4 (+ 3 7)) = 14
-	//      /     |  \
-	//  parent  local  calling env
 
 	// local env inherits from the env where the lambda was defined
 	local := envir.NewEnv()

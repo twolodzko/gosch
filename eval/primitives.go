@@ -93,6 +93,7 @@ func sameCallables(obj1, obj2 types.Sexpr) bool {
 	return false
 }
 
+// `null?` procedure
 func isNull(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, ErrBadArgNumber
@@ -105,6 +106,7 @@ func isNull(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
+// `pair?` procedure
 func isPair(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, ErrBadArgNumber
@@ -117,6 +119,7 @@ func isPair(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
+// `bool?` procedure
 func isBool(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, ErrBadArgNumber
@@ -129,6 +132,7 @@ func isBool(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
+// `string?` procedure
 func isString(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, ErrBadArgNumber
@@ -141,6 +145,7 @@ func isString(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
+// `symbol?` procedure
 func isSymbol(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, ErrBadArgNumber
@@ -153,6 +158,7 @@ func isSymbol(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
+// `nil?` procedure
 func isNil(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, ErrBadArgNumber
@@ -160,6 +166,7 @@ func isNil(args *types.Pair) (types.Sexpr, error) {
 	return types.Bool(args.This == nil), nil
 }
 
+// `procedure?` procedure
 func isProcedure(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, ErrBadArgNumber
@@ -167,6 +174,7 @@ func isProcedure(args *types.Pair) (types.Sexpr, error) {
 	return types.Bool(isCallable(args.This)), nil
 }
 
+// Convert arguments to string, using space as a separator
 func toString(args *types.Pair, sep string) string {
 	if args == nil {
 		return ""
@@ -220,6 +228,7 @@ func substring(args *types.Pair) (types.Sexpr, error) {
 	return str[start:end], nil
 }
 
+// `string-length` procedure
 func stringLength(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
 		return nil, ErrBadArgNumber
@@ -236,6 +245,7 @@ func display(args *types.Pair) (types.Sexpr, error) {
 	return nil, nil
 }
 
+// `error?` procedure
 func raiseError(args *types.Pair) (types.Sexpr, error) {
 	return nil, fmt.Errorf("%s", toString(args, " "))
 }

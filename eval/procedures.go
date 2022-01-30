@@ -185,6 +185,9 @@ func define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	}
 }
 
+// Implementation of
+//
+//  (define (name args...) body...)
 func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil {
 		return nil, ErrBadArgNumber
@@ -202,6 +205,7 @@ func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	return fn, nil
 }
 
+// `set!` procedure
 func set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, ErrBadArgNumber

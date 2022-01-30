@@ -97,6 +97,12 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return div, true
 	case "%":
 		return mod, true
+	case "//":
+		return intDiv, true
+	case "->float":
+		return toFloat, true
+	case "->int":
+		return toInt, true
 	case "string":
 		return func(args *types.Pair) (types.Sexpr, error) {
 			return types.String(toString(args, "")), nil

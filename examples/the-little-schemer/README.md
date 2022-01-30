@@ -8,14 +8,14 @@ I used this code to run a benchmark against MIT Scheme:
 ```shell
 $ hyperfine '../../gosch run-all.scm' 'scheme --quiet < run-all.scm'
 Benchmark 1: ../../gosch run-all.scm
-  Time (mean ± σ):      42.0 ms ±   3.6 ms    [User: 42.7 ms, System: 5.7 ms]
-  Range (min … max):    37.6 ms …  57.7 ms    60 runs
+  Time (mean ± σ):      95.0 ms ±   4.6 ms    [User: 105.5 ms, System: 8.1 ms]
+  Range (min … max):    86.6 ms … 105.1 ms    28 runs
  
 Benchmark 2: scheme --quiet < run-all.scm
-  Time (mean ± σ):     326.1 ms ±   3.3 ms    [User: 308.8 ms, System: 17.3 ms]
-  Range (min … max):   321.5 ms … 333.2 ms    10 runs
+  Time (mean ± σ):     358.2 ms ±  31.7 ms    [User: 333.9 ms, System: 23.9 ms]
+  Range (min … max):   331.8 ms … 436.9 ms    10 runs
  
 Summary
   '../../gosch run-all.scm' ran
-    7.77 ± 0.68 times faster than 'scheme --quiet < run-all.scm'
+    3.77 ± 0.38 times faster than 'scheme --quiet < run-all.scm'
 ```

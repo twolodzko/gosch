@@ -13,8 +13,8 @@
 
 As in classic LISPs, **gosch** recognizes only two data structures *atoms* and *[pairs]*
 (*aka* [linked lists]). There are no plans to implement more advanced data structures like
-vectors. Also, the variety of available data types for atoms is limited to *numbers* (integers), *booleans*
-(`#t` and `#f`), and *strings*. The implementation is [properly tail-recursive] as [required of Scheme].
+vectors. Also, the variety of available data types for atoms is limited to *numbers* (*integers* and *floats*),
+*booleans* (`#t` and `#f`), and *strings*. The implementation is [properly tail-recursive] as [required of Scheme].
 Unlike the classic Scheme, there is a null type `nil` and procedures return it instead of undefined results,
 for example `(if #f 'ok)` returns `<nil>`. 
 
@@ -41,7 +41,8 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 - Arithmetic operators `+`, `-`, `*`, `/`, e.g. `(+ x1 x2 ...)`, and `(% x1 x2)` for modulo.
 - Numerical comparison operators `<`, `=`, `>`, e.g. `(< x1 x2 ...)`.
 - Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `string?`, `symbol?`, `procedure?`, and other
-checkers: `null?` (empty list) and `nil?` (null value).
+checkers: `integer?`, `float?`, `null?` (empty list) and `nil?` (null value).
+- `->int` and `->float` transformations from numbers to integers and floats.
 - `(string expr ...)` converts *expr*'s to string, `(display expr ...)` prints them, and `(error expr ...)` raises
 exceptions with *expr*'s as message. `(substring str start end)` cuts the *start:end* slice of the *str* string.
 `(string-length str)` returns length of a string.

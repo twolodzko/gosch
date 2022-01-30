@@ -84,5 +84,5 @@ func Quote(s Sexpr) Sexpr {
 }
 
 func (s String) String() string {
-	return `"` + string(s) + `"`
+	return fmt.Sprintf(`"%v"`, string(s))
 }

@@ -359,6 +359,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(/ 1)", "1"},
 		{"(/ 6 3)", "2"},
 		{"(/ 10 5 2)", "1"},
+		{"(// 10 3)", "3"},
 		{"(% 5 2)", "1"},
 		{"(+ 3.14)", "3.14"},
 		{"(+ 1.2 3.51)", "4.71"},
@@ -450,6 +451,37 @@ func Test_ParseEvalPrintMath(t *testing.T) {
 				t.Errorf("%v is not a float", result)
 			}
 			if !approxEqual(x, tt.expected) {
+				t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
+			}
+		}
+	}
+}
+
+func Test_NumberTransformations(t *testing.T) {
+	var testCases = []struct {
+		input    string
+		expected types.Sexpr
+	}{
+		{"(->int 3)", types.Integer(3)},
+		{"(->int 3.14)", types.Integer(3)},
+		{"(->float 3)", types.Float(3)},
+		{"(->float 3.14)", types.Float(3.14)},
+	}
+
+	for _, tt := range testCases {
+		parser := parser.NewParser(tt.input)
+		sexprs, err := parser.Read()
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		for _, sexpr := range sexprs {
+			env := envir.NewEnv()
+			result, err := Eval(sexpr, env)
+			if err != nil {
+				t.Errorf("unexpected error: %v", err)
+			}
+			if !cmp.Equal(result, tt.expected) {
 				t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
 			}
 		}

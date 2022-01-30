@@ -1,8 +1,6 @@
 package eval
 
 import (
-	"fmt"
-
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -24,7 +22,7 @@ func equal(args *types.Pair) (types.Sexpr, error) {
 				return types.Bool(false), nil
 			}
 		default:
-			return nil, fmt.Errorf("%v is not a number", head.This)
+			return nil, &types.ErrNaN{Val: head.This}
 		}
 		prev = head.This
 	}
@@ -49,7 +47,7 @@ func lower(args *types.Pair) (types.Sexpr, error) {
 				return types.Bool(false), nil
 			}
 		default:
-			return nil, fmt.Errorf("%v is not a number", head.This)
+			return nil, &types.ErrNaN{Val: head.This}
 		}
 		prev = head.This
 	}
@@ -74,7 +72,7 @@ func greater(args *types.Pair) (types.Sexpr, error) {
 				return types.Bool(false), nil
 			}
 		default:
-			return nil, fmt.Errorf("%v is not a number", head.This)
+			return nil, &types.ErrNaN{Val: head.This}
 		}
 		prev = head.This
 	}

@@ -39,6 +39,8 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 - `(do ((var init update) ...) (test result ...) expr ...)` [loop iterator].
 - Logical `(not obj)`, `and`, and `or`, e.g. `(and obj1 obj2 ...)`.
 - Arithmetic operators `+`, `-`, `*`, `/`, e.g. `(+ x1 x2 ...)`, and `(% x1 x2)` for modulo.
+Those procedures promote integers to floats if any of the arguments is a float. Division `/` always promotes arguments
+to floats, for integer division use `//`.
 - Numerical comparison operators `<`, `=`, `>`, e.g. `(< x1 x2 ...)`.
 - Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `string?`, `symbol?`, `procedure?`, and other
 checkers: `integer?`, `float?`, `null?` (empty list) and `nil?` (null value).

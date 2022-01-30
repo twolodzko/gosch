@@ -1,7 +1,6 @@
 package eval
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/twolodzko/gosch/envir"
@@ -162,14 +161,14 @@ func or(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 
 func quote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	return args.This, nil
 }
 
 func define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch this := args.This.(type) {
 	case types.Symbol:
@@ -182,17 +181,17 @@ func define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	case *types.Pair:
 		return defineLambda(this, args.Next, env)
 	default:
-		return nil, fmt.Errorf("%v is not a valid name", args.This)
+		return nil, &ErrBadName{args.This}
 	}
 }
 
 func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	name, ok := args.This.(types.Symbol)
 	if !ok {
-		return nil, fmt.Errorf("%v is not a valid name", args.This)
+		return nil, &ErrBadName{args.This}
 	}
 	vars, err := lambdaArgs(args.Next)
 	if err != nil {
@@ -205,7 +204,7 @@ func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
 
 func set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 
 	val, err := Eval(args.Next.This, env)
@@ -222,13 +221,13 @@ func set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 		}
 		return val, nil
 	default:
-		return nil, fmt.Errorf("%v is not a valid variable name", args.This)
+		return nil, &ErrBadName{args.This}
 	}
 }
 
 func load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	head, err := Eval(args.This, env)
 	if err != nil {

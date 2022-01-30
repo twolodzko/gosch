@@ -1,7 +1,6 @@
 package eval
 
 import (
-	"errors"
 	"fmt"
 	"strings"
 
@@ -17,14 +16,14 @@ type Lambda struct {
 
 func newLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch pair := args.This.(type) {
 	case *types.Pair:
 		vars, err := lambdaArgs(pair)
 		return Lambda{vars, args.Next, env}, err
 	default:
-		return Lambda{}, fmt.Errorf("%v is not a list", args.This)
+		return Lambda{}, &ErrNonList{args.This}
 	}
 }
 
@@ -38,7 +37,7 @@ func lambdaArgs(args *types.Pair) ([]types.Symbol, error) {
 		if name, ok := head.This.(types.Symbol); ok {
 			vars = append(vars, name)
 		} else {
-			return vars, fmt.Errorf("%v is not a valid argument name", args.This)
+			return vars, &ErrBadName{args.This}
 		}
 		head = head.Next
 	}
@@ -67,7 +66,7 @@ func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env,
 	head := args
 	for _, name := range l.Vars {
 		if head == nil {
-			return nil, local, errors.New("wrong number of arguments")
+			return nil, local, ErrBadArgNumber
 		}
 		// arguments are evaluated in the env enclosing the lambda call
 		val, err := Eval(head.This, env)

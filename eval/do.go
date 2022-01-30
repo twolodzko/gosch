@@ -1,7 +1,6 @@
 package eval
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/twolodzko/gosch/envir"
@@ -80,7 +79,7 @@ func (job *doJob) updateBindings() error {
 
 func newDoJob(args *types.Pair, env *envir.Env) (doJob, error) {
 	if args == nil || !args.HasNext() {
-		return doJob{}, errors.New("wrong number of arguments")
+		return doJob{}, ErrBadArgNumber
 	}
 
 	local := envir.NewEnv()
@@ -88,7 +87,7 @@ func newDoJob(args *types.Pair, env *envir.Env) (doJob, error) {
 
 	bindings, ok := args.This.(*types.Pair)
 	if !ok {
-		return doJob{}, fmt.Errorf("%v is not a list", args.This)
+		return doJob{}, &ErrNonList{args.This}
 	}
 	steps, err := setSteps(bindings, env, local)
 	if err != nil {
@@ -114,13 +113,13 @@ func setSteps(args *types.Pair, parent, local *envir.Env) (map[types.Symbol]type
 		switch pair := head.This.(type) {
 		case *types.Pair:
 			if pair.IsNull() || !pair.HasNext() {
-				return nil, errors.New("wrong number of arguments")
+				return nil, ErrBadArgNumber
 			}
 
 			// variable name
 			name, ok := pair.This.(types.Symbol)
 			if !ok {
-				return nil, fmt.Errorf("%v is not a valid name", pair.This)
+				return nil, &ErrBadName{pair.This}
 			}
 
 			// init variable
@@ -137,7 +136,7 @@ func setSteps(args *types.Pair, parent, local *envir.Env) (map[types.Symbol]type
 				steps[name] = name
 			}
 		default:
-			return nil, fmt.Errorf("%v is not a list", head.This)
+			return nil, &ErrNonList{head.This}
 		}
 		head = head.Next
 	}

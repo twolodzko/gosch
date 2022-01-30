@@ -1,7 +1,6 @@
 package eval
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/twolodzko/gosch/envir"
@@ -29,7 +28,7 @@ func partialEval(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, err
 
 func let(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil || !args.HasNext() {
-		return nil, env, errors.New("wrong number of arguments")
+		return nil, env, ErrBadArgNumber
 	}
 
 	local := envir.NewEnv()
@@ -38,7 +37,7 @@ func let(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	// bind variables
 	bindings, ok := args.This.(*types.Pair)
 	if !ok {
-		return nil, local, fmt.Errorf("%v is not a list", args.This)
+		return nil, local, &ErrNonList{args.This}
 	}
 	err := setBindings(bindings, local, env)
 	if err != nil {
@@ -63,7 +62,7 @@ func setBindings(bindings *types.Pair, local, parent *envir.Env) error {
 				return err
 			}
 		default:
-			return fmt.Errorf("%v is not a list", head.This)
+			return &ErrNonList{head.This}
 		}
 		head = head.Next
 	}
@@ -88,7 +87,7 @@ func bind(binding *types.Pair, local, parent *envir.Env) error {
 
 func ifFn(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil || !args.HasNext() {
-		return nil, env, errors.New("wrong number of arguments")
+		return nil, env, ErrBadArgNumber
 	}
 
 	condition, err := Eval(args.This, env)
@@ -108,7 +107,7 @@ func ifFn(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 
 func cond(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil {
-		return nil, env, errors.New("wrong number of arguments")
+		return nil, env, ErrBadArgNumber
 	}
 
 	head := args

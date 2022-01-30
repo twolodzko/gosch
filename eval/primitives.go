@@ -1,7 +1,6 @@
 package eval
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -11,19 +10,19 @@ import (
 
 func car(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch val := args.This.(type) {
 	case *types.Pair:
 		return val.This, nil
 	default:
-		return nil, fmt.Errorf("%v is not a list", args.This)
+		return nil, &ErrNonList{args.This}
 	}
 }
 
 func cdr(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch val := args.This.(type) {
 	case *types.Pair:
@@ -37,13 +36,13 @@ func cdr(args *types.Pair) (types.Sexpr, error) {
 			return val.Next, nil
 		}
 	default:
-		return nil, fmt.Errorf("%v is not a list", args.This)
+		return nil, &ErrNonList{args.This}
 	}
 }
 
 func cons(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch val := args.Next.This.(type) {
 	case *types.Pair:
@@ -69,7 +68,7 @@ func not(args *types.Pair) (types.Sexpr, error) {
 
 func eq(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	// you can't compare functions and structs directly in Go
 	if isCallable(args.This) {
@@ -96,7 +95,7 @@ func sameCallables(obj1, obj2 types.Sexpr) bool {
 
 func isNull(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch val := args.This.(type) {
 	case *types.Pair:
@@ -108,7 +107,7 @@ func isNull(args *types.Pair) (types.Sexpr, error) {
 
 func isPair(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch val := args.This.(type) {
 	case *types.Pair:
@@ -120,7 +119,7 @@ func isPair(args *types.Pair) (types.Sexpr, error) {
 
 func isBool(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch args.This.(type) {
 	case types.Bool:
@@ -132,7 +131,7 @@ func isBool(args *types.Pair) (types.Sexpr, error) {
 
 func isString(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch args.This.(type) {
 	case types.String:
@@ -144,7 +143,7 @@ func isString(args *types.Pair) (types.Sexpr, error) {
 
 func isSymbol(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch args.This.(type) {
 	case types.Symbol:
@@ -156,14 +155,14 @@ func isSymbol(args *types.Pair) (types.Sexpr, error) {
 
 func isNil(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	return types.Bool(args.This == nil), nil
 }
 
 func isProcedure(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	return types.Bool(isCallable(args.This)), nil
 }
@@ -201,7 +200,7 @@ func asInt(s types.Sexpr) (int, error) {
 
 func substring(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() || !args.Next.HasNext() {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	str, ok := args.This.(types.String)
 	if !ok {
@@ -223,7 +222,7 @@ func substring(args *types.Pair) (types.Sexpr, error) {
 
 func stringLength(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	str, ok := args.This.(types.String)
 	if !ok {
@@ -247,7 +246,7 @@ func debug(args *types.Pair) (types.Sexpr, error) {
 		return types.Bool(DEBUG), nil
 	}
 	if args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	DEBUG = bool(types.IsTrue(args.This))
 	return types.Bool(DEBUG), nil

@@ -1,7 +1,6 @@
 package eval
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/twolodzko/gosch/types"
@@ -9,7 +8,7 @@ import (
 
 func isNumber(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch args.This.(type) {
 	case types.Integer, types.Float:
@@ -21,7 +20,7 @@ func isNumber(args *types.Pair) (types.Sexpr, error) {
 
 func isInteger(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch args.This.(type) {
 	case types.Integer:
@@ -33,7 +32,7 @@ func isInteger(args *types.Pair) (types.Sexpr, error) {
 
 func isFloat(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch args.This.(type) {
 	case types.Float:
@@ -45,7 +44,7 @@ func isFloat(args *types.Pair) (types.Sexpr, error) {
 
 func toInt(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch x := args.This.(type) {
 	case types.Integer:
@@ -59,7 +58,7 @@ func toInt(args *types.Pair) (types.Sexpr, error) {
 
 func toFloat(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch x := args.This.(type) {
 	case types.Integer:
@@ -189,7 +188,7 @@ func div(args *types.Pair) (types.Sexpr, error) {
 
 func mod(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, errors.New("wrong number of arguments")
+		return nil, ErrBadArgNumber
 	}
 	switch x := args.This.(type) {
 	case types.Arithmetic:

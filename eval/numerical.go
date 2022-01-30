@@ -72,13 +72,22 @@ func toFloat(args *types.Pair) (types.Sexpr, error) {
 
 func sum(args *types.Pair) (types.Sexpr, error) {
 	var (
-		result types.Sexpr = types.Integer(0)
+		result types.Sexpr
 		err    error
 	)
 	if args == nil {
-		return result, nil
+		return types.Integer(0), nil
 	}
-	head := args
+	if !args.HasNext() {
+		switch val := args.This.(type) {
+		case types.Arithmetic:
+			return val, nil
+		default:
+			return nil, &types.ErrNaN{Val: val}
+		}
+	}
+	result = args.This
+	head := args.Next
 	for head != nil {
 		switch prev := result.(type) {
 		case types.Arithmetic:
@@ -131,13 +140,22 @@ func dif(args *types.Pair) (types.Sexpr, error) {
 
 func mul(args *types.Pair) (types.Sexpr, error) {
 	var (
-		result types.Sexpr = types.Integer(1)
+		result types.Sexpr
 		err    error
 	)
 	if args == nil {
-		return result, nil
+		return types.Integer(1), nil
 	}
-	head := args
+	if !args.HasNext() {
+		switch val := args.This.(type) {
+		case types.Arithmetic:
+			return val, nil
+		default:
+			return nil, &types.ErrNaN{Val: val}
+		}
+	}
+	result = args.This
+	head := args.Next
 	for head != nil {
 		switch prev := result.(type) {
 		case types.Arithmetic:
@@ -155,19 +173,14 @@ func mul(args *types.Pair) (types.Sexpr, error) {
 
 func div(args *types.Pair) (types.Sexpr, error) {
 	var (
-		result types.Sexpr = types.Float(1)
+		result types.Sexpr
 		err    error
 	)
 	if args == nil {
 		return types.Integer(1), nil
 	}
 	if !args.HasNext() {
-		switch prev := args.This.(type) {
-		case types.Arithmetic:
-			return types.Float(1).Div(prev)
-		default:
-			return nil, &types.ErrNaN{Val: args.This}
-		}
+		return types.Integer(1).Div(args.This)
 	}
 	result = args.This
 	head := args.Next
@@ -200,11 +213,19 @@ func mod(args *types.Pair) (types.Sexpr, error) {
 
 func intDiv(args *types.Pair) (types.Sexpr, error) {
 	var (
-		result types.Sexpr = types.Integer(1)
+		result types.Sexpr
 		err    error
 	)
-	if args == nil || !args.HasNext() {
-		return types.Integer(0), nil
+	if args == nil {
+		return types.Integer(1), nil
+	}
+	if !args.HasNext() {
+		switch val := args.This.(type) {
+		case types.Integer:
+			return 1 / val, nil
+		default:
+			return nil, &types.ErrNaN{Val: val}
+		}
 	}
 	result = args.This
 	head := args.Next

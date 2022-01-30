@@ -245,7 +245,7 @@ func display(args *types.Pair) (types.Sexpr, error) {
 	return nil, nil
 }
 
-// `error?` procedure
+// `error` procedure
 func raiseError(args *types.Pair) (types.Sexpr, error) {
 	return nil, fmt.Errorf("%s", toString(args, " "))
 }

@@ -46,13 +46,13 @@ func toInt(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
 		return nil, ErrBadArgNumber
 	}
-	switch x := args.This.(type) {
+	switch num := args.This.(type) {
 	case types.Integer:
-		return x, nil
+		return num, nil
 	case types.Float:
-		return types.Integer(x), nil
+		return types.Integer(num), nil
 	default:
-		return nil, &types.ErrNaN{Val: x}
+		return nil, &types.ErrNaN{Val: num}
 	}
 }
 
@@ -60,13 +60,13 @@ func toFloat(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
 		return nil, ErrBadArgNumber
 	}
-	switch x := args.This.(type) {
+	switch num := args.This.(type) {
 	case types.Integer:
-		return types.Float(x), nil
+		return types.Float(num), nil
 	case types.Float:
-		return x, nil
+		return num, nil
 	default:
-		return nil, &types.ErrNaN{Val: x}
+		return nil, &types.ErrNaN{Val: num}
 	}
 }
 
@@ -80,14 +80,14 @@ func sum(args *types.Pair) (types.Sexpr, error) {
 	}
 	head := args
 	for head != nil {
-		switch x := result.(type) {
+		switch prev := result.(type) {
 		case types.Arithmetic:
-			result, err = x.Add(head.This)
+			result, err = prev.Add(head.This)
 			if err != nil {
 				return nil, err
 			}
 		default:
-			return nil, &types.ErrNaN{Val: x}
+			return nil, &types.ErrNaN{Val: prev}
 		}
 		head = head.Next
 	}
@@ -103,11 +103,11 @@ func dif(args *types.Pair) (types.Sexpr, error) {
 		return types.Integer(0), nil
 	}
 	if !args.HasNext() {
-		switch x := args.This.(type) {
+		switch prev := args.This.(type) {
 		case types.Integer:
-			return -x, nil
+			return -prev, nil
 		case types.Float:
-			return -x, nil
+			return -prev, nil
 		default:
 			return nil, &types.ErrNaN{Val: args.This}
 		}
@@ -115,14 +115,14 @@ func dif(args *types.Pair) (types.Sexpr, error) {
 	result = args.This
 	head := args.Next
 	for head != nil {
-		switch x := result.(type) {
+		switch prev := result.(type) {
 		case types.Arithmetic:
-			result, err = x.Sub(head.This)
+			result, err = prev.Sub(head.This)
 			if err != nil {
 				return nil, err
 			}
 		default:
-			return nil, &types.ErrNaN{Val: x}
+			return nil, &types.ErrNaN{Val: prev}
 		}
 		head = head.Next
 	}
@@ -139,14 +139,14 @@ func mul(args *types.Pair) (types.Sexpr, error) {
 	}
 	head := args
 	for head != nil {
-		switch x := result.(type) {
+		switch prev := result.(type) {
 		case types.Arithmetic:
-			result, err = x.Mul(head.This)
+			result, err = prev.Mul(head.This)
 			if err != nil {
 				return nil, err
 			}
 		default:
-			return nil, &types.ErrNaN{Val: x}
+			return nil, &types.ErrNaN{Val: prev}
 		}
 		head = head.Next
 	}
@@ -162,9 +162,9 @@ func div(args *types.Pair) (types.Sexpr, error) {
 		return types.Integer(1), nil
 	}
 	if !args.HasNext() {
-		switch x := args.This.(type) {
+		switch prev := args.This.(type) {
 		case types.Arithmetic:
-			return types.Float(1).Div(x)
+			return types.Float(1).Div(prev)
 		default:
 			return nil, &types.ErrNaN{Val: args.This}
 		}
@@ -172,14 +172,14 @@ func div(args *types.Pair) (types.Sexpr, error) {
 	result = args.This
 	head := args.Next
 	for head != nil {
-		switch x := result.(type) {
+		switch prev := result.(type) {
 		case types.Arithmetic:
-			result, err = x.Div(head.This)
+			result, err = prev.Div(head.This)
 			if err != nil {
 				return nil, err
 			}
 		default:
-			return nil, &types.ErrNaN{Val: x}
+			return nil, &types.ErrNaN{Val: prev}
 		}
 		head = head.Next
 	}
@@ -190,11 +190,11 @@ func mod(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, ErrBadArgNumber
 	}
-	switch x := args.This.(type) {
+	switch prev := args.This.(type) {
 	case types.Arithmetic:
-		return x.Mod(args.Next.This)
+		return prev.Mod(args.Next.This)
 	default:
-		return nil, &types.ErrNaN{Val: x}
+		return nil, &types.ErrNaN{Val: prev}
 	}
 }
 
@@ -209,14 +209,14 @@ func intDiv(args *types.Pair) (types.Sexpr, error) {
 	result = args.This
 	head := args.Next
 	for head != nil {
-		switch x := result.(type) {
+		switch prev := result.(type) {
 		case types.Integer:
-			result, err = x.IntDiv(head.This)
+			result, err = prev.IntDiv(head.This)
 			if err != nil {
 				return nil, err
 			}
 		default:
-			return nil, fmt.Errorf("%v is not an integer", x)
+			return nil, fmt.Errorf("%v is not an integer", prev)
 		}
 		head = head.Next
 	}

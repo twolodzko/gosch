@@ -4,9 +4,14 @@ gosch: $(shell find . -name "*.go")
 	go build
 
 .PHONY: test
-test: staticcheck vet
+test:
+	go vet ./...
 	go test ./...
 	@ $(MAKE) integration-tests
+
+.PHONY: lint
+lint:
+	golangci-lint run
 
 .PHONY: integration-tests
 integration-tests: gosch
@@ -21,10 +26,6 @@ cov:
 staticcheck:
 	# go get honnef.co/go/tools/cmd/staticcheck
 	staticcheck ./...
-
-.PHONY: vet
-vet:
-	go vet ./...
 
 .PHONY: cycl
 cycl:

@@ -54,7 +54,10 @@ func main() {
 }
 
 func print(msg string) {
-	io.WriteString(os.Stdout, fmt.Sprintf("%s\n", msg))
+	_, err := io.WriteString(os.Stdout, fmt.Sprintf("%s\n", msg))
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func printHelp() {

@@ -43,6 +43,26 @@ func Test_EnvAndVariables(t *testing.T) {
 	}
 }
 
+func Test_JustRunGo(t *testing.T) {
+	env := envir.NewEnv()
+
+	code := `
+	(define (add100 x) (+ x 100))
+	(go
+		(lambda (f)
+			(go f '(1 (+ 1 1) 3)))
+		(list
+			(lambda (x) (* x 10))
+			(lambda (x) (- 0 x))
+			add100))
+	`
+
+	_, _, err := eval.EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+}
+
 func Test_Load(t *testing.T) {
 	env := envir.NewEnv()
 

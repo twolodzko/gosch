@@ -51,6 +51,10 @@ exceptions with *expr*'s as message. `(substring str start end)` cuts the *start
 - `(load path)` reads and executes the code from *path* and returns the result of last expression in the file.
 - You can run `(debug #t/#f)` to turn debug mode on and off. In debug mode, all the evaluated expressions and
 their enclosing environments are printed.
+- There's also an extra feature: `(go func list)` is a parallel map function that runs `(func x)` for
+each element of the *list*. The result would appear in random order. There is also an overhead for the
+parallelization. It ignores errors, when `(func x)` returns an error, it will return `<nil>` for the
+evaluation. It assumes pure functions, so it can panic when using things like `set!`.
 
 Comments begin with `;` and everything that follows, from the semicolon until the end of the line, is ignored.
 

@@ -118,6 +118,8 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return load, true
 	case "debug":
 		return debug, true
+	case "go":
+		return goFn, true
 	default:
 		return nil, false
 	}

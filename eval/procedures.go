@@ -233,6 +233,7 @@ func set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	}
 }
 
+// `load` procedure
 func load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil {
 		return nil, ErrBadArgNumber
@@ -255,13 +256,16 @@ func load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	return nil, nil
 }
 
+// `eval` procedure
 func evalFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
 		return nil, ErrBadArgNumber
 	}
-	val, err := Eval(args.This, env)
+	// this is what "just" evaluating the object would do
+	expr, err := Eval(args.This, env)
 	if err != nil {
 		return nil, err
 	}
-	return Eval(val, env)
+	// here we evaluate the expr
+	return Eval(expr, env)
 }

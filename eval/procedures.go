@@ -266,6 +266,6 @@ func evalFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if err != nil {
 		return nil, err
 	}
-	// here we evaluate the expr
+	// here we evaluate the resulting expression
 	return Eval(expr, env)
 }

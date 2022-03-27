@@ -400,6 +400,8 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(eval ''(+ 3 4))", "(+ 3 4)"},
 		{"(eval (list + 3 4))", "7"},
 		{"(eval (cons + '(3 4)))", "7"},
+		{"(map (lambda (x) x) '(1 2 3))", "(1 2 3)"},
+		{"(map (lambda (f) (eval '(f 1 2 3))) '(+ -))", "(6 -4)"},
 	}
 
 	for _, tt := range testCases {

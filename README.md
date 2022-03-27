@@ -50,12 +50,13 @@ checkers: `integer?`, `float?`, `null?` (empty list) and `nil?` (null value).
 exceptions with *expr*'s as message. `(substring str start end)` cuts the *start:end* slice of the *str* string.
 `(string-length str)` returns length of a string.
 - `(load path)` reads and executes the code from *path* and returns the result of last expression in the file.
+- There are two map procedures `map` and `go` that apply function to each element of the list. `(go func list)`
+is a parallel map function that runs `(func x)` for each element of the *list*. `go` procedure ignores the upstream
+errors: when `(func x)` errors, the result for the evaluation would be `<nil>`. It assumes pure functions
+and is not thread safe when it comes to write operations, so it can panic when using procedures like `set!`.
+`map` works sequentially and doesn't have those limitations.
 - You can run `(debug #t/#f)` to turn debug mode on and off. In debug mode, all the evaluated expressions and
-their enclosing environments are printed.
-- There's also an extra feature: `(go func list)` is a parallel map function that runs `(func x)` for
-each element of the *list*. `go` procedure ignores the upstream errors: when `(func x)` errors,
-the result for the evaluation would be `<nil>`. It assumes pure functions and is not thread safe when it
-comes to write operations, so it can panic when using procedures like `set!`.
+their enclosing environments are printed. `(timeit expr)` measures and prints evaluation time of *expr*.
 
 Comments begin with `;` and everything that follows, from the semicolon until the end of the line, is ignored.
 

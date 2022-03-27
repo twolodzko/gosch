@@ -7,6 +7,30 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
+// `map` procedure
+func mapFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+	fn, list, err := mapArgs(args, env)
+	if err != nil {
+		return nil, err
+	}
+	if list.IsNull() {
+		return &types.Pair{}, nil
+	}
+
+	ac := types.NewAppendablePair()
+	for list != nil {
+		pair := types.NewPair(fn, list.This)
+		result, err := Eval(pair, env)
+		if err != nil {
+			return nil, err
+		}
+		ac.Append(result)
+
+		list = list.Next
+	}
+	return ac.ToPair(), nil
+}
+
 // `go` procedure: a parallel map
 //
 //  (go fn lst)
@@ -15,18 +39,12 @@ import (
 //  * it ignores errors in the routines and just returns <nil>
 //  * it can panic for impure functions (e.g. using set!)
 func goFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return nil, ErrBadArgNumber
-	}
-
-	fn, err := Eval(args.This, env)
+	fn, list, err := mapArgs(args, env)
 	if err != nil {
 		return nil, err
 	}
-
-	list, err := evalToList(args.Next.This, env)
-	if err != nil || list == nil {
-		return nil, err
+	if list.IsNull() {
+		return &types.Pair{}, nil
 	}
 
 	ch := make(chan types.Sexpr)
@@ -42,14 +60,11 @@ func goFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	}
 
 	var counter int
-	for {
+	for list != nil {
 		counter++
 		go job(list.This)
 
 		list = list.Next
-		if list == nil {
-			break
-		}
 	}
 
 	results := types.NewAppendablePair()
@@ -57,6 +72,21 @@ func goFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 		results.Append(<-ch)
 	}
 	return results.ToPair(), nil
+}
+
+func mapArgs(args *types.Pair, env *envir.Env) (types.Sexpr, *types.Pair, error) {
+	if args == nil || !args.HasNext() {
+		return nil, nil, ErrBadArgNumber
+	}
+	fn, err := Eval(args.This, env)
+	if err != nil {
+		return nil, nil, err
+	}
+	list, err := evalToList(args.Next.This, env)
+	if err != nil {
+		return nil, nil, err
+	}
+	return fn, list, nil
 }
 
 func evalToList(sexpr types.Sexpr, env *envir.Env) (*types.Pair, error) {

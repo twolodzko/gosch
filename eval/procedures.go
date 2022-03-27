@@ -2,6 +2,7 @@ package eval
 
 import (
 	"fmt"
+	"time"
 
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/types"
@@ -120,8 +121,12 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return load, true
 	case "debug":
 		return debug, true
+	case "map":
+		return mapFn, true
 	case "go":
 		return goFn, true
+	case "timeit":
+		return timeit, true
 	default:
 		return nil, false
 	}
@@ -268,4 +273,15 @@ func evalFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	}
 	// here we evaluate the resulting expression
 	return Eval(expr, env)
+}
+
+// `timeit` procedure
+func timeit(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+	start := time.Now()
+	result, err := evalAll(args, env)
+	if err != nil {
+		return nil, err
+	}
+	fmt.Println(time.Since(start))
+	return result, nil
 }

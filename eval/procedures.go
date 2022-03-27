@@ -53,7 +53,7 @@ func procedure(name types.Symbol) (interface{}, bool) {
 	case "quote":
 		return quote, true
 	case "eval":
-		return eval, true
+		return evalFn, true
 	case "lambda":
 		return newLambda, true
 	case "let":
@@ -255,7 +255,7 @@ func load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	return nil, nil
 }
 
-func eval(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func evalFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
 		return nil, ErrBadArgNumber
 	}

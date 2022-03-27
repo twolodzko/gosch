@@ -28,8 +28,8 @@ for example `(if #f 'ok)` returns `<nil>`.
 in the current or enclosing environment, it sets it to the *value*, otherwise it assigns *value* to a *name* in the
 current environment.
 - `(quote obj)` or `'obj` returns *obj* without evaluating it. While `quote` is commonly used for constructing lists,
-[it is not the same] as `list`. `(eval expr)` does the opposite by evaluating *expr*, e.g. `(eval '(+ 2 2))` would
-return 4 rather than the `(+ 2 2)` list.
+[it is not the same] as `list`. `(eval expr)` does the opposite by evaluating *expr*, e.g. `(eval '(+ 2 2))`
+returns 4 rather than the `(+ 2 2)` list.
 - `(lambda (arg1 arg2 ...) expr1 expr2 ...)` defines a [lambda expression] (*aka* function). There is also an equivalent,
 shorter way of writing `(define name (lambda (arg1 arg2 ...) expr1 expr2 ...))` as `(define (name arg1 arg2 ...) expr1 expr2 ...)`.
 - `(let ((name1 value1) (name2 value2) ...) expr1 expr2 ...)` evaluates *expr1*, *expr2*, ... in the local environment,

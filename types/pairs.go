@@ -2,20 +2,20 @@ package types
 
 import "fmt"
 
-type (
-	Sexpr  = interface{}
-	Bool   bool
-	Symbol = string
-	String string
-)
-
 type Pair struct {
 	This Sexpr
 	Next *Pair
 }
 
-func NewPair(this Sexpr, next *Pair) *Pair {
-	return &Pair{this, next}
+func NewPair(this Sexpr, next Sexpr) *Pair {
+	switch next := next.(type) {
+	case *Pair:
+		return &Pair{this, next}
+	case nil:
+		return &Pair{this, nil}
+	default:
+		return &Pair{this, &Pair{next, nil}}
+	}
 }
 
 func (p Pair) HasNext() Bool {
@@ -63,26 +63,24 @@ func PairFromArray(elems []Sexpr) *Pair {
 	}
 }
 
-func (b Bool) String() string {
-	if b {
-		return "#t"
+type AppendablePair struct {
+	pair *Pair
+	Last *Pair
+}
+
+func NewAppendablePair() *AppendablePair {
+	head := &Pair{}
+	return &AppendablePair{head, head}
+}
+
+func (p *AppendablePair) Append(sexpr Sexpr) {
+	p.Last.Next = NewPair(sexpr, nil)
+	p.Last = p.Last.Next
+}
+
+func (p AppendablePair) ToPair() *Pair {
+	if p.pair.IsNull() {
+		return &Pair{}
 	}
-	return "#f"
-}
-
-func IsTrue(s Sexpr) Bool {
-	switch val := s.(type) {
-	case Bool:
-		return val
-	default:
-		return true
-	}
-}
-
-func Quote(s Sexpr) Sexpr {
-	return &Pair{"quote", &Pair{s, nil}}
-}
-
-func (s String) String() string {
-	return fmt.Sprintf(`"%v"`, string(s))
+	return p.pair.Next
 }

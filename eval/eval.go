@@ -73,19 +73,16 @@ func evalArgs(pair *types.Pair, env *envir.Env) (*types.Pair, error) {
 	if pair == nil {
 		return nil, nil
 	}
-	var (
-		head *types.Pair
-		args []types.Sexpr
-	)
+	var head *types.Pair
+	args := types.NewAppendablePair()
 	head = pair
 	for head != nil {
 		sexpr, err := Eval(head.This, env)
 		if err != nil {
 			return nil, err
 		}
-		args = append(args, sexpr)
+		args.Append(sexpr)
 		head = head.Next
 	}
-	// TODO: avoid re-packing
-	return types.PairFromArray(args), nil
+	return args.ToPair(), nil
 }

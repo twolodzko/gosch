@@ -3,6 +3,8 @@ package eval
 import (
 	"fmt"
 	"math"
+	"regexp"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -696,5 +698,31 @@ func Test_DoFactorial(t *testing.T) {
 	}
 	if !cmp.Equal(result[0], expected) {
 		t.Errorf("expected: %v, got %v", expected, result[0])
+	}
+}
+
+func Test_goFn(t *testing.T) {
+	env := envir.NewEnv()
+
+	code := "(go (lambda (x) (+ x 10)) (list 1 (+ 1 1) 3))"
+
+	result, _, err := EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+	if len(result) == 0 {
+		t.Errorf("got empty result")
+	}
+
+	re := regexp.MustCompile(`([()]|-?\d+)`)
+
+	fields := re.FindAllString(fmt.Sprintf("%v", result[0]), -1)
+	sort.Strings(fields)
+
+	expected := re.FindAllString("(11 12 13)", -1)
+	sort.Strings(expected)
+
+	if !cmp.Equal(fields, expected) {
+		t.Errorf("expected %v got %v", expected, fields)
 	}
 }

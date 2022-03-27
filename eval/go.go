@@ -19,7 +19,10 @@ func goFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 		return nil, ErrBadArgNumber
 	}
 
-	fn := args.This
+	fn, err := Eval(args.This, env)
+	if err != nil {
+		return nil, err
+	}
 
 	list, err := evalToList(args.Next.This, env)
 	if err != nil || list == nil {
@@ -29,7 +32,7 @@ func goFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	ch := make(chan types.Sexpr)
 
 	job := func(arg types.Sexpr) {
-		pair := types.PairFromArray([]types.Sexpr{fn, arg})
+		pair := types.NewPair(fn, arg)
 		result, err := Eval(pair, env)
 		if err != nil {
 			ch <- nil
@@ -49,12 +52,11 @@ func goFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 		}
 	}
 
-	var results []types.Sexpr
+	results := types.NewAppendablePair()
 	for i := 0; i < counter; i++ {
-		results = append(results, <-ch)
+		results.Append(<-ch)
 	}
-
-	return types.PairFromArray(results), nil
+	return results.ToPair(), nil
 }
 
 func evalToList(sexpr types.Sexpr, env *envir.Env) (*types.Pair, error) {

@@ -94,20 +94,20 @@ func isFloat(str string) bool {
 
 func (p *Parser) readPair() (*types.Pair, error) {
 	p.pos++
-	var sexprs []types.Sexpr
+	ap := types.NewAppendablePair()
 	for p.HasNext() {
 		switch {
 		case unicode.IsSpace(p.Head()):
 			p.pos++
 		case p.Head() == ')':
 			p.pos++
-			return types.PairFromArray(sexprs), nil
+			return ap.ToPair(), nil
 		default:
 			elem, err := p.readSexpr()
 			if err != nil {
 				return nil, err
 			}
-			sexprs = append(sexprs, elem)
+			ap.Append(elem)
 		}
 	}
 	return nil, fmt.Errorf("list was not closed with )")

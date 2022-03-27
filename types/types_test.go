@@ -7,7 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func Test_newPair(t *testing.T) {
+func Test_PairFromArray(t *testing.T) {
 	var testCases = []struct {
 		input    []Sexpr
 		expected *Pair
@@ -22,6 +22,26 @@ func Test_newPair(t *testing.T) {
 		result := PairFromArray(tt.input)
 		if !cmp.Equal(result, tt.expected) {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
+		}
+	}
+}
+
+func Test_NewPair(t *testing.T) {
+	var testCases = []struct {
+		x, y     Sexpr
+		expected *Pair
+	}{
+		{nil, nil, &Pair{}},
+		{1, nil, &Pair{1, nil}},
+		{1, 2, &Pair{1, &Pair{2, nil}}},
+		{1, &Pair{2, nil}, &Pair{1, &Pair{2, nil}}},
+		{1, &Pair{&Pair{2, nil}, nil}, &Pair{1, &Pair{&Pair{2, nil}, nil}}},
+	}
+
+	for _, tt := range testCases {
+		result := NewPair(tt.x, tt.y)
+		if !cmp.Equal(result, tt.expected) {
+			t.Errorf("for %q and %q expected %v, got: %v", tt.x, tt.y, tt.expected, result)
 		}
 	}
 }
@@ -60,6 +80,37 @@ func Test_Cons(t *testing.T) {
 		if !cmp.Equal(result, tt.expected) {
 			t.Errorf("for %q and %q expected %v, got: %v", tt.pair, tt.value, tt.expected, result)
 		}
+	}
+}
+
+func Test_AppendablePair(t *testing.T) {
+	var result, expected *Pair
+
+	ap := NewAppendablePair()
+
+	if !ap.ToPair().IsNull() {
+		t.Errorf("expected null pair got %v", ap.ToPair())
+	}
+
+	ap.Append(1)
+	result = ap.ToPair()
+	expected = &Pair{1, nil}
+	if !cmp.Equal(result, expected) {
+		t.Errorf("expected %v got %v", expected, result)
+	}
+
+	ap.Append(2)
+	result = ap.ToPair()
+	expected = &Pair{1, &Pair{2, nil}}
+	if !cmp.Equal(result, expected) {
+		t.Errorf("expected %v got %v", expected, result)
+	}
+
+	ap.Append(&Pair{3, nil})
+	result = ap.ToPair()
+	expected = &Pair{1, &Pair{2, &Pair{&Pair{3, nil}, nil}}}
+	if !cmp.Equal(result, expected) {
+		t.Errorf("expected %v got %v", expected, result)
 	}
 }
 

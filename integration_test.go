@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"regexp"
+	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -50,16 +52,31 @@ func Test_JustRunGo(t *testing.T) {
 	(define (add100 x) (+ x 100))
 	(go
 		(lambda (f)
-			(go f '(1 (+ 1 1) 3)))
+			(go f (list 1 (+ 1 1) 3)))
 		(list
 			(lambda (x) (* x 10))
 			(lambda (x) (- 0 x))
 			add100))
 	`
 
-	_, _, err := eval.EvalString(code, env)
+	result, _, err := eval.EvalString(code, env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
+	}
+	if len(result) == 0 {
+		t.Errorf("got empty result")
+	}
+
+	re := regexp.MustCompile(`([()]|-?\d+)`)
+
+	fields := re.FindAllString(fmt.Sprintf("%v", result[len(result)-1]), -1)
+	sort.Strings(fields)
+
+	expected := re.FindAllString("((30 10 20) (-3 -2 -1) (103 101 102))", -1)
+	sort.Strings(expected)
+
+	if !cmp.Equal(fields, expected) {
+		t.Errorf("expected %v got %v", expected, fields)
 	}
 }
 

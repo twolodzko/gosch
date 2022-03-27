@@ -22,3 +22,8 @@
 
 (define string-null?
     (lambda (s) (eq? s "")))
+
+(define apply
+    (lambda (f args)
+        (eval
+            (cons f args))))

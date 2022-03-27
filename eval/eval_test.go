@@ -395,6 +395,11 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(do () (#t 'ok))", "ok"},
 		{"(do ((i 0 (+ i 1))) ((= i 5) i))", "5"},
 		{"(do ((l '()) (i 1 (+ i 1))) ((> i 5) l) (set! l (cons i l)))", "(5 4 3 2 1)"},
+		{"(eval 3)", "3"},
+		{"(eval '(+ 3 4))", "7"},
+		{"(eval ''(+ 3 4))", "(+ 3 4)"},
+		{"(eval (list + 3 4))", "7"},
+		{"(eval (cons + '(3 4)))", "7"},
 	}
 
 	for _, tt := range testCases {

@@ -33,6 +33,20 @@ func (p *Pair) Cons(sexpr Sexpr) *Pair {
 	return &Pair{sexpr, p}
 }
 
+func (p *Pair) Len() int {
+	if p.IsNull() {
+		return 0
+	}
+
+	var len int
+	head := p
+	for head != nil {
+		len++
+		head = head.Next
+	}
+	return len
+}
+
 func (p Pair) String() string {
 	if p.IsNull() {
 		return "()"

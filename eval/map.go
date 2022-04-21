@@ -47,6 +47,7 @@ func goFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 		return &types.Pair{}, nil
 	}
 
+	size := list.Len()
 	ch := make(chan types.Sexpr)
 
 	job := func(arg types.Sexpr) {
@@ -59,16 +60,14 @@ func goFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 		}
 	}
 
-	var counter int
 	for list != nil {
-		counter++
 		go job(list.This)
 
 		list = list.Next
 	}
 
 	results := types.NewAppendablePair()
-	for i := 0; i < counter; i++ {
+	for i := 0; i < size; i++ {
 		results.Append(<-ch)
 	}
 	return results.ToPair(), nil

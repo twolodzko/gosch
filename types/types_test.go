@@ -154,3 +154,21 @@ func Test_IsTrue(t *testing.T) {
 		}
 	}
 }
+
+func Test_PairLen(t *testing.T) {
+	var testCases = []struct {
+		example  *Pair
+		expected int
+	}{
+		{&Pair{}, 0},
+		{&Pair{1, nil}, 1},
+		{&Pair{1, &Pair{2, &Pair{3, nil}}}, 3},
+	}
+
+	for _, tt := range testCases {
+		result := tt.example.Len()
+		if !cmp.Equal(result, tt.expected) {
+			t.Errorf("for %q expected %v, got: %v", tt.example, tt.expected, result)
+		}
+	}
+}

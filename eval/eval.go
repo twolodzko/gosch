@@ -9,6 +9,25 @@ import (
 
 var DEBUG bool = false
 
+type (
+	Primitive         = func(*types.Pair) (types.Sexpr, error)
+	Procedure         = func(*types.Pair, *envir.Env) (types.Sexpr, error)
+	TailCallOptimized = func(*types.Pair, *envir.Env) (types.Sexpr, *envir.Env, error)
+)
+
+// Global getter for procedures imported from other modules
+var Procedures func(name types.Symbol) (interface{}, bool) = nil
+
+func getProcedure(name types.Symbol) (interface{}, bool) {
+	if name == "lambda" {
+		return NewLambda, true
+	}
+	if Procedures == nil {
+		return nil, false
+	}
+	return Procedures(name)
+}
+
 func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 	for {
 		if DEBUG {
@@ -60,7 +79,7 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 func getSymbol(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 	switch val := sexpr.(type) {
 	case types.Symbol:
-		if fn, ok := procedure(val); ok {
+		if fn, ok := getProcedure(val); ok {
 			return fn, nil
 		}
 		return env.Get(val)
@@ -85,4 +104,37 @@ func evalArgs(pair *types.Pair, env *envir.Env) (*types.Pair, error) {
 		head = head.Next
 	}
 	return args.ToPair(), nil
+}
+
+// Evaluate all args but last, return the last arg and the enclosing environment
+func PartialEval(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
+	if args == nil {
+		return nil, env, nil
+	}
+	current := args
+	for current.HasNext() {
+		_, err := Eval(current.This, env)
+		if err != nil {
+			return nil, nil, err
+		}
+		current = current.Next
+	}
+	return current.This, env, nil
+}
+
+// Evaluate all expressions, return the last result
+func EvalAll(exprs *types.Pair, env *envir.Env) (types.Sexpr, error) {
+	var (
+		result types.Sexpr
+		err    error
+	)
+	head := exprs
+	for head != nil {
+		result, err = Eval(head.This, env)
+		if err != nil {
+			return nil, err
+		}
+		head = head.Next
+	}
+	return result, nil
 }

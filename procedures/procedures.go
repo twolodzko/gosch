@@ -1,30 +1,27 @@
-package eval
+package procedures
 
 import (
 	"fmt"
 	"time"
 
 	"github.com/twolodzko/gosch/envir"
+	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
-)
-
-type (
-	Primitive         = func(*types.Pair) (types.Sexpr, error)
-	Procedure         = func(*types.Pair, *envir.Env) (types.Sexpr, error)
-	TailCallOptimized = func(*types.Pair, *envir.Env) (types.Sexpr, *envir.Env, error)
 )
 
 func isCallable(obj types.Sexpr) bool {
 	switch obj.(type) {
-	case Procedure, Primitive, TailCallOptimized, Lambda:
+	case eval.Procedure, eval.Primitive, eval.TailCallOptimized, eval.Lambda:
 		return true
 	default:
 		return false
 	}
 }
 
-func procedure(name types.Symbol) (interface{}, bool) {
+func Procedures(name types.Symbol) (interface{}, bool) {
 	switch name {
+	case "quote":
+		return quote, true
 	case "car":
 		return car, true
 	case "cdr":
@@ -51,12 +48,8 @@ func procedure(name types.Symbol) (interface{}, bool) {
 		return define, true
 	case "set!":
 		return set, true
-	case "quote":
-		return quote, true
 	case "eval":
 		return evalFn, true
-	case "lambda":
-		return newLambda, true
 	case "let":
 		return let, true
 	case "if":
@@ -66,7 +59,7 @@ func procedure(name types.Symbol) (interface{}, bool) {
 	case "else":
 		return types.Bool(true), true
 	case "begin":
-		return partialEval, true
+		return begin, true
 	case "do":
 		return do, true
 	case "null?":
@@ -132,13 +125,20 @@ func procedure(name types.Symbol) (interface{}, bool) {
 	}
 }
 
+func quote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+	if args == nil {
+		return nil, eval.ErrBadArgNumber
+	}
+	return args.This, nil
+}
+
 func and(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args.This == nil {
 		return types.Bool(true), nil
 	}
 	head := args
 	for head != nil {
-		test, err := Eval(head.This, env)
+		test, err := eval.Eval(head.This, env)
 		if err != nil {
 			return nil, err
 		}
@@ -156,7 +156,7 @@ func or(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	}
 	head := args
 	for head != nil {
-		test, err := Eval(head.This, env)
+		test, err := eval.Eval(head.This, env)
 		if err != nil {
 			return nil, err
 		}
@@ -168,20 +168,13 @@ func or(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	return types.Bool(false), nil
 }
 
-func quote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil {
-		return nil, ErrBadArgNumber
-	}
-	return args.This, nil
-}
-
 func define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch this := args.This.(type) {
 	case types.Symbol:
-		val, err := Eval(args.Next.This, env)
+		val, err := eval.Eval(args.Next.This, env)
 		if err != nil {
 			return nil, err
 		}
@@ -190,7 +183,7 @@ func define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	case *types.Pair:
 		return defineLambda(this, args.Next, env)
 	default:
-		return nil, &ErrBadName{args.This}
+		return nil, eval.NewErrBadName(args.This)
 	}
 }
 
@@ -199,17 +192,17 @@ func define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 //  (define (name args...) body...)
 func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	name, ok := args.This.(types.Symbol)
 	if !ok {
-		return nil, &ErrBadName{args.This}
+		return nil, eval.NewErrBadName(args.This)
 	}
-	vars, err := lambdaArgs(args.Next)
+	vars, err := eval.LambdaArgs(args.Next)
 	if err != nil {
 		return nil, err
 	}
-	fn := Lambda{vars, body, env}
+	fn := eval.Lambda{Vars: vars, Body: body, ParentEnv: env}
 	env.Set(name, fn)
 	return fn, nil
 }
@@ -217,10 +210,10 @@ func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
 // `set!` procedure
 func set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 
-	val, err := Eval(args.Next.This, env)
+	val, err := eval.Eval(args.Next.This, env)
 	if err != nil {
 		return nil, err
 	}
@@ -234,16 +227,16 @@ func set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 		}
 		return val, nil
 	default:
-		return nil, &ErrBadName{args.This}
+		return nil, eval.NewErrBadName(args.This)
 	}
 }
 
 // `load` procedure
 func load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
-	head, err := Eval(args.This, env)
+	head, err := eval.Eval(args.This, env)
 	if err != nil {
 		return nil, err
 	}
@@ -251,7 +244,7 @@ func load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if !ok {
 		return nil, fmt.Errorf("invalid path: %v", head)
 	}
-	sexprs, err := LoadEval(string(path), env)
+	sexprs, err := eval.LoadEval(string(path), env)
 	if err != nil {
 		return nil, err
 	}
@@ -264,21 +257,21 @@ func load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 // `eval` procedure
 func evalFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	// this is what "just" evaluating the object would do
-	expr, err := Eval(args.This, env)
+	expr, err := eval.Eval(args.This, env)
 	if err != nil {
 		return nil, err
 	}
 	// here we evaluate the resulting expression
-	return Eval(expr, env)
+	return eval.Eval(expr, env)
 }
 
 // `timeit` procedure
 func timeit(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	start := time.Now()
-	result, err := evalAll(args, env)
+	result, err := eval.EvalAll(args, env)
 	if err != nil {
 		return nil, err
 	}

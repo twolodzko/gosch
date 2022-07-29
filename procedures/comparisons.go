@@ -1,4 +1,4 @@
-package eval
+package procedures
 
 import (
 	"github.com/twolodzko/gosch/types"

@@ -8,6 +8,7 @@ import (
 
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
+	"github.com/twolodzko/gosch/procedures"
 	"github.com/twolodzko/gosch/repl"
 )
 
@@ -19,6 +20,7 @@ func main() {
 			printHelp()
 			return
 		}
+		eval.Procedures = procedures.Procedures
 		env := envir.NewEnv()
 		sexprs, err := eval.LoadEval(os.Args[1], env)
 		if err != nil {

@@ -1,15 +1,16 @@
-package eval
+package procedures
 
 import (
 	"fmt"
 
+	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
 
 // `number?` procedure
 func isNumber(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch args.This.(type) {
 	case types.Integer, types.Float:
@@ -22,7 +23,7 @@ func isNumber(args *types.Pair) (types.Sexpr, error) {
 // `integer?` procedure
 func isInteger(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch args.This.(type) {
 	case types.Integer:
@@ -35,7 +36,7 @@ func isInteger(args *types.Pair) (types.Sexpr, error) {
 // `float?` procedure
 func isFloat(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch args.This.(type) {
 	case types.Float:
@@ -48,7 +49,7 @@ func isFloat(args *types.Pair) (types.Sexpr, error) {
 // `->int` procedure
 func toInt(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch num := args.This.(type) {
 	case types.Integer:
@@ -63,7 +64,7 @@ func toInt(args *types.Pair) (types.Sexpr, error) {
 // `->float` procedure
 func toFloat(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch num := args.This.(type) {
 	case types.Integer:
@@ -211,7 +212,7 @@ func div(args *types.Pair) (types.Sexpr, error) {
 // `%` procedure
 func mod(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch prev := args.This.(type) {
 	case types.Arithmetic:

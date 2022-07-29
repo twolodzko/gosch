@@ -1,28 +1,29 @@
-package eval
+package procedures
 
 import (
 	"fmt"
 	"reflect"
 
 	"github.com/google/go-cmp/cmp"
+	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
 
 func car(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch val := args.This.(type) {
 	case *types.Pair:
 		return val.This, nil
 	default:
-		return nil, &ErrNonList{args.This}
+		return nil, eval.NewErrNonList(args.This)
 	}
 }
 
 func cdr(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch val := args.This.(type) {
 	case *types.Pair:
@@ -36,13 +37,13 @@ func cdr(args *types.Pair) (types.Sexpr, error) {
 			return val.Next, nil
 		}
 	default:
-		return nil, &ErrNonList{args.This}
+		return nil, eval.NewErrNonList(args.This)
 	}
 }
 
 func cons(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch val := args.Next.This.(type) {
 	case *types.Pair:
@@ -68,7 +69,7 @@ func not(args *types.Pair) (types.Sexpr, error) {
 
 func eq(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	// you can't compare functions and structs directly in Go
 	if isCallable(args.This) {
@@ -85,8 +86,8 @@ func sameCallables(obj1, obj2 types.Sexpr) bool {
 			return v1.Pointer() == v2.Pointer()
 		}
 	}
-	if v1, ok := obj1.(Lambda); ok {
-		if v2, ok := obj2.(Lambda); ok {
+	if v1, ok := obj1.(eval.Lambda); ok {
+		if v2, ok := obj2.(eval.Lambda); ok {
 			return cmp.Equal(v1, v2)
 		}
 	}
@@ -96,7 +97,7 @@ func sameCallables(obj1, obj2 types.Sexpr) bool {
 // `null?` procedure
 func isNull(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch val := args.This.(type) {
 	case *types.Pair:
@@ -109,7 +110,7 @@ func isNull(args *types.Pair) (types.Sexpr, error) {
 // `pair?` procedure
 func isPair(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch val := args.This.(type) {
 	case *types.Pair:
@@ -122,7 +123,7 @@ func isPair(args *types.Pair) (types.Sexpr, error) {
 // `bool?` procedure
 func isBool(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch args.This.(type) {
 	case types.Bool:
@@ -135,7 +136,7 @@ func isBool(args *types.Pair) (types.Sexpr, error) {
 // `string?` procedure
 func isString(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch args.This.(type) {
 	case types.String:
@@ -148,7 +149,7 @@ func isString(args *types.Pair) (types.Sexpr, error) {
 // `symbol?` procedure
 func isSymbol(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch args.This.(type) {
 	case types.Symbol:
@@ -161,7 +162,7 @@ func isSymbol(args *types.Pair) (types.Sexpr, error) {
 // `nil?` procedure
 func isNil(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	return types.Bool(args.This == nil), nil
 }
@@ -169,7 +170,7 @@ func isNil(args *types.Pair) (types.Sexpr, error) {
 // `procedure?` procedure
 func isProcedure(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	return types.Bool(isCallable(args.This)), nil
 }
@@ -208,7 +209,7 @@ func asInt(s types.Sexpr) (int, error) {
 
 func substring(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() || !args.Next.HasNext() {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	str, ok := args.This.(types.String)
 	if !ok {
@@ -231,7 +232,7 @@ func substring(args *types.Pair) (types.Sexpr, error) {
 // `string-length` procedure
 func stringLength(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	str, ok := args.This.(types.String)
 	if !ok {
@@ -252,12 +253,12 @@ func raiseError(args *types.Pair) (types.Sexpr, error) {
 
 func debug(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		DEBUG = true
-		return types.Bool(DEBUG), nil
+		eval.DEBUG = true
+		return types.Bool(eval.DEBUG), nil
 	}
 	if args.HasNext() {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
-	DEBUG = bool(types.IsTrue(args.This))
-	return types.Bool(DEBUG), nil
+	eval.DEBUG = bool(types.IsTrue(args.This))
+	return types.Bool(eval.DEBUG), nil
 }

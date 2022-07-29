@@ -9,10 +9,12 @@ import (
 	"github.com/google/go-cmp/cmp"
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
+	"github.com/twolodzko/gosch/procedures"
 	"github.com/twolodzko/gosch/types"
 )
 
 func Test_EnvAndVariables(t *testing.T) {
+	eval.Procedures = procedures.Procedures
 	env := envir.NewEnv()
 
 	code := `

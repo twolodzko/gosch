@@ -1,9 +1,10 @@
-package eval
+package procedures
 
 import (
 	"fmt"
 
 	"github.com/twolodzko/gosch/envir"
+	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -20,7 +21,7 @@ func mapFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	ac := types.NewAppendablePair()
 	for list != nil {
 		pair := types.NewPair(fn, list.This)
-		result, err := Eval(pair, env)
+		result, err := eval.Eval(pair, env)
 		if err != nil {
 			return nil, err
 		}
@@ -52,7 +53,7 @@ func goFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 
 	job := func(arg types.Sexpr) {
 		pair := types.NewPair(fn, arg)
-		result, err := Eval(pair, env)
+		result, err := eval.Eval(pair, env)
 		if err != nil {
 			ch <- nil
 		} else {
@@ -75,9 +76,9 @@ func goFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 
 func mapArgs(args *types.Pair, env *envir.Env) (types.Sexpr, *types.Pair, error) {
 	if args == nil || !args.HasNext() {
-		return nil, nil, ErrBadArgNumber
+		return nil, nil, eval.ErrBadArgNumber
 	}
-	fn, err := Eval(args.This, env)
+	fn, err := eval.Eval(args.This, env)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -89,7 +90,7 @@ func mapArgs(args *types.Pair, env *envir.Env) (types.Sexpr, *types.Pair, error)
 }
 
 func evalToList(sexpr types.Sexpr, env *envir.Env) (*types.Pair, error) {
-	val, err := Eval(sexpr, env)
+	val, err := eval.Eval(sexpr, env)
 	if err != nil {
 		return nil, err
 	}

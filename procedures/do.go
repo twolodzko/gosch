@@ -1,9 +1,10 @@
-package eval
+package procedures
 
 import (
 	"fmt"
 
 	"github.com/twolodzko/gosch/envir"
+	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -60,7 +61,7 @@ type doJob struct {
 
 // Evaluate the stopping condition
 func (job *doJob) shouldStop() (types.Bool, error) {
-	test, err := Eval(job.clause.This, job.env)
+	test, err := eval.Eval(job.clause.This, job.env)
 	return types.IsTrue(test), err
 }
 
@@ -70,7 +71,7 @@ func (job *doJob) updateBindings() error {
 	newEnv.Parent = job.env.Parent
 
 	for name, step := range job.steps {
-		val, err := Eval(step, job.env)
+		val, err := eval.Eval(step, job.env)
 		if err != nil {
 			return err
 		}
@@ -84,7 +85,7 @@ func (job *doJob) updateBindings() error {
 // Initialize the `do` job
 func newDoJob(args *types.Pair, env *envir.Env) (doJob, error) {
 	if args == nil || !args.HasNext() {
-		return doJob{}, ErrBadArgNumber
+		return doJob{}, eval.ErrBadArgNumber
 	}
 
 	local := envir.NewEnv()
@@ -92,7 +93,7 @@ func newDoJob(args *types.Pair, env *envir.Env) (doJob, error) {
 
 	bindings, ok := args.This.(*types.Pair)
 	if !ok {
-		return doJob{}, &ErrNonList{args.This}
+		return doJob{}, eval.NewErrNonList(args.This)
 	}
 	steps, err := setSteps(bindings, env, local)
 	if err != nil {
@@ -119,17 +120,17 @@ func setSteps(args *types.Pair, parent, local *envir.Env) (map[types.Symbol]type
 		switch pair := head.This.(type) {
 		case *types.Pair:
 			if pair.IsNull() || !pair.HasNext() {
-				return nil, ErrBadArgNumber
+				return nil, eval.ErrBadArgNumber
 			}
 
 			// variable name
 			name, ok := pair.This.(types.Symbol)
 			if !ok {
-				return nil, &ErrBadName{pair.This}
+				return nil, eval.NewErrBadName(pair.This)
 			}
 
 			// init variable
-			val, err := Eval(pair.Next.This, parent)
+			val, err := eval.Eval(pair.Next.This, parent)
 			if err != nil {
 				return nil, err
 			}
@@ -142,7 +143,7 @@ func setSteps(args *types.Pair, parent, local *envir.Env) (map[types.Symbol]type
 				steps[name] = name
 			}
 		default:
-			return nil, &ErrNonList{head.This}
+			return nil, eval.NewErrNonList(head.This)
 		}
 		head = head.Next
 	}
@@ -157,7 +158,7 @@ func evalAll(exprs *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	)
 	head := exprs
 	for head != nil {
-		result, err = Eval(head.This, env)
+		result, err = eval.Eval(head.This, env)
 		if err != nil {
 			return nil, err
 		}

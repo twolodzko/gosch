@@ -17,20 +17,20 @@ type Lambda struct {
 // Create `lambda` function
 //
 //  (lambda (args ...) body ...)
-func newLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func NewLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, ErrBadArgNumber
 	}
 	switch pair := args.This.(type) {
 	case *types.Pair:
-		vars, err := lambdaArgs(pair)
+		vars, err := LambdaArgs(pair)
 		return Lambda{vars, args.Next, env}, err
 	default:
 		return Lambda{}, &ErrNonList{args.This}
 	}
 }
 
-func lambdaArgs(args *types.Pair) ([]types.Symbol, error) {
+func LambdaArgs(args *types.Pair) ([]types.Symbol, error) {
 	var vars []types.Symbol
 	if args == nil || args.IsNull() {
 		return vars, nil
@@ -83,7 +83,7 @@ func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env,
 	}
 
 	// the body of the function is evaluated in the local env of the lambda
-	return partialEval(l.Body, local)
+	return PartialEval(l.Body, local)
 }
 
 func (l Lambda) String() string {

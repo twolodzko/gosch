@@ -1,37 +1,22 @@
-package eval
+package procedures
 
 import (
 	"fmt"
 
 	"github.com/twolodzko/gosch/envir"
+	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
 
 // Tail call optimized procedures
 // see: https://github.com/kanaka/mal/blob/master/process/guide.md#step-5-tail-call-optimization
 
-// Evaluate all args but last, return the last arg and the enclosing environment
-func partialEval(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
-	if args == nil {
-		return nil, env, nil
-	}
-	current := args
-	for current.HasNext() {
-		_, err := Eval(current.This, env)
-		if err != nil {
-			return nil, nil, err
-		}
-		current = current.Next
-	}
-	return current.This, env, nil
-}
-
 // `let` procedure
 //
 //  (let ((name1 value1) (name2 value2) ...) expr1 expr2 ...)
 func let(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil || !args.HasNext() {
-		return nil, env, ErrBadArgNumber
+		return nil, env, eval.ErrBadArgNumber
 	}
 
 	local := envir.NewEnv()
@@ -40,14 +25,14 @@ func let(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	// bind variables
 	bindings, ok := args.This.(*types.Pair)
 	if !ok {
-		return nil, local, &ErrNonList{args.This}
+		return nil, local, eval.NewErrNonList(args.This)
 	}
 	err := setBindings(bindings, local, env)
 	if err != nil {
 		return nil, local, err
 	}
 
-	return partialEval(args.Next, local)
+	return eval.PartialEval(args.Next, local)
 }
 
 // Iterate through the bindings ((name1 value1) (name2 value2) ...) and set them to an environment
@@ -65,7 +50,7 @@ func setBindings(bindings *types.Pair, local, parent *envir.Env) error {
 				return err
 			}
 		default:
-			return &ErrNonList{head.This}
+			return eval.NewErrNonList(head.This)
 		}
 		head = head.Next
 	}
@@ -78,7 +63,7 @@ func bind(binding *types.Pair, local, parent *envir.Env) error {
 			return fmt.Errorf("%v has not value to bind", binding)
 		}
 		// arguments are evaluated in env enclosing let
-		val, err := Eval(binding.Next.This, parent)
+		val, err := eval.Eval(binding.Next.This, parent)
 		if err != nil {
 			return err
 		}
@@ -93,10 +78,10 @@ func bind(binding *types.Pair, local, parent *envir.Env) error {
 //  (if condition if-true if-false)
 func ifFn(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil || !args.HasNext() {
-		return nil, env, ErrBadArgNumber
+		return nil, env, eval.ErrBadArgNumber
 	}
 
-	condition, err := Eval(args.This, env)
+	condition, err := eval.Eval(args.This, env)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -116,7 +101,7 @@ func ifFn(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 //  (cond (test1 expr1) (test2 expr2)...)
 func cond(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil {
-		return nil, env, ErrBadArgNumber
+		return nil, env, eval.ErrBadArgNumber
 	}
 
 	head := args
@@ -126,7 +111,7 @@ func cond(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 			if pair.IsNull() || !pair.HasNext() || pair.Next.HasNext() {
 				return nil, env, fmt.Errorf("invalid argument %v", pair)
 			}
-			condition, err := Eval(pair.This, env)
+			condition, err := eval.Eval(pair.This, env)
 			if err != nil {
 				return nil, env, err
 			}
@@ -139,4 +124,9 @@ func cond(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 		head = head.Next
 	}
 	return nil, env, nil
+}
+
+// `begin` procedure
+func begin(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
+	return eval.PartialEval(args, env)
 }

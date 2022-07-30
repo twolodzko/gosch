@@ -123,31 +123,31 @@ func Test_EvalPair(t *testing.T) {
 		},
 		{
 			types.NewPair("null?", types.NewPair(types.Quote(&types.Pair{}), nil)),
-			types.Bool(true),
+			types.TRUE,
 		},
 		{
 			types.NewPair("null?", types.NewPair(types.Quote("a"), nil)),
-			types.Bool(false),
+			types.FALSE,
 		},
 		{
 			types.NewPair("null?", types.NewPair(types.Quote(types.NewPair("a", nil)), nil)),
-			types.Bool(false),
+			types.FALSE,
 		},
 		{
 			types.NewPair("pair?", types.NewPair(types.Quote(&types.Pair{}), nil)),
-			types.Bool(false),
+			types.FALSE,
 		},
 		{
 			types.NewPair("pair?", types.NewPair(types.Quote("a"), nil)),
-			types.Bool(false),
+			types.FALSE,
 		},
 		{
 			types.NewPair("pair?", types.NewPair(types.Quote(types.NewPair("a", nil)), nil)),
-			types.Bool(true),
+			types.TRUE,
 		},
 		{
 			types.NewPair("pair?", types.NewPair(types.Quote(types.NewPair("a", types.NewPair("b", nil))), nil)),
-			types.Bool(true),
+			types.TRUE,
 		},
 		{
 			types.NewPair("cons", types.NewPair(types.Quote("a"), types.NewPair(types.Quote(&types.Pair{}), nil))),
@@ -170,16 +170,16 @@ func Test_EvalPair(t *testing.T) {
 			types.NewPair(1, types.NewPair(2, types.NewPair(3, nil))),
 		},
 		{
-			types.NewPair("not", types.NewPair(types.Bool(false), nil)),
-			types.Bool(true),
+			types.NewPair("not", types.NewPair(types.FALSE, nil)),
+			types.TRUE,
 		},
 		{
-			types.NewPair("not", types.NewPair(types.Bool(true), nil)),
-			types.Bool(false),
+			types.NewPair("not", types.NewPair(types.TRUE, nil)),
+			types.FALSE,
 		},
 		{
 			types.NewPair("not", types.NewPair(3, nil)),
-			types.Bool(false),
+			types.FALSE,
 		},
 		{
 			types.NewPair("quote", types.NewPair(types.NewPair("list", types.NewPair(2, nil)), nil)),

@@ -9,6 +9,11 @@ type (
 	String string
 )
 
+const (
+	TRUE  = Bool(true)
+	FALSE = Bool(false)
+)
+
 func (b Bool) String() string {
 	if b {
 		return "#t"

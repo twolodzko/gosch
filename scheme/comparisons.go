@@ -37,7 +37,7 @@ func Eq(args *types.Pair) (types.Sexpr, error) {
 
 func Equal(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return types.Bool(true), nil
+		return types.TRUE, nil
 	}
 	prev := args.This
 	head := args
@@ -50,19 +50,19 @@ func Equal(args *types.Pair) (types.Sexpr, error) {
 				return nil, err
 			}
 			if !test {
-				return types.Bool(false), nil
+				return types.FALSE, nil
 			}
 		default:
 			return nil, &types.ErrNaN{Val: head.This}
 		}
 		prev = head.This
 	}
-	return types.Bool(true), nil
+	return types.TRUE, nil
 }
 
 func Lower(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return types.Bool(true), nil
+		return types.TRUE, nil
 	}
 	prev := args.This
 	head := args
@@ -75,19 +75,19 @@ func Lower(args *types.Pair) (types.Sexpr, error) {
 				return nil, err
 			}
 			if !test {
-				return types.Bool(false), nil
+				return types.FALSE, nil
 			}
 		default:
 			return nil, &types.ErrNaN{Val: head.This}
 		}
 		prev = head.This
 	}
-	return types.Bool(true), nil
+	return types.TRUE, nil
 }
 
 func Greater(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return types.Bool(true), nil
+		return types.TRUE, nil
 	}
 	prev := args.This
 	head := args
@@ -100,12 +100,12 @@ func Greater(args *types.Pair) (types.Sexpr, error) {
 				return nil, err
 			}
 			if !test {
-				return types.Bool(false), nil
+				return types.FALSE, nil
 			}
 		default:
 			return nil, &types.ErrNaN{Val: head.This}
 		}
 		prev = head.This
 	}
-	return types.Bool(true), nil
+	return types.TRUE, nil
 }

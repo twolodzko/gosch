@@ -124,7 +124,7 @@ func Test_IsAtom(t *testing.T) {
 			(and (not (pair? x)) (not (null? x)))))
 	(atom? 'a)
 	`
-	expected := []types.Sexpr{types.Bool(true)}
+	expected := []types.Sexpr{types.TRUE}
 
 	result, _, err := eval.EvalString(code, env)
 	if err != nil {

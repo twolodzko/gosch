@@ -6,18 +6,18 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-const Else = types.Bool(true)
+const Else = types.TRUE
 
 func Not(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		return types.Bool(false), nil
+		return types.FALSE, nil
 	}
 	return !types.IsTrue(args.This), nil
 }
 
 func And(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args.This == nil {
-		return types.Bool(true), nil
+		return types.TRUE, nil
 	}
 	head := args
 	for head != nil {
@@ -26,16 +26,16 @@ func And(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 			return nil, err
 		}
 		if !types.IsTrue(test) {
-			return types.Bool(false), nil
+			return types.FALSE, nil
 		}
 		head = head.Next
 	}
-	return types.Bool(true), nil
+	return types.TRUE, nil
 }
 
 func Or(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args.This == nil {
-		return types.Bool(true), nil
+		return types.TRUE, nil
 	}
 	head := args
 	for head != nil {
@@ -44,9 +44,9 @@ func Or(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 			return nil, err
 		}
 		if types.IsTrue(test) {
-			return types.Bool(true), nil
+			return types.TRUE, nil
 		}
 		head = head.Next
 	}
-	return types.Bool(false), nil
+	return types.FALSE, nil
 }

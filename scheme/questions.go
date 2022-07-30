@@ -14,7 +14,7 @@ func IsNull(args *types.Pair) (types.Sexpr, error) {
 	case *types.Pair:
 		return val.IsNull(), nil
 	default:
-		return types.Bool(false), nil
+		return types.FALSE, nil
 	}
 }
 
@@ -27,7 +27,7 @@ func IsPair(args *types.Pair) (types.Sexpr, error) {
 	case *types.Pair:
 		return !val.IsNull(), nil
 	default:
-		return types.Bool(false), nil
+		return types.FALSE, nil
 	}
 }
 
@@ -38,9 +38,9 @@ func IsBool(args *types.Pair) (types.Sexpr, error) {
 	}
 	switch args.This.(type) {
 	case types.Bool:
-		return types.Bool(true), nil
+		return types.TRUE, nil
 	default:
-		return types.Bool(false), nil
+		return types.FALSE, nil
 	}
 }
 
@@ -51,9 +51,9 @@ func IsString(args *types.Pair) (types.Sexpr, error) {
 	}
 	switch args.This.(type) {
 	case types.String:
-		return types.Bool(true), nil
+		return types.TRUE, nil
 	default:
-		return types.Bool(false), nil
+		return types.FALSE, nil
 	}
 }
 
@@ -64,9 +64,9 @@ func IsSymbol(args *types.Pair) (types.Sexpr, error) {
 	}
 	switch args.This.(type) {
 	case types.Symbol:
-		return types.Bool(true), nil
+		return types.TRUE, nil
 	default:
-		return types.Bool(false), nil
+		return types.FALSE, nil
 	}
 }
 

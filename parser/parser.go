@@ -66,9 +66,9 @@ func (p *Parser) readAtom() (types.Sexpr, error) {
 func parseAtom(str string) (types.Sexpr, error) {
 	switch {
 	case str == "#t":
-		return types.Bool(true), nil
+		return types.TRUE, nil
 	case str == "#f":
-		return types.Bool(false), nil
+		return types.FALSE, nil
 	case str == "nil":
 		return nil, nil
 	case isInt(str):

@@ -14,9 +14,9 @@ func IsNumber(args *types.Pair) (types.Sexpr, error) {
 	}
 	switch args.This.(type) {
 	case types.Integer, types.Float:
-		return types.Bool(true), nil
+		return types.TRUE, nil
 	default:
-		return types.Bool(false), nil
+		return types.FALSE, nil
 	}
 }
 
@@ -27,9 +27,9 @@ func IsInteger(args *types.Pair) (types.Sexpr, error) {
 	}
 	switch args.This.(type) {
 	case types.Integer:
-		return types.Bool(true), nil
+		return types.TRUE, nil
 	default:
-		return types.Bool(false), nil
+		return types.FALSE, nil
 	}
 }
 
@@ -40,9 +40,9 @@ func IsFloat(args *types.Pair) (types.Sexpr, error) {
 	}
 	switch args.This.(type) {
 	case types.Float:
-		return types.Bool(true), nil
+		return types.TRUE, nil
 	default:
-		return types.Bool(false), nil
+		return types.FALSE, nil
 	}
 }
 

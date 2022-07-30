@@ -5,7 +5,7 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func car(args *types.Pair) (types.Sexpr, error) {
+func Car(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -17,7 +17,7 @@ func car(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
-func cdr(args *types.Pair) (types.Sexpr, error) {
+func Cdr(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -37,7 +37,7 @@ func cdr(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
-func cons(args *types.Pair) (types.Sexpr, error) {
+func Cons(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -45,11 +45,11 @@ func cons(args *types.Pair) (types.Sexpr, error) {
 	case *types.Pair:
 		return val.Cons(args.This), nil
 	default:
-		return list(args)
+		return List(args)
 	}
 }
 
-func list(args *types.Pair) (types.Sexpr, error) {
+func List(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return &types.Pair{}, nil
 	}

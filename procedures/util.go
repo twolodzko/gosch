@@ -9,18 +9,18 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func display(args *types.Pair) (types.Sexpr, error) {
+func Display(args *types.Pair) (types.Sexpr, error) {
 	fmt.Printf("%s\n", toRawString(args, " "))
 	return nil, nil
 }
 
 // `error` procedure
-func raiseError(args *types.Pair) (types.Sexpr, error) {
+func Error(args *types.Pair) (types.Sexpr, error) {
 	return nil, fmt.Errorf("%s", toRawString(args, " "))
 }
 
 // `debug` procedure
-func debug(args *types.Pair) (types.Sexpr, error) {
+func Debug(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		eval.DEBUG = true
 		return types.Bool(eval.DEBUG), nil
@@ -33,7 +33,7 @@ func debug(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `timeit` procedure
-func timeit(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func Timeit(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	start := time.Now()
 	result, err := eval.EvalAll(args, env)
 	if err != nil {

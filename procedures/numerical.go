@@ -8,7 +8,7 @@ import (
 )
 
 // `number?` procedure
-func isNumber(args *types.Pair) (types.Sexpr, error) {
+func IsNumber(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -21,7 +21,7 @@ func isNumber(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `integer?` procedure
-func isInteger(args *types.Pair) (types.Sexpr, error) {
+func IsInteger(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -34,7 +34,7 @@ func isInteger(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `float?` procedure
-func isFloat(args *types.Pair) (types.Sexpr, error) {
+func IsFloat(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -47,7 +47,7 @@ func isFloat(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `->int` procedure
-func toInt(args *types.Pair) (types.Sexpr, error) {
+func ToInt(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -62,7 +62,7 @@ func toInt(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `->float` procedure
-func toFloat(args *types.Pair) (types.Sexpr, error) {
+func ToFloat(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -77,7 +77,7 @@ func toFloat(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `+` procedure
-func sum(args *types.Pair) (types.Sexpr, error) {
+func Sum(args *types.Pair) (types.Sexpr, error) {
 	var (
 		result types.Sexpr
 		err    error
@@ -111,7 +111,7 @@ func sum(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `-` procedure
-func dif(args *types.Pair) (types.Sexpr, error) {
+func Dif(args *types.Pair) (types.Sexpr, error) {
 	var (
 		result types.Sexpr
 		err    error
@@ -147,7 +147,7 @@ func dif(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `*` procedure
-func mul(args *types.Pair) (types.Sexpr, error) {
+func Mul(args *types.Pair) (types.Sexpr, error) {
 	var (
 		result types.Sexpr
 		err    error
@@ -181,7 +181,7 @@ func mul(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `/` procedure
-func div(args *types.Pair) (types.Sexpr, error) {
+func Div(args *types.Pair) (types.Sexpr, error) {
 	var (
 		result types.Sexpr
 		err    error
@@ -210,7 +210,7 @@ func div(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `%` procedure
-func mod(args *types.Pair) (types.Sexpr, error) {
+func Mod(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -223,7 +223,7 @@ func mod(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `//` procedure
-func intDiv(args *types.Pair) (types.Sexpr, error) {
+func IntDiv(args *types.Pair) (types.Sexpr, error) {
 	var (
 		result types.Sexpr
 		err    error

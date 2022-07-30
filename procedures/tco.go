@@ -14,7 +14,7 @@ import (
 // `let` procedure
 //
 //  (let ((name1 value1) (name2 value2) ...) expr1 expr2 ...)
-func let(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
+func Let(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil || !args.HasNext() {
 		return nil, env, eval.ErrBadArgNumber
 	}
@@ -76,7 +76,7 @@ func bind(binding *types.Pair, local, parent *envir.Env) error {
 // `if` procedure
 //
 //  (if condition if-true if-false)
-func ifFn(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
+func If(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil || !args.HasNext() {
 		return nil, env, eval.ErrBadArgNumber
 	}
@@ -99,7 +99,7 @@ func ifFn(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 // `cond` procedure
 //
 //  (cond (test1 expr1) (test2 expr2)...)
-func cond(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
+func Cond(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil {
 		return nil, env, eval.ErrBadArgNumber
 	}
@@ -127,6 +127,6 @@ func cond(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 }
 
 // `begin` procedure
-func begin(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
+func Begin(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	return eval.PartialEval(args, env)
 }

@@ -9,15 +9,15 @@ import (
 )
 
 // `quote` procedure
-func quote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func Quote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
 	return args.This, nil
 }
 
-// `define` procedure
-func define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+// `sefine` procedure
+func Define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -57,7 +57,7 @@ func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
 }
 
 // `set!` procedure
-func set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func Set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -81,7 +81,7 @@ func set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 }
 
 // `load` procedure
-func load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func Load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -104,7 +104,7 @@ func load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 }
 
 // `eval` procedure
-func evalFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func Eval(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}

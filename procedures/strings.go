@@ -8,7 +8,7 @@ import (
 )
 
 // `string` procedure
-func toString(args *types.Pair) (types.Sexpr, error) {
+func ToString(args *types.Pair) (types.Sexpr, error) {
 	return types.String(toRawString(args, "")), nil
 }
 
@@ -44,7 +44,7 @@ func asInt(s types.Sexpr) (int, error) {
 	}
 }
 
-func substring(args *types.Pair) (types.Sexpr, error) {
+func Substring(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() || !args.Next.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -67,7 +67,7 @@ func substring(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `string-length` procedure
-func stringLength(args *types.Pair) (types.Sexpr, error) {
+func StringLength(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || args.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}

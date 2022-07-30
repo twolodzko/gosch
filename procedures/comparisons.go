@@ -24,7 +24,7 @@ func sameCallables(obj1, obj2 types.Sexpr) bool {
 	return false
 }
 
-func eq(args *types.Pair) (types.Sexpr, error) {
+func Eq(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -35,7 +35,7 @@ func eq(args *types.Pair) (types.Sexpr, error) {
 	return types.Bool(args.This == args.Next.This), nil
 }
 
-func equal(args *types.Pair) (types.Sexpr, error) {
+func Equal(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return types.Bool(true), nil
 	}
@@ -60,7 +60,7 @@ func equal(args *types.Pair) (types.Sexpr, error) {
 	return types.Bool(true), nil
 }
 
-func lower(args *types.Pair) (types.Sexpr, error) {
+func Lower(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return types.Bool(true), nil
 	}
@@ -85,7 +85,7 @@ func lower(args *types.Pair) (types.Sexpr, error) {
 	return types.Bool(true), nil
 }
 
-func greater(args *types.Pair) (types.Sexpr, error) {
+func Greater(args *types.Pair) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return types.Bool(true), nil
 	}

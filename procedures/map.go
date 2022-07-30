@@ -9,7 +9,7 @@ import (
 )
 
 // `map` procedure
-func mapFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func Map(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	fn, list, err := mapArgs(args, env)
 	if err != nil {
 		return nil, err
@@ -39,7 +39,7 @@ func mapFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 // Limitations:
 //  * it ignores errors in the routines and just returns <nil>
 //  * it can panic for impure functions (e.g. using set!)
-func goFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func Go(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	fn, list, err := mapArgs(args, env)
 	if err != nil {
 		return nil, err

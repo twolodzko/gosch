@@ -6,7 +6,7 @@ import (
 )
 
 // `null?` procedure
-func isNull(args *types.Pair) (types.Sexpr, error) {
+func IsNull(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -19,7 +19,7 @@ func isNull(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `pair?` procedure
-func isPair(args *types.Pair) (types.Sexpr, error) {
+func IsPair(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -32,7 +32,7 @@ func isPair(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `bool?` procedure
-func isBool(args *types.Pair) (types.Sexpr, error) {
+func IsBool(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -45,7 +45,7 @@ func isBool(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `string?` procedure
-func isString(args *types.Pair) (types.Sexpr, error) {
+func IsString(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -58,7 +58,7 @@ func isString(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `symbol?` procedure
-func isSymbol(args *types.Pair) (types.Sexpr, error) {
+func IsSymbol(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -71,7 +71,7 @@ func isSymbol(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `nil?` procedure
-func isNil(args *types.Pair) (types.Sexpr, error) {
+func IsNil(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}
@@ -79,7 +79,7 @@ func isNil(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `procedure?` procedure
-func isProcedure(args *types.Pair) (types.Sexpr, error) {
+func IsProcedure(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
 	}

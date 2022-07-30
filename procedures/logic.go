@@ -6,16 +6,16 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-const elseWord = types.Bool(true)
+const Else = types.Bool(true)
 
-func not(args *types.Pair) (types.Sexpr, error) {
+func Not(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return types.Bool(false), nil
 	}
 	return !types.IsTrue(args.This), nil
 }
 
-func and(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func And(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args.This == nil {
 		return types.Bool(true), nil
 	}
@@ -33,7 +33,7 @@ func and(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	return types.Bool(true), nil
 }
 
-func or(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func Or(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args.This == nil {
 		return types.Bool(true), nil
 	}

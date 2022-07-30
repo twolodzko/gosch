@@ -17,7 +17,7 @@ import (
 //    a. check test, if true eval & return result
 //    b. eval exps
 //    c. update bindings with update steps
-func do(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func Do(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	var (
 		stop types.Bool
 		err  error

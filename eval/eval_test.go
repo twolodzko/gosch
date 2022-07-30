@@ -157,3 +157,38 @@ func Test_EvalArgs(t *testing.T) {
 		t.Errorf("input %v has changed to %v", inputCopy, input)
 	}
 }
+
+func Test_SymbolsPairToSlice(t *testing.T) {
+
+	var testCases = []struct {
+		input    *types.Pair
+		expected []types.Symbol
+	}{
+		{
+			&types.Pair{},
+			nil,
+		},
+		{
+			types.NewPair(types.Symbol("a"), nil),
+			[]types.Symbol{"a"},
+		},
+		{
+			types.NewPair(types.Symbol("a"), types.Symbol("b")),
+			[]types.Symbol{"a", "b"},
+		},
+		{
+			types.PairFromArray([]types.Sexpr{"a", "b", "c"}),
+			[]types.Symbol{"a", "b", "c"},
+		},
+	}
+
+	for _, tt := range testCases {
+		result, err := SymbolsPairToSlice(tt.input)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if !cmp.Equal(result, tt.expected) {
+			t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
+		}
+	}
+}

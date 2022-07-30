@@ -51,4 +51,4 @@ fmt:
 
 .PHONY: clean
 clean:
-	rm -rf *.out *.html ./gol
+	rm -rf *.out *.html ./gosch

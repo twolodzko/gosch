@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -15,25 +16,41 @@ import (
 const prompt string = "> "
 
 func main() {
-	if len(os.Args) == 2 {
-		if os.Args[1] == "-h" || os.Args[1] == "--help" {
-			printHelp()
-			return
-		}
-		eval.Procedures = procedures.Procedures
-		env := envir.NewEnv()
-		sexprs, err := eval.LoadEval(os.Args[1], env)
-		if err != nil {
-			log.Fatalf("ERROR: %v\n", err)
-		}
-		if len(sexprs) > 0 {
-			fmt.Printf("%v\n", sexprs[len(sexprs)-1])
-		} else {
-			fmt.Printf("%v\n", nil)
-		}
+	var showHelp bool
+	var lambdaOnly bool
+
+	flag.BoolVar(&showHelp, "help", false, "show help")
+	flag.BoolVar(&lambdaOnly, "lambda-only", false, "minimalistic lambda calculus interpreter")
+	flag.Parse()
+
+	if showHelp {
+		printHelp()
 		return
 	}
+	if !lambdaOnly {
+		eval.Procedures = procedures.Procedures
+	}
+	if flag.NArg() == 1 {
+		evalFile(flag.Arg(0))
+		return
+	}
+	startRepl()
+}
 
+func evalFile(filename string) {
+	env := envir.NewEnv()
+	sexprs, err := eval.LoadEval(filename, env)
+	if err != nil {
+		log.Fatalf("ERROR: %v\n", err)
+	}
+	if len(sexprs) > 0 {
+		fmt.Printf("%v\n", sexprs[len(sexprs)-1])
+	} else {
+		fmt.Printf("%v\n", nil)
+	}
+}
+
+func startRepl() {
 	repl := repl.NewRepl(os.Stdin)
 
 	fmt.Println("Press ^C to exit.")
@@ -55,18 +72,16 @@ func main() {
 	}
 }
 
+func printHelp() {
+	fmt.Printf("%s FLAGS [script]\n", os.Args[0])
+	fmt.Println()
+	fmt.Println("Usage:")
+	flag.PrintDefaults()
+}
+
 func print(msg string) {
 	_, err := io.WriteString(os.Stdout, fmt.Sprintf("%s\n", msg))
 	if err != nil {
 		log.Fatal(err)
 	}
-}
-
-func printHelp() {
-	fmt.Printf("%s [script]\n", os.Args[0])
-	fmt.Println()
-	fmt.Println("Usage:")
-	fmt.Printf("  %s             start REPL\n", os.Args[0])
-	fmt.Printf("  %s script.scm  evaluate script.scm\n", os.Args[0])
-	fmt.Printf("  %s -h,--help   display help\n", os.Args[0])
 }

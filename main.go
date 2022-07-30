@@ -27,14 +27,16 @@ func main() {
 		printHelp()
 		return
 	}
+
 	if !lambdaOnly {
 		eval.Procedures = procedures.Procedures
 	}
+
 	if flag.NArg() == 1 {
 		evalFile(flag.Arg(0))
-		return
+	} else {
+		startRepl()
 	}
-	startRepl()
 }
 
 func evalFile(filename string) {

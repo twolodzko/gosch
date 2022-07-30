@@ -7,27 +7,6 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-var DEBUG bool = false
-
-type (
-	Primitive         = func(*types.Pair) (types.Sexpr, error)
-	Procedure         = func(*types.Pair, *envir.Env) (types.Sexpr, error)
-	TailCallOptimized = func(*types.Pair, *envir.Env) (types.Sexpr, *envir.Env, error)
-)
-
-// Global getter for procedures imported from other modules
-var Procedures func(name types.Symbol) (interface{}, bool) = nil
-
-func getProcedure(name types.Symbol) (interface{}, bool) {
-	if name == "lambda" {
-		return NewLambda, true
-	}
-	if Procedures == nil {
-		return nil, false
-	}
-	return Procedures(name)
-}
-
 func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 	for {
 		if DEBUG {

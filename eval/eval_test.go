@@ -67,14 +67,13 @@ func Test_EvalArgs(t *testing.T) {
 	input := types.PairFromArray([]types.Sexpr{types.Quote("a"), types.Quote("b")})
 	expected := types.PairFromArray([]types.Sexpr{"a", "b"})
 
-	Procedures = func(name types.Symbol) (interface{}, bool) {
-		// quote procedure
-		return func(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+	Procedures = ProceduresGetter{
+		"quote": func(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 			if args == nil {
 				return nil, ErrBadArgNumber
 			}
 			return args.This, nil
-		}, true
+		},
 	}
 	env := envir.NewEnv()
 

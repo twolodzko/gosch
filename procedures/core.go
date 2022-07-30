@@ -116,3 +116,12 @@ func evalFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	// here we evaluate the resulting expression
 	return eval.Eval(expr, env)
 }
+
+func isCallable(obj types.Sexpr) bool {
+	switch obj.(type) {
+	case eval.Procedure, eval.Primitive, eval.TailCallOptimized, eval.Lambda:
+		return true
+	default:
+		return false
+	}
+}

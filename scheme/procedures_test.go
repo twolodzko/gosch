@@ -19,7 +19,7 @@ func Test_QuotedEval(t *testing.T) {
 
 	var testCases = []types.Sexpr{
 		"a",
-		types.Pair{},
+		&types.Pair{},
 		types.NewPair(types.Quote("a"), nil),
 	}
 

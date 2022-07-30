@@ -1,10 +1,6 @@
 package procedures
 
 import (
-	"fmt"
-	"time"
-
-	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
@@ -57,7 +53,7 @@ func Procedures(name types.Symbol) (interface{}, bool) {
 	case "cond":
 		return cond, true
 	case "else":
-		return types.Bool(true), true
+		return elseWord, true
 	case "begin":
 		return begin, true
 	case "do":
@@ -99,9 +95,7 @@ func Procedures(name types.Symbol) (interface{}, bool) {
 	case "->int":
 		return toInt, true
 	case "string":
-		return func(args *types.Pair) (types.Sexpr, error) {
-			return types.String(toString(args, "")), nil
-		}, true
+		return toString, true
 	case "substring":
 		return substring, true
 	case "string-length":
@@ -123,158 +117,4 @@ func Procedures(name types.Symbol) (interface{}, bool) {
 	default:
 		return nil, false
 	}
-}
-
-func quote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil {
-		return nil, eval.ErrBadArgNumber
-	}
-	return args.This, nil
-}
-
-func and(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args.This == nil {
-		return types.Bool(true), nil
-	}
-	head := args
-	for head != nil {
-		test, err := eval.Eval(head.This, env)
-		if err != nil {
-			return nil, err
-		}
-		if !types.IsTrue(test) {
-			return types.Bool(false), nil
-		}
-		head = head.Next
-	}
-	return types.Bool(true), nil
-}
-
-func or(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args.This == nil {
-		return types.Bool(true), nil
-	}
-	head := args
-	for head != nil {
-		test, err := eval.Eval(head.This, env)
-		if err != nil {
-			return nil, err
-		}
-		if types.IsTrue(test) {
-			return types.Bool(true), nil
-		}
-		head = head.Next
-	}
-	return types.Bool(false), nil
-}
-
-func define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return nil, eval.ErrBadArgNumber
-	}
-	switch this := args.This.(type) {
-	case types.Symbol:
-		val, err := eval.Eval(args.Next.This, env)
-		if err != nil {
-			return nil, err
-		}
-		env.Set(this, val)
-		return val, nil
-	case *types.Pair:
-		return defineLambda(this, args.Next, env)
-	default:
-		return nil, eval.NewErrBadName(args.This)
-	}
-}
-
-// Implementation of
-//
-//  (define (name args...) body...)
-func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil {
-		return nil, eval.ErrBadArgNumber
-	}
-	name, ok := args.This.(types.Symbol)
-	if !ok {
-		return nil, eval.NewErrBadName(args.This)
-	}
-	vars, err := eval.LambdaArgs(args.Next)
-	if err != nil {
-		return nil, err
-	}
-	fn := eval.Lambda{Vars: vars, Body: body, ParentEnv: env}
-	env.Set(name, fn)
-	return fn, nil
-}
-
-// `set!` procedure
-func set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return nil, eval.ErrBadArgNumber
-	}
-
-	val, err := eval.Eval(args.Next.This, env)
-	if err != nil {
-		return nil, err
-	}
-
-	switch name := args.This.(type) {
-	case types.Symbol:
-		if localEnv, ok := env.FindEnv(name); ok {
-			localEnv.Set(name, val)
-		} else {
-			env.Set(name, val)
-		}
-		return val, nil
-	default:
-		return nil, eval.NewErrBadName(args.This)
-	}
-}
-
-// `load` procedure
-func load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil {
-		return nil, eval.ErrBadArgNumber
-	}
-	head, err := eval.Eval(args.This, env)
-	if err != nil {
-		return nil, err
-	}
-	path, ok := head.(types.String)
-	if !ok {
-		return nil, fmt.Errorf("invalid path: %v", head)
-	}
-	sexprs, err := eval.LoadEval(string(path), env)
-	if err != nil {
-		return nil, err
-	}
-	if len(sexprs) > 0 {
-		return sexprs[len(sexprs)-1], nil
-	}
-	return nil, nil
-}
-
-// `eval` procedure
-func evalFn(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || args.HasNext() {
-		return nil, eval.ErrBadArgNumber
-	}
-	// this is what "just" evaluating the object would do
-	expr, err := eval.Eval(args.This, env)
-	if err != nil {
-		return nil, err
-	}
-	// here we evaluate the resulting expression
-	return eval.Eval(expr, env)
-}
-
-// `timeit` procedure
-func timeit(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	start := time.Now()
-	result, err := eval.EvalAll(args, env)
-	if err != nil {
-		return nil, err
-	}
-	fmt.Println(time.Since(start))
-	return result, nil
 }

@@ -88,9 +88,9 @@ func Test_LambdaCalculus(t *testing.T) {
 		// false
 		{"((lambda (x y) y) #t #f)", "#f"},
 		// negation of true
-		{"((lambda (x) (x #f #t)) (lambda (x y) x))", "#f"},
+		{"(((lambda (x) (x (lambda (x y) y) (lambda (x y) x))) (lambda (x y) x)) #t #f)", "#f"},
 		// negation of false
-		{"((lambda (x) (x #f #t)) (lambda (x y) y))", "#t"},
+		{"(((lambda (x) (x (lambda (x y) y) (lambda (x y) x))) (lambda (x y) y)) #t #f)", "#t"},
 		// true and true
 		{"(((lambda (x y) (x y (lambda (x y) y))) (lambda (x y) x) (lambda (x y) x)) #t #f)", "#t"},
 		// true and false

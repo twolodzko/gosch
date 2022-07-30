@@ -1,4 +1,4 @@
-package procedures
+package scheme
 
 import (
 	"fmt"

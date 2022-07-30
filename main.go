@@ -9,8 +9,8 @@ import (
 
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
-	"github.com/twolodzko/gosch/procedures"
 	"github.com/twolodzko/gosch/repl"
+	"github.com/twolodzko/gosch/scheme"
 )
 
 const prompt string = "> "
@@ -29,7 +29,7 @@ func main() {
 	}
 
 	if !lambdaOnly {
-		eval.Procedures = procedures.Procedures
+		eval.Procedures = scheme.Procedures
 	}
 
 	if flag.NArg() == 1 {

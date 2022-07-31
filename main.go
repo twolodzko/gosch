@@ -53,7 +53,8 @@ func evalFile(filename string) {
 }
 
 func startRepl() {
-	repl := repl.NewRepl(os.Stdin)
+	env := envir.NewEnv()
+	repl := repl.NewRepl(os.Stdin, env)
 
 	fmt.Println("Press ^C to exit.")
 	fmt.Println()

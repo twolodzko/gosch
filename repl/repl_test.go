@@ -3,6 +3,8 @@ package repl
 import (
 	"strings"
 	"testing"
+
+	"github.com/twolodzko/gosch/envir"
 )
 
 func TestRead_InvalidInput(t *testing.T) {
@@ -16,7 +18,8 @@ func TestRead_InvalidInput(t *testing.T) {
 	}
 
 	for _, input := range testCases {
-		repl := NewRepl(strings.NewReader(input))
+		env := envir.NewEnv()
+		repl := NewRepl(strings.NewReader(input), env)
 		result, err := repl.read()
 
 		if err == nil {

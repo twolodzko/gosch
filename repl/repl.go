@@ -14,8 +14,7 @@ type Repl struct {
 	env    *envir.Env
 }
 
-func NewRepl(in io.Reader) *Repl {
-	env := envir.NewEnv()
+func NewRepl(in io.Reader, env *envir.Env) *Repl {
 	return &Repl{bufio.NewReader(in), env}
 }
 

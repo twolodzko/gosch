@@ -65,8 +65,7 @@ func SymbolsPairToSlice(args *types.Pair) ([]types.Symbol, error) {
 func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 
 	// local env inherits from the env where the lambda was defined
-	local := envir.NewEnv()
-	local.Parent = l.ParentEnv
+	local := envir.NewEnvFrom(l.ParentEnv)
 
 	// setup local env
 	head := args

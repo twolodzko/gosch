@@ -67,8 +67,7 @@ func (job *doJob) shouldStop() (types.Bool, error) {
 
 // Update the variable bindings
 func (job *doJob) updateBindings() error {
-	newEnv := envir.NewEnv()
-	newEnv.Parent = job.env.Parent
+	newEnv := envir.NewEnvFrom(job.env.Parent)
 
 	for name, step := range job.steps {
 		val, err := eval.Eval(step, job.env)
@@ -88,8 +87,7 @@ func newDoJob(args *types.Pair, env *envir.Env) (doJob, error) {
 		return doJob{}, eval.ErrBadArgNumber
 	}
 
-	local := envir.NewEnv()
-	local.Parent = env
+	local := envir.NewEnvFrom(env)
 
 	bindings, ok := args.This.(*types.Pair)
 	if !ok {

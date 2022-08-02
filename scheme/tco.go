@@ -19,8 +19,7 @@ func Let(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 		return nil, env, eval.ErrBadArgNumber
 	}
 
-	local := envir.NewEnv()
-	local.Parent = env
+	local := envir.NewEnvFrom(env)
 
 	// bind variables
 	bindings, ok := args.This.(*types.Pair)

@@ -16,6 +16,12 @@ func NewEnv() *Env {
 	return &Env{vars, nil}
 }
 
+func NewEnvFrom(parent *Env) *Env {
+	new := NewEnv()
+	new.Parent = parent
+	return new
+}
+
 func (e *Env) Set(name types.Symbol, value types.Sexpr) {
 	e.Vars[name] = value
 }

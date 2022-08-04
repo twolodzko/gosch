@@ -27,7 +27,7 @@ for example `(if #f 'ok)` returns `<nil>`.
 - `(define name value)` assigns *value* to a *name* in the current environment. `(set! name value)` if *name* exists
 in the current or enclosing environment, it sets it to the *value*, otherwise it assigns *value* to a *name* in the
 current environment.
-- `(quote expr)` or `'expr` returns *obj* without evaluating it. While `quote` is commonly used for constructing lists,
+- `(quote expr)` or `'expr` returns *expr* without evaluating it. While `quote` is commonly used for constructing lists,
 [it is not the same] as `list`. `quasiquote` or `` `expr`` works like `quote`, but parts of the expression can be
 evaluated using `(unquote expr)` or `,expr`, for example `` `(2 + 2 = ,(+ 2 2))`` will evaluate to `(2 + 2 = 4)`.
 - `(eval expr)` does the opposite to `quote` by evaluating *expr*, e.g. `(eval '(+ 2 2))` returns 4 rather than the

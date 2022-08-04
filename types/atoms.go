@@ -30,10 +30,6 @@ func IsTrue(s Sexpr) Bool {
 	}
 }
 
-func Quote(s Sexpr) Sexpr {
-	return &Pair{"quote", &Pair{s, nil}}
-}
-
 func (s String) String() string {
 	return fmt.Sprintf(`"%v"`, string(s))
 }

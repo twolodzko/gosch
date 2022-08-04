@@ -7,14 +7,21 @@ type Pair struct {
 	Next *Pair
 }
 
-func NewPair(this Sexpr, next Sexpr) *Pair {
+func NewPair(this, next Sexpr) *Pair {
 	switch next := next.(type) {
-	case *Pair:
-		return &Pair{this, next}
 	case nil:
 		return &Pair{this, nil}
 	default:
 		return &Pair{this, &Pair{next, nil}}
+	}
+}
+
+func MakePair(this Sexpr, next Sexpr) *Pair {
+	switch next := next.(type) {
+	case *Pair:
+		return &Pair{this, next}
+	default:
+		return NewPair(this, next)
 	}
 }
 
@@ -88,7 +95,7 @@ func NewAppendablePair() *AppendablePair {
 }
 
 func (p *AppendablePair) Append(sexpr Sexpr) {
-	p.Last.Next = NewPair(sexpr, nil)
+	p.Last.Next = MakePair(sexpr, nil)
 	p.Last = p.Last.Next
 }
 

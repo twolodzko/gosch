@@ -23,22 +23,22 @@ func Test_Parse(t *testing.T) {
 		{"#t", types.TRUE},
 		{"#f", types.FALSE},
 		{"()", &types.Pair{}},
-		{"(a)", types.NewPair(types.Symbol("a"), nil)},
-		{"(())", types.NewPair(&types.Pair{}, nil)},
-		{"(1 2 3)", types.NewPair(types.Integer(1), types.NewPair(types.Integer(2), types.NewPair(types.Integer(3), nil)))},
-		{"((1 2) 3)", types.NewPair(types.NewPair(types.Integer(1), types.NewPair(types.Integer(2), nil)), types.NewPair(types.Integer(3), nil))},
-		{"(1 (2 3))", types.NewPair(types.Integer(1), types.NewPair(types.NewPair(types.Integer(2), types.NewPair(types.Integer(3), nil)), nil))},
-		{"'a", types.Quote(types.Symbol("a"))},
-		{"'(a)", types.Quote(types.NewPair(types.Symbol("a"), nil))},
-		{"('a)", types.NewPair(types.Quote(types.Symbol("a")), nil)},
-		{"'''a", types.Quote(types.Quote(types.Quote(types.Symbol("a"))))},
-		{"'()", types.Quote(&types.Pair{})},
-		{"''()", types.Quote(types.Quote(&types.Pair{}))},
+		{"(a)", types.MakePair(types.Symbol("a"), nil)},
+		{"(())", types.MakePair(&types.Pair{}, nil)},
+		{"(1 2 3)", types.MakePair(types.Integer(1), types.MakePair(types.Integer(2), types.MakePair(types.Integer(3), nil)))},
+		{"((1 2) 3)", types.MakePair(types.MakePair(types.Integer(1), types.MakePair(types.Integer(2), nil)), types.MakePair(types.Integer(3), nil))},
+		{"(1 (2 3))", types.MakePair(types.Integer(1), types.MakePair(types.MakePair(types.Integer(2), types.MakePair(types.Integer(3), nil)), nil))},
+		{"'a", Quote(types.Symbol("a"))},
+		{"'(a)", Quote(types.MakePair(types.Symbol("a"), nil))},
+		{"('a)", types.MakePair(Quote(types.Symbol("a")), nil)},
+		{"'''a", Quote(Quote(Quote(types.Symbol("a"))))},
+		{"'()", Quote(&types.Pair{})},
+		{"''()", Quote(Quote(&types.Pair{}))},
 		{"  \n\ta", "a"},
-		{"\n  \t\n(\n   a\t\n)  ", types.NewPair(types.Symbol("a"), nil)},
+		{"\n  \t\n(\n   a\t\n)  ", types.MakePair(types.Symbol("a"), nil)},
 		{`"hello world!"`, types.String("hello world!")},
 		{`"William Joseph \"Wild Bill\" Donovan"`, types.String(`William Joseph "Wild Bill" Donovan`)},
-		{"(list 1 2 ;; a comment\n3)", types.NewPair(types.Symbol("list"), types.NewPair(types.Integer(1), types.NewPair(types.Integer(2), types.NewPair(types.Integer(3), nil))))},
+		{"(list 1 2 ;; a comment\n3)", types.MakePair(types.Symbol("list"), types.MakePair(types.Integer(1), types.MakePair(types.Integer(2), types.MakePair(types.Integer(3), nil))))},
 	}
 
 	for _, tt := range testCases {
@@ -123,6 +123,29 @@ func Test_ParseExpectError(t *testing.T) {
 		parser := NewParser(tt.input)
 		if _, err := parser.Read(); err.Error() != tt.expected {
 			t.Errorf("for %q expected an error %q, got: %q", tt.input, tt.expected, err)
+		}
+	}
+}
+
+func Test_Quote(t *testing.T) {
+	var testCases = []struct {
+		input    types.Sexpr
+		expected types.Sexpr
+	}{
+		{
+			"x",
+			&types.Pair{This: "quote", Next: &types.Pair{This: "x", Next: nil}},
+		},
+		{
+			&types.Pair{},
+			&types.Pair{This: "quote", Next: &types.Pair{This: &types.Pair{}, Next: nil}},
+		},
+	}
+
+	for _, tt := range testCases {
+		result := Quote(tt.input)
+		if !cmp.Equal(result, tt.expected) {
+			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
 		}
 	}
 }

@@ -20,12 +20,12 @@ func Test_QuotedEval(t *testing.T) {
 	var testCases = []types.Sexpr{
 		"a",
 		&types.Pair{},
-		types.NewPair(types.Quote("a"), nil),
+		types.MakePair(parser.Quote("a"), nil),
 	}
 
 	for _, input := range testCases {
 		env := envir.NewEnv()
-		result, err := eval.Eval(types.Quote(input), env)
+		result, err := eval.Eval(parser.Quote(input), env)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
@@ -37,12 +37,12 @@ func Test_QuotedEval(t *testing.T) {
 
 func Test_EvalDoesntMutate(t *testing.T) {
 	eval.Procedures = Procedures
-	input := types.Quote(types.NewPair(types.Quote("a"), nil))
+	input := parser.Quote(types.MakePair(parser.Quote("a"), nil))
 	env := envir.NewEnv()
 	if _, err := eval.Eval(input, env); err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
-	if !cmp.Equal(input, types.Quote(types.NewPair(types.Quote("a"), nil))) {
+	if !cmp.Equal(input, parser.Quote(types.MakePair(parser.Quote("a"), nil))) {
 		t.Errorf("%v mutated after eval", input)
 	}
 }
@@ -51,7 +51,7 @@ func Test_EvalExpectError(t *testing.T) {
 	eval.Procedures = Procedures
 	var testCases = []types.Sexpr{
 		"a",
-		types.NewPair("a", nil),
+		types.MakePair("a", nil),
 	}
 	for _, input := range testCases {
 		env := envir.NewEnv()
@@ -68,8 +68,8 @@ func Test_EvalSimpleObjects(t *testing.T) {
 		expected types.Sexpr
 	}{
 		{nil, nil},
-		{types.Quote("a"), "a"},
-		{types.Quote(types.NewPair("+", types.NewPair(2, types.NewPair(2, nil)))), types.NewPair("+", types.NewPair(2, types.NewPair(2, nil)))},
+		{parser.Quote("a"), "a"},
+		{parser.Quote(types.MakePair("+", types.MakePair(2, types.MakePair(2, nil)))), types.MakePair("+", types.MakePair(2, types.MakePair(2, nil)))},
 		{42, 42},
 		{"d", 26},
 	}
@@ -98,92 +98,92 @@ func Test_EvalPair(t *testing.T) {
 			&types.Pair{}, &types.Pair{},
 		},
 		{
-			types.NewPair("car", types.NewPair(types.Quote(&types.Pair{}), nil)),
+			types.MakePair("car", types.MakePair(parser.Quote(&types.Pair{}), nil)),
 			nil,
 		},
 		{
-			types.NewPair("car", types.NewPair(types.Quote(types.NewPair("a", nil)), nil)),
+			types.MakePair("car", types.MakePair(parser.Quote(types.MakePair("a", nil)), nil)),
 			"a",
 		},
 		{
-			types.NewPair("car", types.NewPair(types.Quote(types.NewPair("a", types.NewPair("b", types.NewPair("c", nil)))), nil)),
+			types.MakePair("car", types.MakePair(parser.Quote(types.MakePair("a", types.MakePair("b", types.MakePair("c", nil)))), nil)),
 			"a",
 		},
 		{
-			types.NewPair("cdr", types.NewPair(types.Quote(&types.Pair{}), nil)),
+			types.MakePair("cdr", types.MakePair(parser.Quote(&types.Pair{}), nil)),
 			nil,
 		},
 		{
-			types.NewPair("cdr", types.NewPair(types.Quote(types.NewPair("a", nil)), nil)),
+			types.MakePair("cdr", types.MakePair(parser.Quote(types.MakePair("a", nil)), nil)),
 			&types.Pair{},
 		},
 		{
-			types.NewPair("cdr", types.NewPair(types.Quote(types.NewPair("a", types.NewPair("b", types.NewPair("c", nil)))), nil)),
-			types.NewPair("b", types.NewPair("c", nil)),
+			types.MakePair("cdr", types.MakePair(parser.Quote(types.MakePair("a", types.MakePair("b", types.MakePair("c", nil)))), nil)),
+			types.MakePair("b", types.MakePair("c", nil)),
 		},
 		{
-			types.NewPair("null?", types.NewPair(types.Quote(&types.Pair{}), nil)),
+			types.MakePair("null?", types.MakePair(parser.Quote(&types.Pair{}), nil)),
 			types.TRUE,
 		},
 		{
-			types.NewPair("null?", types.NewPair(types.Quote("a"), nil)),
+			types.MakePair("null?", types.MakePair(parser.Quote("a"), nil)),
 			types.FALSE,
 		},
 		{
-			types.NewPair("null?", types.NewPair(types.Quote(types.NewPair("a", nil)), nil)),
+			types.MakePair("null?", types.MakePair(parser.Quote(types.MakePair("a", nil)), nil)),
 			types.FALSE,
 		},
 		{
-			types.NewPair("pair?", types.NewPair(types.Quote(&types.Pair{}), nil)),
+			types.MakePair("pair?", types.MakePair(parser.Quote(&types.Pair{}), nil)),
 			types.FALSE,
 		},
 		{
-			types.NewPair("pair?", types.NewPair(types.Quote("a"), nil)),
+			types.MakePair("pair?", types.MakePair(parser.Quote("a"), nil)),
 			types.FALSE,
 		},
 		{
-			types.NewPair("pair?", types.NewPair(types.Quote(types.NewPair("a", nil)), nil)),
+			types.MakePair("pair?", types.MakePair(parser.Quote(types.MakePair("a", nil)), nil)),
 			types.TRUE,
 		},
 		{
-			types.NewPair("pair?", types.NewPair(types.Quote(types.NewPair("a", types.NewPair("b", nil))), nil)),
+			types.MakePair("pair?", types.MakePair(parser.Quote(types.MakePair("a", types.MakePair("b", nil))), nil)),
 			types.TRUE,
 		},
 		{
-			types.NewPair("cons", types.NewPair(types.Quote("a"), types.NewPair(types.Quote(&types.Pair{}), nil))),
-			types.NewPair("a", nil),
+			types.MakePair("cons", types.MakePair(parser.Quote("a"), types.MakePair(parser.Quote(&types.Pair{}), nil))),
+			types.MakePair("a", nil),
 		},
 		{
-			types.NewPair("cons", types.NewPair(1, types.NewPair(2, nil))),
-			types.NewPair(1, types.NewPair(2, nil)),
+			types.MakePair("cons", types.MakePair(1, types.MakePair(2, nil))),
+			types.MakePair(1, types.MakePair(2, nil)),
 		},
 		{
-			types.NewPair("list", types.NewPair(1, types.NewPair(2, nil))),
-			types.NewPair(1, types.NewPair(2, nil)),
+			types.MakePair("list", types.MakePair(1, types.MakePair(2, nil))),
+			types.MakePair(1, types.MakePair(2, nil)),
 		},
 		{
-			types.NewPair("list", nil),
+			types.MakePair("list", nil),
 			&types.Pair{},
 		},
 		{
-			types.NewPair("list", types.NewPair(1, types.NewPair(2, types.NewPair(3, nil)))),
-			types.NewPair(1, types.NewPair(2, types.NewPair(3, nil))),
+			types.MakePair("list", types.MakePair(1, types.MakePair(2, types.MakePair(3, nil)))),
+			types.MakePair(1, types.MakePair(2, types.MakePair(3, nil))),
 		},
 		{
-			types.NewPair("not", types.NewPair(types.FALSE, nil)),
+			types.MakePair("not", types.MakePair(types.FALSE, nil)),
 			types.TRUE,
 		},
 		{
-			types.NewPair("not", types.NewPair(types.TRUE, nil)),
+			types.MakePair("not", types.MakePair(types.TRUE, nil)),
 			types.FALSE,
 		},
 		{
-			types.NewPair("not", types.NewPair(3, nil)),
+			types.MakePair("not", types.MakePair(3, nil)),
 			types.FALSE,
 		},
 		{
-			types.NewPair("quote", types.NewPair(types.NewPair("list", types.NewPair(2, nil)), nil)),
-			types.NewPair("list", types.NewPair(2, nil)),
+			types.MakePair("quote", types.MakePair(types.MakePair("list", types.MakePair(2, nil)), nil)),
+			types.MakePair("list", types.MakePair(2, nil)),
 		},
 	}
 
@@ -494,7 +494,7 @@ func Test_AliasToFunction(t *testing.T) {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	expected := types.NewPair(types.Integer(1), types.NewPair(types.Integer(2), nil))
+	expected := types.MakePair(types.Integer(1), types.MakePair(types.Integer(2), nil))
 	result, _, err := eval.EvalString("(my-list 1 2)", env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
@@ -508,7 +508,7 @@ func Test_Define(t *testing.T) {
 	eval.Procedures = Procedures
 	env := envir.NewEnv()
 
-	_, err := eval.Eval(types.NewPair("define", types.NewPair("x", types.NewPair(types.Integer(42), nil))), env)
+	_, err := eval.Eval(types.MakePair("define", types.MakePair("x", types.MakePair(types.Integer(42), nil))), env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -559,7 +559,7 @@ func Test_LetBindsLocally(t *testing.T) {
 }
 
 func Test_QuoteDoesntMutate(t *testing.T) {
-	example := types.Quote("a")
+	example := parser.Quote("a")
 	eval.Procedures = Procedures
 	env := envir.NewEnv()
 	result, err := eval.Eval(example, env)
@@ -569,7 +569,7 @@ func Test_QuoteDoesntMutate(t *testing.T) {
 	if !cmp.Equal(result, "a") {
 		t.Errorf("expected %v, got %v", "a", result)
 	}
-	if !cmp.Equal(example, types.Quote("a")) {
+	if !cmp.Equal(example, parser.Quote("a")) {
 		t.Errorf("object mutated %v", example)
 	}
 }

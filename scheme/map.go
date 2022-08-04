@@ -20,7 +20,7 @@ func Map(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 
 	ac := types.NewAppendablePair()
 	for list != nil {
-		pair := types.NewPair(fn, list.This)
+		pair := types.MakePair(fn, list.This)
 		result, err := eval.Eval(pair, env)
 		if err != nil {
 			return nil, err
@@ -52,7 +52,7 @@ func Go(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	ch := make(chan types.Sexpr)
 
 	job := func(arg types.Sexpr) {
-		pair := types.NewPair(fn, arg)
+		pair := types.MakePair(fn, arg)
 		result, err := eval.Eval(pair, env)
 		if err != nil {
 			ch <- nil

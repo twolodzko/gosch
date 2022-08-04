@@ -39,7 +39,7 @@ func Test_NewPair(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		result := NewPair(tt.x, tt.y)
+		result := MakePair(tt.x, tt.y)
 		if !cmp.Equal(result, tt.expected) {
 			t.Errorf("for %q and %q expected %v, got: %v", tt.x, tt.y, tt.expected, result)
 		}
@@ -140,9 +140,8 @@ func Test_IsTrue(t *testing.T) {
 		{nil, true},
 		{Bool(true), true},
 		{Bool(false), false},
-		{Quote(Bool(true)), true},
-		{Quote(&Pair{}), true},
-		{Quote(&Pair{Integer(1), &Pair{Integer(2), nil}}), true},
+		{&Pair{}, true},
+		{NewPair(1, 2), true},
 		{Integer(0), true},
 		{Integer(1), true},
 	}

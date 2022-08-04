@@ -47,6 +47,33 @@ func (p *Parser) Read() ([]types.Sexpr, error) {
 	return sexprs, nil
 }
 
+func (p *Parser) readSexpr() (types.Sexpr, error) {
+	for p.HasNext() {
+		if unicode.IsSpace(p.Head()) {
+			p.pos++
+			continue
+		}
+
+		switch p.Head() {
+		case '\'':
+			p.pos++
+			val, err := p.readSexpr()
+			return Quote(val), err
+		case '(':
+			return p.readPair()
+		case ')':
+			return nil, fmt.Errorf("unexpected )")
+		case '"':
+			return p.readString()
+		case ';':
+			p.skipLine()
+		default:
+			return p.readAtom()
+		}
+	}
+	return nil, io.EOF
+}
+
 func (p *Parser) readAtom() (types.Sexpr, error) {
 	var runes []rune
 	for p.HasNext() {
@@ -142,43 +169,7 @@ func (p *Parser) skipLine() {
 	}
 }
 
-func (p *Parser) readSexpr() (types.Sexpr, error) {
-	var (
-		val types.Sexpr
-		err error
-	)
-	quotes := 0
-	for p.HasNext() {
-		if unicode.IsSpace(p.Head()) {
-			p.pos++
-			continue
-		}
-
-		switch p.Head() {
-		case '\'':
-			quotes++
-			p.pos++
-		case '(':
-			val, err = p.readPair()
-			return quote(val, quotes), err
-		case ')':
-			return nil, fmt.Errorf("unexpected )")
-		case '"':
-			val, err = p.readString()
-			return quote(val, quotes), err
-		case ';':
-			p.skipLine()
-		default:
-			val, err = p.readAtom()
-			return quote(val, quotes), err
-		}
-	}
-	return nil, io.EOF
-}
-
-func quote(s types.Sexpr, num int) types.Sexpr {
-	for i := 0; i < num; i++ {
-		s = types.Quote(s)
-	}
-	return s
+func Quote(s types.Sexpr) types.Sexpr {
+	return &types.Pair{This: "quote", Next: &types.Pair{This: s, Next: nil}}
+	// return types.NewPair("quote", s)
 }

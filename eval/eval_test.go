@@ -14,13 +14,13 @@ func Test_NewLambda(t *testing.T) {
 	env := envir.NewEnv()
 	expected := Lambda{
 		[]types.Symbol{"x", "y"},
-		types.NewPair(types.Symbol("+"), types.NewPair(types.NewPair(types.Symbol("x"), types.NewPair(types.Symbol("y"), nil)), nil)),
+		types.MakePair(types.Symbol("+"), types.MakePair(types.MakePair(types.Symbol("x"), types.MakePair(types.Symbol("y"), nil)), nil)),
 		env,
 	}
 	result, err := NewLambda(
-		types.NewPair(
-			types.NewPair(types.Symbol("x"), types.NewPair(types.Symbol("y"), nil)),
-			types.NewPair(types.Symbol("+"), types.NewPair(types.NewPair(types.Symbol("x"), types.NewPair(types.Symbol("y"), nil)), nil)),
+		types.MakePair(
+			types.MakePair(types.Symbol("x"), types.MakePair(types.Symbol("y"), nil)),
+			types.MakePair(types.Symbol("+"), types.MakePair(types.MakePair(types.Symbol("x"), types.MakePair(types.Symbol("y"), nil)), nil)),
 		),
 		env,
 	)
@@ -130,7 +130,7 @@ func Test_LambdaCalculus(t *testing.T) {
 }
 
 func Test_EvalArgs(t *testing.T) {
-	input := types.PairFromArray([]types.Sexpr{types.Quote("a"), types.Quote("b")})
+	input := types.PairFromArray([]types.Sexpr{parser.Quote("a"), parser.Quote("b")})
 	expected := types.PairFromArray([]types.Sexpr{"a", "b"})
 
 	Procedures = ProceduresGetter{
@@ -152,7 +152,7 @@ func Test_EvalArgs(t *testing.T) {
 	}
 
 	// Eval should not mutate the input
-	inputCopy := types.PairFromArray([]types.Sexpr{types.Quote("a"), types.Quote("b")})
+	inputCopy := types.PairFromArray([]types.Sexpr{parser.Quote("a"), parser.Quote("b")})
 	if !cmp.Equal(input, inputCopy) {
 		t.Errorf("input %v has changed to %v", inputCopy, input)
 	}
@@ -169,11 +169,11 @@ func Test_SymbolsPairToSlice(t *testing.T) {
 			nil,
 		},
 		{
-			types.NewPair(types.Symbol("a"), nil),
+			types.MakePair(types.Symbol("a"), nil),
 			[]types.Symbol{"a"},
 		},
 		{
-			types.NewPair(types.Symbol("a"), types.Symbol("b")),
+			types.MakePair(types.Symbol("a"), types.Symbol("b")),
 			[]types.Symbol{"a", "b"},
 		},
 		{

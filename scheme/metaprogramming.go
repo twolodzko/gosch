@@ -8,7 +8,7 @@ import (
 
 // `quote` procedure
 func Quote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil {
+	if args == nil || args.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}
 	return args.This, nil
@@ -16,7 +16,7 @@ func Quote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 
 // `quasiquote` procedure
 func Quasiquote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil {
+	if args == nil || args.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}
 	pair, ok := args.This.(*types.Pair)
@@ -28,7 +28,7 @@ func Quasiquote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 
 // `unquote` procedure
 func Unquote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil {
+	if args == nil || args.HasNext() {
 		return nil, eval.ErrBadArgNumber
 	}
 	return eval.Eval(args.This, env)

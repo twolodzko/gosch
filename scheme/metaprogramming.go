@@ -23,7 +23,7 @@ func Quasiquote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if !ok || pair == nil || !bool(pair.HasNext()) {
 		return args.This, nil
 	}
-	return evalUnquotes(pair, env)
+	return evalUnquotes(pair, 1, env)
 }
 
 // `unquote` procedure
@@ -34,24 +34,35 @@ func Unquote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	return eval.Eval(args.This, env)
 }
 
-func evalUnquotes(pair *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func evalUnquotes(pair *types.Pair, numQuotes int, env *envir.Env) (types.Sexpr, error) {
 	if pair == nil {
 		return pair, nil
 	}
-	if sym, ok := pair.This.(types.Symbol); ok && sym == "unquote" {
-		return Unquote(pair.Next, env)
+	if sym, ok := pair.This.(types.Symbol); ok {
+		switch sym {
+		case "quasiquote":
+			numQuotes++
+		case "unquote":
+			numQuotes--
+			if numQuotes == 0 {
+				return Unquote(pair.Next, env)
+			}
+		}
 	}
 
+	// iterate through all the elements of the list
 	ap := types.NewAppendablePair()
 	head := pair
 	for head != nil {
-		if p, ok := head.This.(*types.Pair); ok {
-			val, err := evalUnquotes(p, env)
+		switch obj := head.This.(type) {
+		case *types.Pair:
+			// check nested lists recursively
+			val, err := evalUnquotes(obj, numQuotes, env)
 			if err != nil {
 				return nil, err
 			}
 			ap.Append(val)
-		} else {
+		default:
 			ap.Append(head.This)
 		}
 		head = head.Next

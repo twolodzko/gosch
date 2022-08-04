@@ -47,8 +47,8 @@ var Procedures = eval.ProceduresGetter{
 	"or":            Or,
 	"pair?":         IsPair,
 	"procedure?":    IsProcedure,
-	"quote":         Quote,
 	"quasiquote":    Quasiquote,
+	"quote":         Quote,
 	"set!":          Set,
 	"string-length": StringLength,
 	"string?":       IsString,
@@ -56,4 +56,5 @@ var Procedures = eval.ProceduresGetter{
 	"substring":     Substring,
 	"symbol?":       IsSymbol,
 	"timeit":        Timeit,
+	"unquote":       Unquote,
 }

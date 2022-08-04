@@ -8,14 +8,6 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-// `quote` procedure
-func Quote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil {
-		return nil, eval.ErrBadArgNumber
-	}
-	return args.This, nil
-}
-
 // `sefine` procedure
 func Define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {

@@ -59,6 +59,14 @@ func (p *Parser) readSexpr() (types.Sexpr, error) {
 			p.pos++
 			val, err := p.readSexpr()
 			return Quote(val), err
+		case '`':
+			p.pos++
+			val, err := p.readSexpr()
+			return Quasiquote(val), err
+		case ',':
+			p.pos++
+			val, err := p.readSexpr()
+			return Unquote(val), err
 		case '(':
 			return p.readPair()
 		case ')':
@@ -171,4 +179,12 @@ func (p *Parser) skipLine() {
 
 func Quote(s types.Sexpr) types.Sexpr {
 	return types.NewPair("quote", s)
+}
+
+func Quasiquote(s types.Sexpr) types.Sexpr {
+	return types.NewPair("quasiquote", s)
+}
+
+func Unquote(s types.Sexpr) types.Sexpr {
+	return types.NewPair("unquote", s)
 }

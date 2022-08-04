@@ -48,6 +48,7 @@ var Procedures = eval.ProceduresGetter{
 	"pair?":         IsPair,
 	"procedure?":    IsProcedure,
 	"quote":         Quote,
+	"quasiquote":    Quasiquote,
 	"set!":          Set,
 	"string-length": StringLength,
 	"string?":       IsString,

@@ -170,6 +170,5 @@ func (p *Parser) skipLine() {
 }
 
 func Quote(s types.Sexpr) types.Sexpr {
-	return &types.Pair{This: "quote", Next: &types.Pair{This: s, Next: nil}}
-	// return types.NewPair("quote", s)
+	return types.NewPair("quote", s)
 }

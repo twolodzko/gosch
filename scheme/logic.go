@@ -6,8 +6,6 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-const Else = types.TRUE
-
 func Not(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
 		return types.FALSE, nil

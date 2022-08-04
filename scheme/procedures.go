@@ -2,6 +2,7 @@ package scheme
 
 import (
 	"github.com/twolodzko/gosch/eval"
+	"github.com/twolodzko/gosch/types"
 )
 
 var Procedures = eval.ProceduresGetter{
@@ -27,7 +28,7 @@ var Procedures = eval.ProceduresGetter{
 	"define":        Define,
 	"display":       Display,
 	"do":            Do,
-	"else":          Else,
+	"else":          types.TRUE,
 	"eq?":           Eq,
 	"error":         Error,
 	"eval":          Eval,

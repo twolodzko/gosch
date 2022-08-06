@@ -86,130 +86,172 @@ func Test_MatchPattern(t *testing.T) {
 		mapping  Mapping
 	}{
 		{
+			// literal else
 			LiteralPattern{"else"},
 			types.Symbol("else"),
 			true,
 			Mapping{},
 		},
 		{
+			// literal else
 			LiteralPattern{"else"},
 			types.Bool(true),
 			false,
 			Mapping{},
 		},
 		{
+			// literal else
 			LiteralPattern{"else"},
 			&types.Pair{},
 			false,
 			Mapping{},
 		},
 		{
+			// literal _
+			LiteralPattern{"_"},
+			types.Symbol("_"),
+			true,
+			Mapping{},
+		},
+		{
+			// literal ...
+			LiteralPattern{"..."},
+			types.Symbol("..."),
+			true,
+			Mapping{},
+		},
+		{
+			// _
 			SelfPattern{"foo"},
 			types.Symbol("_"),
 			true,
 			Mapping{},
 		},
 		{
+			// _
 			SelfPattern{"foo"},
 			types.Symbol("x"),
 			false,
 			Mapping{},
 		},
 		{
+			// _
 			SelfPattern{"foo"},
 			types.Symbol("..."),
 			false,
 			Mapping{},
 		},
 		{
+			// ...
 			EllipsisPattern{},
 			types.Symbol("..."),
 			true,
 			Mapping{},
 		},
 		{
+			// ...
 			EllipsisPattern{},
 			types.Symbol("_"),
 			false,
 			Mapping{},
 		},
 		{
+			// ...
 			EllipsisPattern{},
 			types.Symbol("x"),
 			false,
 			Mapping{},
 		},
 		{
+			// x
 			IdentifierPattern{"x"},
 			types.Symbol("y"),
 			true,
 			Mapping{"x": "y"},
 		},
 		{
+			// x
 			IdentifierPattern{"x"},
 			nil,
 			false,
 			Mapping{},
 		},
 		{
+			// ()
 			PairPattern{},
 			types.Symbol("x"),
 			false,
 			Mapping{},
 		},
 		{
+			// ()
 			PairPattern{},
 			types.Bool(true),
 			false,
 			Mapping{},
 		},
 		{
+			// ()
 			PairPattern{},
 			&types.Pair{},
 			true,
 			Mapping{},
 		},
 		{
+			// (_ x)
 			PairPattern{[]Pattern{SelfPattern{"foo"}, IdentifierPattern{"x"}}},
 			&types.Pair{},
 			false,
 			Mapping{},
 		},
 		{
+			// ()
 			PairPattern{},
 			types.NewPair("x", "y"),
 			false,
 			Mapping{},
 		},
 		{
+			// (x y)
 			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}}},
 			types.NewPair(types.Symbol("a"), types.Symbol("b")),
 			true,
 			Mapping{"x": "a", "y": "b"},
 		},
 		{
+			// (x y ...)
 			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}}},
 			types.NewPair(types.Symbol("a"), types.Symbol("b")),
 			true,
 			Mapping{"x": "a", "y": "b"},
 		},
 		{
+			// (x y ...)
 			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}}},
 			types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.Symbol("b"), types.Symbol("c"), types.Symbol("d")}),
 			true,
 			Mapping{"x": "a", "y": "b", "...": types.PairFromArray([]types.Sexpr{types.Symbol("c"), types.Symbol("d")})},
 		},
 		{
+			// (x y ...)
 			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}}},
 			types.NewPair(types.Symbol("a"), nil),
 			false,
 			Mapping{},
 		},
 		{
+			// (x (...) y)
 			PairPattern{[]Pattern{IdentifierPattern{"x"}, PairPattern{[]Pattern{EllipsisPattern{}}}, IdentifierPattern{"y"}}},
 			types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.NewPair(types.Symbol("b"), types.Symbol("c")), types.Symbol("d")}),
 			true,
 			Mapping{"x": "a", "...": types.PairFromArray([]types.Sexpr{types.Symbol("b"), types.Symbol("c")}), "y": "d"},
+		},
+		{
+			// (x (...) y)
+			PairPattern{[]Pattern{IdentifierPattern{"x"}, PairPattern{[]Pattern{EllipsisPattern{}}}, IdentifierPattern{"y"}}},
+			types.PairFromArray([]types.Sexpr{types.Symbol("a"), &types.Pair{}, types.Symbol("d")}),
+			true,
+			Mapping{"x": "a", "y": "d"},
 		},
 	}
 

@@ -39,10 +39,9 @@ func (p PairPattern) Match(obj types.Sexpr) (Mapping, bool) {
 	mapping := Mapping{}
 	head := pair
 	for _, pattern := range p.Values {
-		fmt.Println(pattern, head)
 		switch pattern.(type) {
 		case EllipsisPattern:
-			if head == nil {
+			if head == nil || head.IsNull() {
 				return mapping, true
 			}
 			mapping[Ellipsis] = head

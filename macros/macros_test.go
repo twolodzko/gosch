@@ -33,7 +33,7 @@ func Test_ExtractPattern(t *testing.T) {
 			nil,
 			[]Pattern{SelfPattern{self}, LiteralPattern{types.Bool(true)}},
 		},
-		// FIXME
+		// // This test fails due to non-deterministic results of comparisions of empty structs in Go, but it seems to work.
 		// {
 		// 	// (_ ())
 		// 	types.NewPair(self, &types.Pair{}),

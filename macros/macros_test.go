@@ -253,6 +253,25 @@ func Test_MatchPattern(t *testing.T) {
 			true,
 			Mapping{"x": "a", "y": "d"},
 		},
+		{
+			// (x ((() (...) y) z)
+			PairPattern{[]Pattern{
+				IdentifierPattern{"x"},
+				PairPattern{[]Pattern{
+					PairPattern{},
+					PairPattern{[]Pattern{EllipsisPattern{}}},
+					IdentifierPattern{"y"}}},
+				IdentifierPattern{"z"}}},
+			types.PairFromArray([]types.Sexpr{
+				types.Symbol("a"),
+				types.PairFromArray([]types.Sexpr{
+					&types.Pair{},
+					types.PairFromArray([]types.Sexpr{"b", "c"}),
+					types.Symbol("d")}),
+				types.Symbol("e")}),
+			true,
+			Mapping{"x": "a", "y": "d", "z": "e", "...": types.PairFromArray([]types.Sexpr{"b", "c"})},
+		},
 	}
 
 	for _, tt := range testCases {

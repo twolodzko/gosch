@@ -235,6 +235,13 @@ func Test_MatchPattern(t *testing.T) {
 		{
 			// (x y ...)
 			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}}},
+			types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.Symbol("b"), &types.Pair{}, types.Bool(false)}),
+			true,
+			Mapping{"x": "a", "y": "b", "...": types.PairFromArray([]types.Sexpr{&types.Pair{}, types.Bool(false)})},
+		},
+		{
+			// (x y ...)
+			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}}},
 			types.NewPair(types.Symbol("a"), nil),
 			false,
 			Mapping{},

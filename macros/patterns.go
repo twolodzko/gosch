@@ -7,18 +7,6 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-type Mapping map[types.Symbol]types.Sexpr
-
-func mergeMappings(x, y Mapping) (Mapping, bool) {
-	for key, val := range y {
-		if _, ok := x[key]; ok {
-			return Mapping{}, false
-		}
-		x[key] = val
-	}
-	return x, true
-}
-
 type Pattern interface {
 	Match(types.Sexpr) (Mapping, bool)
 }

@@ -114,6 +114,40 @@ func Test_AppendablePair(t *testing.T) {
 	}
 }
 
+func Test_ExtendAppendablePair(t *testing.T) {
+	var testCases = []struct {
+		init     []Sexpr
+		extend   *Pair
+		append   Sexpr
+		expected *Pair
+	}{
+		{nil, &Pair{}, nil, &Pair{}},
+		{nil, &Pair{1, nil}, nil, &Pair{1, nil}},
+		{nil, NewPair(1, 2), nil, NewPair(1, 2)},
+		{nil, &Pair{&Pair{}, nil}, nil, &Pair{&Pair{}, nil}},
+		{[]Sexpr{1, 2, 3}, &Pair{}, nil, PairFromArray([]Sexpr{1, 2, 3})},
+		{[]Sexpr{1, 2, 3}, &Pair{4, nil}, nil, PairFromArray([]Sexpr{1, 2, 3, 4})},
+		{[]Sexpr{1, 2, 3}, NewPair(4, 5), nil, PairFromArray([]Sexpr{1, 2, 3, 4, 5})},
+		{[]Sexpr{1, 2, 3}, &Pair{4, nil}, 5, PairFromArray([]Sexpr{1, 2, 3, 4, 5})},
+		{[]Sexpr{1, 2, &Pair{}}, &Pair{&Pair{}, nil}, 3, PairFromArray([]Sexpr{1, 2, &Pair{}, &Pair{}, 3})},
+	}
+
+	for _, tt := range testCases {
+		ap := NewAppendablePair()
+		for _, val := range tt.init {
+			ap.Append(val)
+		}
+		ap.Extend(tt.extend)
+		if tt.append != nil {
+			ap.Append(tt.append)
+		}
+		result := ap.ToPair()
+		if !cmp.Equal(result, tt.expected) {
+			t.Errorf("for %v, %q, %v expected %v, got: %v", tt.init, tt.extend, tt.append, tt.expected, result)
+		}
+	}
+}
+
 func Test_String(t *testing.T) {
 	var testCases = []struct {
 		input    Sexpr

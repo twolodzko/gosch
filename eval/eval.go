@@ -17,6 +17,8 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 		switch val := sexpr.(type) {
 		case types.Symbol:
 			return getSymbol(val, env)
+		case Getable:
+			return val.Get()
 		case *types.Pair:
 			if val.IsNull() {
 				return &types.Pair{}, nil
@@ -41,7 +43,7 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 				if err != nil {
 					return nil, err
 				}
-			case Lambda:
+			case Callable:
 				sexpr, env, err = fn.Call(val.Next, env)
 				if err != nil {
 					return nil, err
@@ -58,7 +60,7 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 func getSymbol(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 	switch val := sexpr.(type) {
 	case types.Symbol:
-		if fn, ok := getProcedure(val); ok {
+		if fn, ok := Procedures[val]; ok {
 			return fn, nil
 		}
 		return env.Get(val)

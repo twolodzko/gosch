@@ -39,11 +39,11 @@ func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if !ok {
 		return nil, eval.NewErrBadName(args.This)
 	}
-	vars, err := eval.SymbolsPairToSlice(args.Next)
+	vars, err := SymbolsPairToSlice(args.Next)
 	if err != nil {
 		return nil, err
 	}
-	fn := eval.Lambda{Vars: vars, Body: body, ParentEnv: env}
+	fn := Lambda{Vars: vars, Body: body, ParentEnv: env}
 	env.Set(name, fn)
 	return fn, nil
 }
@@ -111,7 +111,7 @@ func Eval(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 
 func isCallable(obj types.Sexpr) bool {
 	switch obj.(type) {
-	case eval.Procedure, eval.Primitive, eval.TailCallOptimized, eval.Lambda:
+	case eval.Procedure, eval.Primitive, eval.TailCallOptimized, Lambda:
 		return true
 	default:
 		return false

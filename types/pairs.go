@@ -99,6 +99,21 @@ func (p *AppendablePair) Append(sexpr Sexpr) {
 	p.Last = p.Last.Next
 }
 
+func (p *AppendablePair) Extend(tail *Pair) {
+	if tail == nil || tail.IsNull() {
+		return
+	}
+	p.Last.Next = tail
+	head := p.Last.Next
+	for {
+		if !head.HasNext() {
+			p.Last = head
+			return
+		}
+		head = head.Next
+	}
+}
+
 func (p AppendablePair) ToPair() *Pair {
 	if p.pair.IsNull() {
 		return &Pair{}

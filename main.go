@@ -17,10 +17,8 @@ const prompt string = "> "
 
 func main() {
 	var showHelp bool
-	var lambdaOnly bool
 
 	flag.BoolVar(&showHelp, "help", false, "show help")
-	flag.BoolVar(&lambdaOnly, "lambda-only", false, "minimalistic lambda calculus interpreter")
 	flag.Parse()
 
 	if showHelp {
@@ -28,27 +26,27 @@ func main() {
 		return
 	}
 
-	if !lambdaOnly {
-		eval.Procedures = scheme.Procedures
-	}
+	eval.Procedures = scheme.Procedures
 
-	if flag.NArg() == 1 {
-		evalFile(flag.Arg(0))
+	if flag.NArg() > 0 {
+		evalFiles()
 	} else {
 		startRepl()
 	}
 }
 
-func evalFile(filename string) {
+func evalFiles() {
 	env := envir.NewEnv()
-	sexprs, err := eval.LoadEval(filename, env)
-	if err != nil {
-		log.Fatalf("ERROR: %v\n", err)
-	}
-	if len(sexprs) > 0 {
-		fmt.Printf("%v\n", sexprs[len(sexprs)-1])
-	} else {
-		fmt.Printf("%v\n", nil)
+	for _, filename := range flag.Args() {
+		sexprs, err := eval.LoadEval(filename, env)
+		if err != nil {
+			log.Fatalf("ERROR: %v\n", err)
+		}
+		if len(sexprs) > 0 {
+			fmt.Printf("%v\n", sexprs[len(sexprs)-1])
+		} else {
+			fmt.Printf("%v\n", nil)
+		}
 	}
 }
 

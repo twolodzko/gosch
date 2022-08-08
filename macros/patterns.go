@@ -12,7 +12,7 @@ type Pattern interface {
 }
 
 type PairPattern struct {
-	Values []Pattern
+	Patterns []Pattern
 }
 
 func (p PairPattern) Match(obj types.Sexpr) (Mapping, bool) {
@@ -20,29 +20,32 @@ func (p PairPattern) Match(obj types.Sexpr) (Mapping, bool) {
 	if !ok {
 		return Mapping{}, false
 	}
-	if len(p.Values) == 0 {
-		return Mapping{}, bool(pair.IsNull())
+
+	patterns := p.Patterns
+
+	if len(patterns) == 0 {
+		return Mapping{}, bool(pair == nil || pair.IsNull())
 	}
 
 	mapping := Mapping{}
 	head := pair
-	for _, pattern := range p.Values {
+	for _, pattern := range patterns {
 		switch pattern.(type) {
 		case EllipsisPattern:
 			if head == nil || head.IsNull() {
 				return mapping, true
 			}
-			mapping[Ellipsis] = head
+			mapping[Ellipsis] = ToEllypsisVars(head)
 			return mapping, true
 		default:
 			if head == nil {
 				return Mapping{}, false
 			}
-			matched, ok := pattern.Match(head.This)
+			subpattern, ok := pattern.Match(head.This)
 			if !ok {
 				return Mapping{}, false
 			}
-			mapping, ok = mergeMappings(mapping, matched)
+			mapping, ok = mergeMappings(mapping, subpattern)
 			if !ok {
 				return Mapping{}, false
 			}
@@ -50,12 +53,15 @@ func (p PairPattern) Match(obj types.Sexpr) (Mapping, bool) {
 		head = head.Next
 	}
 
+	if head != nil {
+		return Mapping{}, false
+	}
 	return mapping, true
 }
 
 func (p PairPattern) String() string {
 	var str []string
-	for _, v := range p.Values {
+	for _, v := range p.Patterns {
 		str = append(str, fmt.Sprintf("%s", v))
 	}
 	return fmt.Sprintf("(%s)", strings.Join(str, " "))
@@ -91,21 +97,9 @@ func (p LiteralPattern) String() string {
 type EllipsisPattern struct{}
 
 func (p EllipsisPattern) Match(obj types.Sexpr) (Mapping, bool) {
-	return Mapping{}, obj == types.Symbol("...")
+	return Mapping{}, obj == Ellipsis
 }
 
 func (p EllipsisPattern) String() string {
 	return Ellipsis
-}
-
-type SelfPattern struct {
-	Name types.Symbol
-}
-
-func (p SelfPattern) Match(obj types.Sexpr) (Mapping, bool) {
-	return Mapping{}, obj == types.Symbol("_")
-}
-
-func (p SelfPattern) String() string {
-	return Self
 }

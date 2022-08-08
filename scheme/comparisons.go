@@ -16,8 +16,8 @@ func sameCallables(obj1, obj2 types.Sexpr) bool {
 			return v1.Pointer() == v2.Pointer()
 		}
 	}
-	if v1, ok := obj1.(eval.Lambda); ok {
-		if v2, ok := obj2.(eval.Lambda); ok {
+	if v1, ok := obj1.(Lambda); ok {
+		if v2, ok := obj2.(Lambda); ok {
 			return cmp.Equal(v1, v2)
 		}
 	}

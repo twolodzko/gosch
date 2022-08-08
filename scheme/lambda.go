@@ -1,10 +1,11 @@
-package eval
+package scheme
 
 import (
 	"fmt"
 	"strings"
 
 	"github.com/twolodzko/gosch/envir"
+	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -19,14 +20,14 @@ type Lambda struct {
 //  (lambda (args ...) body ...)
 func NewLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, ErrBadArgNumber
+		return nil, eval.ErrBadArgNumber
 	}
 	switch pair := args.This.(type) {
 	case *types.Pair:
 		vars, err := SymbolsPairToSlice(pair)
 		return Lambda{vars, args.Next, env}, err
 	default:
-		return Lambda{}, &ErrNonList{args.This}
+		return Lambda{}, eval.NewErrNonList(args.This)
 	}
 }
 
@@ -41,7 +42,7 @@ func SymbolsPairToSlice(args *types.Pair) ([]types.Symbol, error) {
 		if name, ok := head.This.(types.Symbol); ok {
 			vars = append(vars, name)
 		} else {
-			return vars, &ErrBadName{args.This}
+			return vars, eval.NewErrBadName(args.This)
 		}
 		head = head.Next
 	}
@@ -71,10 +72,10 @@ func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env,
 	head := args
 	for _, name := range l.Vars {
 		if head == nil {
-			return nil, local, ErrBadArgNumber
+			return nil, local, eval.ErrBadArgNumber
 		}
 		// arguments are evaluated in the env enclosing the lambda call
-		val, err := Eval(head.This, env)
+		val, err := eval.Eval(head.This, env)
 		if err != nil {
 			return nil, local, err
 		}
@@ -83,7 +84,7 @@ func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env,
 	}
 
 	// the body of the function is evaluated in the local env of the lambda
-	return PartialEval(l.Body, local)
+	return eval.PartialEval(l.Body, local)
 }
 
 func (l Lambda) String() string {

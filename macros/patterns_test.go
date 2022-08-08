@@ -7,8 +7,7 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func Test_ExtractPattern(t *testing.T) {
-	self := types.Symbol("foobar")
+func Test_PairFromArray(t *testing.T) {
 
 	var testCases = []struct {
 		input    *types.Pair
@@ -16,61 +15,51 @@ func Test_ExtractPattern(t *testing.T) {
 		expected []Pattern
 	}{
 		{
-			// (_)
-			types.PairFromArray([]types.Sexpr{Self}),
+			// ()
+			types.PairFromArray([]types.Sexpr{}),
 			nil,
-			[]Pattern{SelfPattern{self}},
+			nil,
 		},
 		{
-			// (_ x)
-			types.PairFromArray([]types.Sexpr{Self, "x"}),
+			// (x)
+			types.PairFromArray([]types.Sexpr{"x"}),
 			nil,
-			[]Pattern{SelfPattern{self}, IdentifierPattern{"x"}},
+			[]Pattern{IdentifierPattern{"x"}},
 		},
 		{
-			// (_ #t)
-			types.PairFromArray([]types.Sexpr{Self, types.Bool(true)}),
+			// (#t)
+			types.PairFromArray([]types.Sexpr{types.Bool(true)}),
 			nil,
-			[]Pattern{SelfPattern{self}, LiteralPattern{types.Bool(true)}},
-		},
-		// // This test fails due to non-deterministic results of comparisions of empty structs in Go, but it seems to work.
-		// {
-		// 	// (_ ())
-		// 	types.NewPair(self, &types.Pair{}),
-		// 	nil,
-		// 	[]Pattern{SelfPattern{self}, PairPattern{}},
-		// },
-		{
-			// (_ x (y) z)
-			types.PairFromArray([]types.Sexpr{Self, "x", types.NewPair("y", nil), "z"}),
-			nil,
-			[]Pattern{SelfPattern{self}, IdentifierPattern{"x"}, PairPattern{[]Pattern{IdentifierPattern{"y"}}}, IdentifierPattern{"z"}},
+			[]Pattern{LiteralPattern{types.Bool(true)}},
 		},
 		{
-			// (_ x + 1)
-			types.PairFromArray([]types.Sexpr{Self, "x", "+", types.Integer(1)}),
+			// (())
+			types.NewPair(&types.Pair{}, nil),
+			nil,
+			[]Pattern{PairPattern{}},
+		},
+		{
+			// (x (y) z)
+			types.PairFromArray([]types.Sexpr{"x", types.NewPair("y", nil), "z"}),
+			nil,
+			[]Pattern{IdentifierPattern{"x"}, PairPattern{[]Pattern{IdentifierPattern{"y"}}}, IdentifierPattern{"z"}},
+		},
+		{
+			// (x + 1)
+			types.PairFromArray([]types.Sexpr{"x", "+", types.Integer(1)}),
 			[]types.Symbol{"+"},
-			[]Pattern{SelfPattern{self}, IdentifierPattern{"x"}, LiteralPattern{"+"}, LiteralPattern{types.Integer(1)}},
+			[]Pattern{IdentifierPattern{"x"}, LiteralPattern{"+"}, LiteralPattern{types.Integer(1)}},
 		},
 		{
-			// (_ x + 1)
-			types.PairFromArray([]types.Sexpr{Self, "x", "+", types.Integer(1)}),
-			[]types.Symbol{"+"},
-			[]Pattern{SelfPattern{self}, IdentifierPattern{"x"}, LiteralPattern{"+"}, LiteralPattern{types.Integer(1)}},
-		},
-		{
-			// (_ x y ...)
-			types.PairFromArray([]types.Sexpr{Self, "x", "y", "..."}),
+			// (x y ...)
+			types.PairFromArray([]types.Sexpr{"x", "y", "..."}),
 			nil,
-			[]Pattern{SelfPattern{self}, IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}},
+			[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}},
 		},
 	}
 
 	for _, tt := range testCases {
-		result, err := ExtractPattern(tt.input, self, tt.literals)
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
-		}
+		result := patternFromPair(tt.input, tt.literals)
 		expected := PairPattern{tt.expected}
 		if !cmp.Equal(result, expected) {
 			t.Errorf("for %v expected %v, got %v", tt.input, expected, result)
@@ -118,27 +107,6 @@ func Test_MatchPattern(t *testing.T) {
 			LiteralPattern{"..."},
 			types.Symbol("..."),
 			true,
-			Mapping{},
-		},
-		{
-			// _
-			SelfPattern{"foo"},
-			types.Symbol("_"),
-			true,
-			Mapping{},
-		},
-		{
-			// _
-			SelfPattern{"foo"},
-			types.Symbol("x"),
-			false,
-			Mapping{},
-		},
-		{
-			// _
-			SelfPattern{"foo"},
-			types.Symbol("..."),
-			false,
 			Mapping{},
 		},
 		{
@@ -198,13 +166,6 @@ func Test_MatchPattern(t *testing.T) {
 			Mapping{},
 		},
 		{
-			// (_ x)
-			PairPattern{[]Pattern{SelfPattern{"foo"}, IdentifierPattern{"x"}}},
-			&types.Pair{},
-			false,
-			Mapping{},
-		},
-		{
 			// ()
 			PairPattern{},
 			types.NewPair("x", "y"),
@@ -230,14 +191,14 @@ func Test_MatchPattern(t *testing.T) {
 			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}}},
 			types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.Symbol("b"), types.Symbol("c"), types.Symbol("d")}),
 			true,
-			Mapping{"x": "a", "y": "b", "...": types.PairFromArray([]types.Sexpr{types.Symbol("c"), types.Symbol("d")})},
+			Mapping{"x": "a", "y": "b", "...": EllipsisVars{"c", "d"}},
 		},
 		{
 			// (x y ...)
 			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}}},
 			types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.Symbol("b"), &types.Pair{}, types.Bool(false)}),
 			true,
-			Mapping{"x": "a", "y": "b", "...": types.PairFromArray([]types.Sexpr{&types.Pair{}, types.Bool(false)})},
+			Mapping{"x": "a", "y": "b", "...": EllipsisVars{&types.Pair{}, types.Bool(false)}},
 		},
 		{
 			// (x y ...)
@@ -251,7 +212,7 @@ func Test_MatchPattern(t *testing.T) {
 			PairPattern{[]Pattern{IdentifierPattern{"x"}, PairPattern{[]Pattern{EllipsisPattern{}}}, IdentifierPattern{"y"}}},
 			types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.NewPair(types.Symbol("b"), types.Symbol("c")), types.Symbol("d")}),
 			true,
-			Mapping{"x": "a", "...": types.PairFromArray([]types.Sexpr{types.Symbol("b"), types.Symbol("c")}), "y": "d"},
+			Mapping{"x": "a", "...": EllipsisVars{types.Symbol("b"), types.Symbol("c")}, "y": "d"},
 		},
 		{
 			// (x (...) y)
@@ -277,7 +238,7 @@ func Test_MatchPattern(t *testing.T) {
 					types.Symbol("d")}),
 				types.Symbol("e")}),
 			true,
-			Mapping{"x": "a", "y": "d", "z": "e", "...": types.PairFromArray([]types.Sexpr{"b", "c"})},
+			Mapping{"x": "a", "y": "d", "z": "e", "...": EllipsisVars{"b", "c"}},
 		},
 		{
 			// (x ((() (...) y) z)
@@ -307,6 +268,37 @@ func Test_MatchPattern(t *testing.T) {
 		}
 		if !cmp.Equal(mapping, tt.mapping) {
 			t.Errorf("for pattern %v and input %v expected %v, got %v", tt.pattern, tt.input, tt.mapping, mapping)
+		}
+	}
+}
+
+func Test_EllypsisToVars(t *testing.T) {
+	var testCases = []struct {
+		input    *types.Pair
+		expected EllipsisVars
+	}{
+		{
+			&types.Pair{},
+			nil,
+		},
+		{
+			types.NewPair("a", nil),
+			EllipsisVars{"a"},
+		},
+		{
+			types.PairFromArray([]types.Sexpr{"a", "b", "c"}),
+			EllipsisVars{"a", "b", "c"},
+		},
+		{
+			types.PairFromArray([]types.Sexpr{1, &types.Pair{}, types.NewPair("a", "b")}),
+			EllipsisVars{1, &types.Pair{}, types.NewPair("a", "b")},
+		},
+	}
+
+	for _, tt := range testCases {
+		result := ToEllypsisVars(tt.input)
+		if !cmp.Equal(result, tt.expected) {
+			t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
 		}
 	}
 }

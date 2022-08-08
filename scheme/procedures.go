@@ -2,6 +2,7 @@ package scheme
 
 import (
 	"github.com/twolodzko/gosch/eval"
+	"github.com/twolodzko/gosch/macros"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -25,6 +26,7 @@ var Procedures = eval.ProceduresGetter{
 	"cond":          Cond,
 	"cons":          Cons,
 	"debug":         Debug,
+	"define-syntax": macros.DefineSyntax,
 	"define":        Define,
 	"display":       Display,
 	"do":            Do,
@@ -36,6 +38,7 @@ var Procedures = eval.ProceduresGetter{
 	"go":            Go,
 	"if":            If,
 	"integer?":      IsInteger,
+	"lambda":        NewLambda,
 	"let":           Let,
 	"list":          List,
 	"load":          Load,
@@ -55,6 +58,7 @@ var Procedures = eval.ProceduresGetter{
 	"string":        ToString,
 	"substring":     Substring,
 	"symbol?":       IsSymbol,
+	"syntax-rules":  macros.NewSyntaxRules,
 	"timeit":        Timeit,
 	"unquote":       Unquote,
 }

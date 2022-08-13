@@ -3,6 +3,7 @@ package macros_test
 import (
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/scheme"
@@ -82,45 +83,44 @@ func Test_Or2(t *testing.T) {
 	}
 }
 
-// FIXME
-// func Test_Swap(t *testing.T) {
-// 	eval.Procedures = scheme.Procedures
-// 	env := envir.NewEnv()
+func Test_Swap(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
 
-// 	macro := `
-// 	(define-syntax swap
-// 		(syntax-rules ()
-// 			((_ x y)
-// 			 (let ((tmp x))
-// 			 	(set! x y)
-// 				(set! y tmp)))))
-// 	`
+	macro := `
+	(define-syntax swap
+		(syntax-rules ()
+			((_ x y)
+			 (let ((tmp x))
+			 	(set! x y)
+				(set! y tmp)))))
+	`
 
-// 	_, _, err := eval.EvalString(macro, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 	}
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
-// 	input := `
-// 	(let ((tmp 5)
-// 		  (other 6))
-// 		(swap tmp other)
-// 		(list tmp other))
-// 	`
+	input := `
+	(let ((tmp 5)
+		  (other 6))
+		(swap tmp other)
+		(list tmp other))
+	`
 
-// 	result, _, err := eval.EvalString(input, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 	}
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
-// 	if len(result) != 1 {
-// 		t.Errorf("expected single result, got: %v", result)
-// 	}
-// 	expected := types.NewPair(types.Integer(6), types.Integer(5))
-// 	if result[0] != expected {
-// 		t.Errorf("expected %q, got: %q", expected, result[0])
-// 	}
-// }
+	if len(result) != 1 {
+		t.Errorf("expected single result, got: %v", result)
+	}
+	expected := types.NewPair(types.Integer(6), types.Integer(5))
+	if !cmp.Equal(result[0], expected) {
+		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}
 
 func Test_ValidErrors(t *testing.T) {
 	eval.Procedures = scheme.Procedures

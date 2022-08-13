@@ -21,7 +21,7 @@ func (m *SyntaxRules) Append(rule SyntaxRule) {
 	m.rules = append(m.rules, rule)
 }
 
-func (m SyntaxRules) Match(obj types.Sexpr) (Mapping, types.Sexpr, bool) {
+func (m SyntaxRules) Match(obj types.Sexpr) (Mappings, types.Sexpr, bool) {
 	for _, macro := range m.rules {
 		mapping, ok := macro.pattern.Match(obj)
 		if ok {

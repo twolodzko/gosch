@@ -8,26 +8,26 @@ import (
 )
 
 type Pattern interface {
-	Match(types.Sexpr) (Mapping, bool)
+	Match(types.Sexpr) (Mappings, bool)
 }
 
 type PairPattern struct {
 	Patterns []Pattern
 }
 
-func (p PairPattern) Match(obj types.Sexpr) (Mapping, bool) {
+func (p PairPattern) Match(obj types.Sexpr) (Mappings, bool) {
 	pair, ok := obj.(*types.Pair)
 	if !ok {
-		return Mapping{}, false
+		return Mappings{}, false
 	}
 
 	patterns := p.Patterns
 
 	if len(patterns) == 0 {
-		return Mapping{}, bool(pair == nil || pair.IsNull())
+		return Mappings{}, bool(pair == nil || pair.IsNull())
 	}
 
-	mapping := Mapping{}
+	mapping := Mappings{}
 	head := pair
 	for _, pattern := range patterns {
 		switch pattern.(type) {
@@ -35,26 +35,26 @@ func (p PairPattern) Match(obj types.Sexpr) (Mapping, bool) {
 			if head == nil || head.IsNull() {
 				return mapping, true
 			}
-			mapping[Ellipsis] = ToEllypsisVars(head)
+			mapping[Ellipsis] = head
 			return mapping, true
 		default:
 			if head == nil {
-				return Mapping{}, false
+				return Mappings{}, false
 			}
 			subpattern, ok := pattern.Match(head.This)
 			if !ok {
-				return Mapping{}, false
+				return Mappings{}, false
 			}
 			mapping, ok = mergeMappings(mapping, subpattern)
 			if !ok {
-				return Mapping{}, false
+				return Mappings{}, false
 			}
 		}
 		head = head.Next
 	}
 
 	if head != nil {
-		return Mapping{}, false
+		return Mappings{}, false
 	}
 	return mapping, true
 }
@@ -71,11 +71,11 @@ type IdentifierPattern struct {
 	Name types.Symbol
 }
 
-func (p IdentifierPattern) Match(obj types.Sexpr) (Mapping, bool) {
+func (p IdentifierPattern) Match(obj types.Sexpr) (Mappings, bool) {
 	if obj == nil {
-		return Mapping{}, false
+		return Mappings{}, false
 	}
-	return Mapping{p.Name: obj}, true
+	return Mappings{p.Name: obj}, true
 }
 
 func (p IdentifierPattern) String() string {
@@ -86,8 +86,8 @@ type LiteralPattern struct {
 	Value types.Sexpr
 }
 
-func (p LiteralPattern) Match(obj types.Sexpr) (Mapping, bool) {
-	return Mapping{}, obj == p.Value
+func (p LiteralPattern) Match(obj types.Sexpr) (Mappings, bool) {
+	return Mappings{}, obj == p.Value
 }
 
 func (p LiteralPattern) String() string {
@@ -96,8 +96,8 @@ func (p LiteralPattern) String() string {
 
 type EllipsisPattern struct{}
 
-func (p EllipsisPattern) Match(obj types.Sexpr) (Mapping, bool) {
-	return Mapping{}, obj == Ellipsis
+func (p EllipsisPattern) Match(obj types.Sexpr) (Mappings, bool) {
+	return Mappings{}, obj == Ellipsis
 }
 
 func (p EllipsisPattern) String() string {

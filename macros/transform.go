@@ -8,16 +8,14 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-type Renames = map[types.Symbol]types.Symbol
+type Renamings = Mappings
 
 type Transformer struct {
 	mappings Mappings
-	renames  Renames
 }
 
 func newTransformer(mappings Mappings) Transformer {
-	renames := Renames{}
-	return Transformer{mappings, renames}
+	return Transformer{mappings}
 }
 
 func (t *Transformer) transformSexpr(template types.Sexpr) types.Sexpr {
@@ -32,9 +30,6 @@ func (t *Transformer) transformSexpr(template types.Sexpr) types.Sexpr {
 }
 
 func (t *Transformer) transformSymbol(sym types.Symbol) types.Sexpr {
-	if val, ok := t.renames[sym]; ok {
-		return val
-	}
 	if val, ok := t.mappings[sym]; ok {
 		return val
 	}
@@ -45,8 +40,8 @@ func (t *Transformer) transformPair(template *types.Pair) *types.Pair {
 	if template == nil || template.IsNull() {
 		return template
 	}
-	if fn, ok := template.This.(types.Symbol); ok {
-		switch fn {
+	if name, ok := template.This.(types.Symbol); ok {
+		switch name {
 		case "lambda":
 			transformer := newLambdaTransformer(t.mappings)
 			if args, body, ok := transformer.parse(template.Next); ok {
@@ -58,6 +53,7 @@ func (t *Transformer) transformPair(template *types.Pair) *types.Pair {
 				return transformer.transform(bindings, body)
 			}
 		case "do":
+			// FIXME
 		}
 	}
 	return t.transformAll(template)
@@ -67,8 +63,8 @@ func (t *Transformer) transformAll(template *types.Pair) *types.Pair {
 	ap := types.NewAppendablePair()
 	head := template
 	for head != nil {
-		if sym, ok := head.This.(types.Symbol); ok && sym == Ellipsis {
-			val := t.transformEllipsis()
+		if head.This == Ellipsis {
+			val := t.getEllipsis()
 			ap.Extend(val)
 		} else {
 			val := t.transformSexpr(head.This)
@@ -79,7 +75,7 @@ func (t *Transformer) transformAll(template *types.Pair) *types.Pair {
 	return ap.ToPair()
 }
 
-func (t *Transformer) transformEllipsis() *types.Pair {
+func (t *Transformer) getEllipsis() *types.Pair {
 	ellipsis := t.mappings[Ellipsis].(*types.Pair)
 	return t.transformAll(ellipsis)
 }
@@ -91,8 +87,7 @@ type LambdaTransformer struct {
 
 func newLambdaTransformer(mappings Mappings) LambdaTransformer {
 	suffix := newSuffix()
-	renames := Renames{}
-	return LambdaTransformer{Transformer{mappings, renames}, suffix}
+	return LambdaTransformer{Transformer{mappings}, suffix}
 }
 
 // (lambda (args ...) body ...)
@@ -125,7 +120,7 @@ func (t *LambdaTransformer) transformArgs(sexpr *types.Pair) *types.Pair {
 		switch sym := head.This.(type) {
 		case types.Symbol:
 			name := newName(sym, t.suffix)
-			t.renames[sym] = name
+			t.mappings[sym] = name
 			args.Append(name)
 		default:
 			val := t.transformSexpr(head.This)
@@ -143,11 +138,7 @@ func (t *LambdaTransformer) transformBody(sexpr *types.Pair) *types.Pair {
 		var val types.Sexpr
 		switch sym := head.This.(type) {
 		case types.Symbol:
-			if name, ok := t.renames[sym]; ok {
-				val = name
-			} else {
-				val = sym
-			}
+			val = t.transformSymbol(sym)
 		default:
 			val = t.transformSexpr(head.This)
 		}
@@ -164,8 +155,7 @@ type LetTransformer struct {
 
 func newLetTransformer(mappings Mappings) LetTransformer {
 	suffix := newSuffix()
-	renames := Renames{}
-	return LetTransformer{Transformer{mappings, renames}, suffix}
+	return LetTransformer{Transformer{mappings}, suffix}
 }
 
 // (let ((binding value) ...) ...) body ...)
@@ -215,9 +205,18 @@ func (t *LetTransformer) transformBinding(binding *types.Pair) *types.Pair {
 
 	switch sym := binding.This.(type) {
 	case types.Symbol:
+		// first transform binding, so not to shawdow it's name accidentally
+		// as in (let ((x x)) ...)
+		var val types.Sexpr
+		if obj, ok := t.mappings[sym]; ok {
+			val = obj
+		} else {
+			val = sym
+		}
+
 		name := newName(sym, t.suffix)
-		t.renames[sym] = name
-		val := t.transformSexpr(binding.Next.This)
+		t.mappings[sym] = name
+
 		return types.NewPair(name, val)
 	default:
 		return t.transformPair(binding)
@@ -231,11 +230,7 @@ func (t *LetTransformer) transformBody(sexpr *types.Pair) *types.Pair {
 		var val types.Sexpr
 		switch sym := head.This.(type) {
 		case types.Symbol:
-			if name, ok := t.renames[sym]; ok {
-				val = name
-			} else {
-				val = sym
-			}
+			val = t.transformSymbol(sym)
 		default:
 			val = t.transformSexpr(head.This)
 		}

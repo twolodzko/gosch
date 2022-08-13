@@ -69,7 +69,12 @@ func Test_Or2(t *testing.T) {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	result, _, err := eval.EvalString(`(let ((t "okay")) (or2 #f t))`, env)
+	input := `
+	(let ((t "okay"))
+		(or2 #f t))
+	`
+
+	result, _, err := eval.EvalString(input, env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
@@ -79,6 +84,44 @@ func Test_Or2(t *testing.T) {
 	}
 	expected := types.String("okay")
 	if result[0] != expected {
+		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}
+
+func Test_DoubleLet(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+	(define-syntax letlist
+		(syntax-rules ()
+			((_ x y)
+			 (let ((x x))
+			 	(let ((y y))
+			 		(list x y))))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	input := `
+	(let ((x 2)
+		  (y 1))
+		(letlist y x))
+	`
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Errorf("expected single result, got: %v", result)
+	}
+	expected := types.NewPair(types.Integer(1), types.Integer(2))
+	if !cmp.Equal(result[0], expected) {
 		t.Errorf("expected %q, got: %q", expected, result[0])
 	}
 }

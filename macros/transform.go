@@ -8,8 +8,6 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-type Renamings = Mappings
-
 type Transformer struct {
 	mappings Mappings
 }
@@ -18,8 +16,12 @@ func newTransformer(mappings Mappings) Transformer {
 	return Transformer{mappings}
 }
 
-func (t *Transformer) transformSexpr(template types.Sexpr) types.Sexpr {
-	switch obj := template.(type) {
+func (t *Transformer) transform(template types.Sexpr) types.Sexpr {
+	return t.transformSexpr(template)
+}
+
+func (t *Transformer) transformSexpr(sexpr types.Sexpr) types.Sexpr {
+	switch obj := sexpr.(type) {
 	case types.Symbol:
 		return t.transformSymbol(obj)
 	case *types.Pair:
@@ -29,214 +31,55 @@ func (t *Transformer) transformSexpr(template types.Sexpr) types.Sexpr {
 	}
 }
 
-func (t *Transformer) transformSymbol(sym types.Symbol) types.Sexpr {
-	if val, ok := t.mappings[sym]; ok {
+func (t *Transformer) transformSymbol(symbol types.Symbol) types.Sexpr {
+	if val, ok := t.mappings[symbol]; ok {
 		return val
 	}
-	return sym
+	return symbol
 }
 
-func (t *Transformer) transformPair(template *types.Pair) *types.Pair {
-	if template == nil || template.IsNull() {
-		return template
+func (t *Transformer) transformPair(pair *types.Pair) *types.Pair {
+	if pair == nil || pair.IsNull() {
+		return pair
 	}
-	if name, ok := template.This.(types.Symbol); ok {
+	if name, ok := pair.This.(types.Symbol); ok {
 		switch name {
 		case "lambda":
 			transformer := newLambdaTransformer(t.mappings)
-			if args, body, ok := transformer.parse(template.Next); ok {
+			if args, body, ok := transformer.parse(pair.Next); ok {
 				return transformer.transform(args, body)
 			}
 		case "let":
 			transformer := newLetTransformer(t.mappings)
-			if bindings, body, ok := transformer.parse(template.Next); ok {
+			if bindings, body, ok := transformer.parse(pair.Next); ok {
 				return transformer.transform(bindings, body)
 			}
 		case "do":
 			// FIXME
 		}
 	}
-	return t.transformAll(template)
+	return t.transformAll(pair)
 }
 
-func (t *Transformer) transformAll(template *types.Pair) *types.Pair {
-	ap := types.NewAppendablePair()
-	head := template
+func (t *Transformer) transformAll(pair *types.Pair) *types.Pair {
+	body := types.NewAppendablePair()
+	head := pair
 	for head != nil {
 		if head.This == Ellipsis {
 			val := t.getEllipsis()
-			ap.Extend(val)
+			body.Extend(val)
 		} else {
 			val := t.transformSexpr(head.This)
-			ap.Append(val)
+			body.Append(val)
 		}
 		head = head.Next
 	}
-	return ap.ToPair()
+	return body.ToPair()
 }
 
 func (t *Transformer) getEllipsis() *types.Pair {
 	ellipsis := t.mappings[Ellipsis].(*types.Pair)
 	return t.transformAll(ellipsis)
-}
-
-type LambdaTransformer struct {
-	Transformer
-	suffix string
-}
-
-func newLambdaTransformer(mappings Mappings) LambdaTransformer {
-	suffix := newSuffix()
-	return LambdaTransformer{Transformer{mappings}, suffix}
-}
-
-// (lambda (args ...) body ...)
-func (t LambdaTransformer) parse(args *types.Pair) (*types.Pair, *types.Pair, bool) {
-	if args == nil || !args.HasNext() {
-		return &types.Pair{}, &types.Pair{}, false
-	}
-	switch params := args.This.(type) {
-	case *types.Pair:
-		return params, args.Next, true
-	default:
-		return &types.Pair{}, &types.Pair{}, false
-	}
-}
-
-func (t *LambdaTransformer) transform(args, body *types.Pair) *types.Pair {
-	ast := types.NewAppendablePair()
-	ast.Append(types.Symbol("lambda"))
-
-	ast.Append(t.transformArgs(args))
-	ast.Extend(t.transformBody(body))
-
-	return ast.ToPair()
-}
-
-func (t *LambdaTransformer) transformArgs(sexpr *types.Pair) *types.Pair {
-	args := types.NewAppendablePair()
-	head := sexpr
-	for head != nil {
-		switch sym := head.This.(type) {
-		case types.Symbol:
-			name := newName(sym, t.suffix)
-			t.mappings[sym] = name
-			args.Append(name)
-		default:
-			val := t.transformSexpr(head.This)
-			args.Append(val)
-		}
-		head = head.Next
-	}
-	return args.ToPair()
-}
-
-func (t *LambdaTransformer) transformBody(sexpr *types.Pair) *types.Pair {
-	ast := types.NewAppendablePair()
-	head := sexpr
-	for head != nil {
-		var val types.Sexpr
-		switch sym := head.This.(type) {
-		case types.Symbol:
-			val = t.transformSymbol(sym)
-		default:
-			val = t.transformSexpr(head.This)
-		}
-		ast.Append(val)
-		head = head.Next
-	}
-	return ast.ToPair()
-}
-
-type LetTransformer struct {
-	Transformer
-	suffix string
-}
-
-func newLetTransformer(mappings Mappings) LetTransformer {
-	suffix := newSuffix()
-	return LetTransformer{Transformer{mappings}, suffix}
-}
-
-// (let ((binding value) ...) ...) body ...)
-func (t *LetTransformer) parse(args *types.Pair) (*types.Pair, *types.Pair, bool) {
-	if args == nil || !args.HasNext() {
-		return &types.Pair{}, &types.Pair{}, false
-	}
-	switch params := args.This.(type) {
-	case *types.Pair:
-		return params, args.Next, true
-	default:
-		return &types.Pair{}, &types.Pair{}, false
-	}
-}
-
-func (t *LetTransformer) transform(bindings, body *types.Pair) *types.Pair {
-	ast := types.NewAppendablePair()
-	ast.Append(types.Symbol("let"))
-
-	ast.Append(t.transformBindings(bindings))
-	ast.Extend(t.transformBody(body))
-
-	return ast.ToPair()
-}
-
-func (t *LetTransformer) transformBindings(sexpr *types.Pair) *types.Pair {
-	bindings := types.NewAppendablePair()
-	head := sexpr
-	for head != nil {
-		var val types.Sexpr
-		switch binding := head.This.(type) {
-		case *types.Pair:
-			val = t.transformBinding(binding)
-		default:
-			val = t.transformSexpr(head.This)
-		}
-		bindings.Append(val)
-		head = head.Next
-	}
-	return bindings.ToPair()
-}
-
-func (t *LetTransformer) transformBinding(binding *types.Pair) *types.Pair {
-	if binding == nil || binding.IsNull() || !binding.HasNext() {
-		return t.transformPair(binding)
-	}
-
-	switch sym := binding.This.(type) {
-	case types.Symbol:
-		// first transform the binding, so not to shawdow it accidentally as in (let ((x x)) ...)
-		var val types.Sexpr
-		if obj, ok := t.mappings[sym]; ok {
-			val = obj
-		} else {
-			val = sym
-		}
-
-		name := newName(sym, t.suffix)
-		t.mappings[sym] = name
-
-		return types.NewPair(name, val)
-	default:
-		return t.transformPair(binding)
-	}
-}
-
-func (t *LetTransformer) transformBody(sexpr *types.Pair) *types.Pair {
-	ast := types.NewAppendablePair()
-	head := sexpr
-	for head != nil {
-		var val types.Sexpr
-		switch sym := head.This.(type) {
-		case types.Symbol:
-			val = t.transformSymbol(sym)
-		default:
-			val = t.transformSexpr(head.This)
-		}
-		ast.Append(val)
-		head = head.Next
-	}
-	return ast.ToPair()
 }
 
 // Split Unix timestamp into three blocks, XOR them together, and convert to base 62

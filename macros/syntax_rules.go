@@ -21,14 +21,15 @@ func (m *SyntaxRules) Append(rule SyntaxRule) {
 	m.rules = append(m.rules, rule)
 }
 
-func (m SyntaxRules) Match(obj types.Sexpr) (Mappings, types.Sexpr, bool) {
+func (m SyntaxRules) Apply(obj types.Sexpr) (types.Sexpr, bool) {
 	for _, macro := range m.rules {
-		mapping, ok := macro.pattern.Match(obj)
-		if ok {
-			return mapping, macro.template, true
+		if mapping, ok := macro.pattern.Match(obj); ok {
+			t := newTransformer(mapping)
+			sexpr := t.transform(macro.template)
+			return sexpr, true
 		}
 	}
-	return nil, nil, false
+	return nil, false
 }
 
 func (m SyntaxRules) String() string {

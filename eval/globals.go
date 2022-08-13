@@ -17,10 +17,6 @@ type Callable interface {
 	Call(*types.Pair, *envir.Env) (types.Sexpr, *envir.Env, error)
 }
 
-type Getable interface {
-	Get() (types.Sexpr, error)
-}
-
 // Available procedures to be imported from other modules
 type ProceduresGetter = map[types.Symbol]interface{}
 

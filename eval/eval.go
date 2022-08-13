@@ -17,8 +17,6 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 		switch val := sexpr.(type) {
 		case types.Symbol:
 			return getSymbol(val, env)
-		case Getable:
-			return val.Get()
 		case *types.Pair:
 			if val.IsNull() {
 				return &types.Pair{}, nil

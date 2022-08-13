@@ -1,6 +1,9 @@
 package types
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 type Pair struct {
 	This Sexpr
@@ -55,20 +58,13 @@ func (p *Pair) Len() int {
 }
 
 func (p Pair) String() string {
-	if p.IsNull() {
-		return "()"
+	var elems []string
+	head := &p
+	for head != nil && !head.IsNull() {
+		elems = append(elems, fmt.Sprintf("%v", head.This))
+		head = head.Next
 	}
-
-	var elems string
-	for {
-		elems += fmt.Sprintf("%v", p.This)
-		if !p.HasNext() {
-			break
-		}
-		p = *p.Next
-		elems += " "
-	}
-	return fmt.Sprintf("(%s)", elems)
+	return fmt.Sprintf("(%s)", strings.Join(elems, " "))
 }
 
 func PairFromArray(elems []Sexpr) *Pair {

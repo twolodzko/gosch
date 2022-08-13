@@ -20,16 +20,13 @@ func (p PairPattern) Match(obj types.Sexpr) (Mappings, bool) {
 	if !ok {
 		return Mappings{}, false
 	}
-
-	patterns := p.Patterns
-
-	if len(patterns) == 0 {
+	if len(p.Patterns) == 0 {
 		return Mappings{}, bool(pair == nil || pair.IsNull())
 	}
 
 	mapping := Mappings{}
 	head := pair
-	for _, pattern := range patterns {
+	for _, pattern := range p.Patterns {
 		switch pattern.(type) {
 		case EllipsisPattern:
 			if head == nil || head.IsNull() {
@@ -53,6 +50,7 @@ func (p PairPattern) Match(obj types.Sexpr) (Mappings, bool) {
 		head = head.Next
 	}
 
+	// input longer than the pattern
 	if head != nil {
 		return Mappings{}, false
 	}

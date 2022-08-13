@@ -205,8 +205,7 @@ func (t *LetTransformer) transformBinding(binding *types.Pair) *types.Pair {
 
 	switch sym := binding.This.(type) {
 	case types.Symbol:
-		// first transform binding, so not to shawdow it's name accidentally
-		// as in (let ((x x)) ...)
+		// first transform the binding, so not to shawdow it accidentally as in (let ((x x)) ...)
 		var val types.Sexpr
 		if obj, ok := t.mappings[sym]; ok {
 			val = obj
@@ -240,6 +239,7 @@ func (t *LetTransformer) transformBody(sexpr *types.Pair) *types.Pair {
 	return ast.ToPair()
 }
 
+// Split Unix timestamp into three blocks, XOR them together, and convert to base 62
 func newSuffix() string {
 	var (
 		h int64 = 0

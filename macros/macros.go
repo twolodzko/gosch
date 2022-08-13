@@ -146,7 +146,7 @@ func maybeSyntaxRule(obj *types.Pair) (*types.Pair, types.Sexpr, error) {
 		return nil, nil, fmt.Errorf("empty pattern")
 	}
 
-	// ignore name of the procedure at the beginning of the pattern in `syntax-rules`
+	// ignore name of the procedure at the beginning of the pattern
 	first = first.Next
 
 	return first, pair.Next.This, nil

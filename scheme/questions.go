@@ -31,6 +31,19 @@ func IsPair(args *types.Pair) (types.Sexpr, error) {
 	}
 }
 
+// `vector?` procedure
+func IsVector(args *types.Pair) (types.Sexpr, error) {
+	if args == nil {
+		return nil, eval.ErrBadArgNumber
+	}
+	switch args.This.(type) {
+	case *types.Vector:
+		return types.TRUE, nil
+	default:
+		return types.FALSE, nil
+	}
+}
+
 // `bool?` procedure
 func IsBool(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {

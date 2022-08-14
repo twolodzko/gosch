@@ -61,4 +61,12 @@ var Procedures = eval.ProceduresGetter{
 	"syntax-rules":  macros.NewSyntaxRules,
 	"timeit":        Timeit,
 	"unquote":       Unquote,
+	"vector":        Vector,
+	"vector-length": VectorLength,
+	"make-vector":   MakeVector,
+	"vector-ref":    VectorRef,
+	"vector-set!":   VectorSet,
+	"vector->list":  VectorToList,
+	"list->vector":  ListToVector,
+	"vector?":       IsVector,
 }

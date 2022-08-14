@@ -56,19 +56,7 @@ func DefineSyntax(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 		return nil, fmt.Errorf("expecting syntax rules, got %s", rules)
 	}
 
-	macro := func(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
-		if sexpr, ok := rules.Apply(args); ok {
-			return sexpr, env, nil
-		}
-		return nil, env, fmt.Errorf("syntax didn't match any pattern")
-	}
-	// macro := func(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	// 	if sexpr, ok := rules.Apply(args); ok {
-	// 		return sexpr, nil
-	// 	}
-	// 	return nil, fmt.Errorf("syntax didn't match any pattern")
-	// }
-	env.Set(key, macro)
+	env.Set(key, rules)
 	return rules, nil
 }
 

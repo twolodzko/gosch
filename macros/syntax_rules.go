@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -39,4 +40,12 @@ func (m SyntaxRules) String() string {
 		rules = append(rules, fmt.Sprintf("(%s %s)", rule.pattern, rule.template))
 	}
 	return fmt.Sprintf("(syntax-rules (%s) %s)", literals, strings.Join(rules, " "))
+}
+
+// SyntaxRules follows the eval.Callable interface
+func (m SyntaxRules) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
+	if sexpr, ok := m.Apply(args); ok {
+		return sexpr, env, nil
+	}
+	return nil, env, fmt.Errorf("syntax didn't match any pattern")
 }

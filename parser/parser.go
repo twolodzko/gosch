@@ -28,6 +28,10 @@ func (p *Parser) Head() rune {
 	return p.str[p.pos]
 }
 
+func (p *Parser) Next() rune {
+	return p.str[p.pos+1]
+}
+
 func (p *Parser) Read() ([]types.Sexpr, error) {
 	var sexprs []types.Sexpr
 	for p.HasNext() {
@@ -69,16 +73,18 @@ func (p *Parser) readSexpr() (types.Sexpr, error) {
 			return Unquote(val), err
 		case '(':
 			return p.readPair()
-		case '[':
-			return p.readVector()
 		case ')':
 			return nil, fmt.Errorf("unexpected )")
-		case ']':
-			return nil, fmt.Errorf("unexpected ]")
 		case '"':
 			return p.readString()
 		case ';':
 			p.skipLine()
+		case '#':
+			if p.HasNext() && p.Next() == '(' {
+				p.pos++
+				return p.readVector()
+			}
+			fallthrough
 		default:
 			return p.readAtom()
 		}
@@ -89,7 +95,7 @@ func (p *Parser) readSexpr() (types.Sexpr, error) {
 func (p *Parser) readAtom() (types.Sexpr, error) {
 	var runes []rune
 	for p.HasNext() {
-		if unicode.IsSpace(p.Head()) || p.Head() == '(' || p.Head() == ')' || p.Head() == '[' || p.Head() == ']' {
+		if unicode.IsSpace(p.Head()) || p.Head() == '(' || p.Head() == ')' {
 			break
 		}
 		runes = append(runes, p.Head())
@@ -159,7 +165,7 @@ func (p *Parser) readVector() (*types.Vector, error) {
 		switch {
 		case unicode.IsSpace(p.Head()):
 			p.pos++
-		case p.Head() == ']':
+		case p.Head() == ')':
 			p.pos++
 			return &vec, nil
 		default:
@@ -170,14 +176,14 @@ func (p *Parser) readVector() (*types.Vector, error) {
 			vec = append(vec, elem)
 		}
 	}
-	return nil, fmt.Errorf("vector was not closed with ]")
+	return nil, fmt.Errorf("vector was not closed with )")
 }
 
 func (p *Parser) readString() (types.String, error) {
 	p.pos++
 	var runes []rune
 	for p.HasNext() {
-		if p.Head() == '\\' && len(p.str) > (p.pos+1) && p.str[p.pos+1] == '"' {
+		if p.Head() == '\\' && p.HasNext() && p.Next() == '"' {
 			runes = append(runes, '"')
 			p.pos = p.pos + 2
 			continue

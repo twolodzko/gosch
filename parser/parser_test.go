@@ -45,6 +45,10 @@ func Test_Parse(t *testing.T) {
 		{`"hello world!"`, types.String("hello world!")},
 		{`"William Joseph \"Wild Bill\" Donovan"`, types.String(`William Joseph "Wild Bill" Donovan`)},
 		{"(list 1 2 ;; a comment\n3)", types.MakePair(types.Symbol("list"), types.MakePair(types.Integer(1), types.MakePair(types.Integer(2), types.MakePair(types.Integer(3), nil))))},
+		{"#()", &types.Vector{}},
+		{"#(#t #f)", &types.Vector{types.TRUE, types.FALSE}},
+		{"#(1 2 3)", &types.Vector{types.Integer(1), types.Integer(2), types.Integer(3)}},
+		{"#(#() #())", &types.Vector{&types.Vector{}, &types.Vector{}}},
 	}
 
 	for _, tt := range testCases {

@@ -16,5 +16,5 @@ func (v Vector) String() string {
 	for _, x := range v {
 		elems = append(elems, fmt.Sprintf("%v", x))
 	}
-	return fmt.Sprintf("[%s]", strings.Join(elems, " "))
+	return fmt.Sprintf("#(%s)", strings.Join(elems, " "))
 }

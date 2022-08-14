@@ -103,15 +103,17 @@ func Test_MapFunction(t *testing.T) {
 				(map f (cdr items))))))
 	(map add1 '(1 2 3))
 	`
-	expected := []types.Integer{2, 3, 4}
+	expected := types.PairFromArray([]types.Sexpr{types.Integer(2), types.Integer(3), types.Integer(4)})
 
 	result, _, err := eval.EvalString(code, env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
-
-	if cmp.Equal(result, expected) {
-		t.Errorf("for %v expected %v, got %v", code, expected, result)
+	if len(result) == 0 {
+		t.Errorf("empty result")
+	}
+	if !cmp.Equal(result[len(result)-1], expected) {
+		t.Errorf("for %v expected %v, got %v", code, expected, result[len(result)-1])
 	}
 }
 
@@ -124,15 +126,18 @@ func Test_IsAtom(t *testing.T) {
 			(and (not (pair? x)) (not (null? x)))))
 	(atom? 'a)
 	`
-	expected := []types.Sexpr{types.TRUE}
+	expected := types.TRUE
 
 	result, _, err := eval.EvalString(code, env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}
 
-	if cmp.Equal(result, expected) {
-		t.Errorf("for %v expected %v, got %v", code, expected, result)
+	if len(result) == 0 {
+		t.Errorf("empty result")
+	}
+	if !cmp.Equal(result[len(result)-1], expected) {
+		t.Errorf("for %v expected %v, got %v", code, expected, result[len(result)-1])
 	}
 }
 

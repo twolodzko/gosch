@@ -3,16 +3,18 @@ package macros
 import (
 	"fmt"
 
+	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/types"
 )
 
 type Transformer struct {
 	mappings Mappings
+	env      *envir.Env
 	level    int
 }
 
-func newTransformer(mappings Mappings) Transformer {
-	return Transformer{mappings, 0}
+func newTransformer(mappings Mappings, env *envir.Env) Transformer {
+	return Transformer{mappings, env, 0}
 }
 
 func (t *Transformer) transform(template types.Sexpr) types.Sexpr {
@@ -37,10 +39,11 @@ func (t *Transformer) transformSymbol(symbol types.Symbol) types.Sexpr {
 	return symbol
 }
 
-func (t *Transformer) transformPair(pair *types.Pair) *types.Pair {
+func (t *Transformer) transformPair(pair *types.Pair) types.Sexpr {
 	if pair == nil || pair.IsNull() {
 		return pair
 	}
+
 	if name, ok := pair.This.(types.Symbol); ok {
 		switch name {
 		case "lambda":
@@ -55,6 +58,17 @@ func (t *Transformer) transformPair(pair *types.Pair) *types.Pair {
 			}
 		case "do":
 			// FIXME
+		}
+
+		// FIXME: this is optimistic, need error handling!
+		if obj, ok := t.env.Get(name); ok {
+			if rules, ok := obj.(SyntaxRules); ok {
+				args := t.transformAll(pair.Next)
+				// FIXME: use Call() and return error from it
+				if sexpr, ok := rules.Apply(args, t.env); ok {
+					return sexpr
+				}
+			}
 		}
 	}
 	return t.transformAll(pair)

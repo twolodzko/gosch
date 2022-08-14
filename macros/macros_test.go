@@ -1,6 +1,7 @@
 package macros_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -49,6 +50,38 @@ func Test_Sum(t *testing.T) {
 		} else if result[0] != tt.expected {
 			t.Errorf("for %s expected %v, got: %v", tt.input, tt.expected, result[0])
 		}
+	}
+}
+
+func Test_And2Expand(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+	(define-syntax and2
+		(syntax-rules ()
+			((_) #t)
+			((_ e) e)
+			((_ e1 e2 ...)
+			 (if e1 (and2 e2 ...) #f))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	result, _, err := eval.EvalString("(expand-macro and2 a b c)", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Errorf("expected single result, got: %v", result)
+	}
+	expected := "(if a (if b c #f) #f)"
+	if fmt.Sprintf("%s", result[0]) != expected {
+		t.Errorf("expected %q, got: %q", expected, result[0])
 	}
 }
 

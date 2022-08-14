@@ -61,4 +61,5 @@ var Procedures = eval.ProceduresGetter{
 	"syntax-rules":  macros.NewSyntaxRules,
 	"timeit":        Timeit,
 	"unquote":       Unquote,
+	"expand-macro":  macros.ExpandMacro,
 }

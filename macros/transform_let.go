@@ -49,7 +49,7 @@ func (t *LetTransformer) transformBindings(pair *types.Pair) *types.Pair {
 	return bindings.ToPair()
 }
 
-func (t *LetTransformer) transformBinding(binding *types.Pair) *types.Pair {
+func (t *LetTransformer) transformBinding(binding *types.Pair) types.Sexpr {
 	if binding == nil || binding.IsNull() || !binding.HasNext() {
 		return t.transformPair(binding)
 	}
@@ -69,6 +69,7 @@ func (t *LetTransformer) transformBinding(binding *types.Pair) *types.Pair {
 
 		return types.NewPair(name, val)
 	default:
+		// FIXME: error here
 		return t.transformPair(binding)
 	}
 }

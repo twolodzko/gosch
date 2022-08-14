@@ -1,7 +1,7 @@
 package eval
 
 import (
-	"io/ioutil"
+	"os"
 
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/parser"
@@ -26,7 +26,7 @@ func EvalString(code string, env *envir.Env) ([]types.Sexpr, *envir.Env, error) 
 }
 
 func LoadEval(path string, env *envir.Env) ([]types.Sexpr, error) {
-	content, err := ioutil.ReadFile(path)
+	content, err := os.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}

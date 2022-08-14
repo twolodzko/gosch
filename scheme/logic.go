@@ -14,7 +14,7 @@ func Not(args *types.Pair) (types.Sexpr, error) {
 }
 
 func And(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args.This == nil {
+	if args == nil || args.This == nil {
 		return types.TRUE, nil
 	}
 	head := args
@@ -32,7 +32,7 @@ func And(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 }
 
 func Or(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args.This == nil {
+	if args == nil || args.This == nil {
 		return types.TRUE, nil
 	}
 	head := args

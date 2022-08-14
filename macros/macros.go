@@ -70,12 +70,10 @@ func NewSyntaxRules(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return SyntaxRules{}, eval.ErrBadArgNumber
 	}
-
 	literals, err := extractLiterals(args.This)
 	if err != nil {
 		return SyntaxRules{}, err
 	}
-
 	return extractSyntaxRules(args.Next, literals)
 }
 

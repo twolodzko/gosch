@@ -24,15 +24,27 @@ func (t LambdaTransformer) parse(args *types.Pair) (*types.Pair, *types.Pair, bo
 	}
 }
 
-func (t *LambdaTransformer) transform(args, body *types.Pair) *types.Pair {
+func (t *LambdaTransformer) transform(args, body *types.Pair) (*types.Pair, error) {
 	ast := types.NewAppendablePair()
 	ast.Append(types.Symbol("lambda"))
-	ast.Append(t.transformArgs(args))
-	ast.Extend(t.transformAll(body))
-	return ast.ToPair()
+
+	var err error
+	args, err = t.transformArgs(args)
+	if err != nil {
+		return nil, err
+	}
+	ast.Append(args)
+
+	body, err = t.transformAll(body)
+	if err != nil {
+		return nil, err
+	}
+	ast.Extend(body)
+
+	return ast.ToPair(), nil
 }
 
-func (t *LambdaTransformer) transformArgs(pair *types.Pair) *types.Pair {
+func (t *LambdaTransformer) transformArgs(pair *types.Pair) (*types.Pair, error) {
 	args := types.NewAppendablePair()
 	head := pair
 	for head != nil {
@@ -42,10 +54,13 @@ func (t *LambdaTransformer) transformArgs(pair *types.Pair) *types.Pair {
 			t.mappings[sym] = name
 			args.Append(name)
 		default:
-			val := t.transformSexpr(head.This)
+			val, err := t.transformSexpr(head.This)
+			if err != nil {
+				return nil, err
+			}
 			args.Append(val)
 		}
 		head = head.Next
 	}
-	return args.ToPair()
+	return args.ToPair(), nil
 }

@@ -62,4 +62,12 @@ var Procedures = eval.ProceduresGetter{
 	"timeit":        Timeit,
 	"unquote":       Unquote,
 	"expand-macro":  macros.ExpandMacro,
+	"vector":        Vector,
+	"vector-length": VectorLength,
+	"make-vector":   MakeVector,
+	"vector-ref":    VectorRef,
+	"vector-set!":   VectorSet,
+	"vector->list":  VectorToList,
+	"list->vector":  ListToVector,
+	"vector?":       IsVector,
 }

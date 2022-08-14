@@ -17,6 +17,8 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 		switch val := sexpr.(type) {
 		case types.Symbol:
 			return getSymbol(val, env)
+		case *types.Vector:
+			return EvalVector(val, env)
 		case *types.Pair:
 			if val.IsNull() {
 				return &types.Pair{}, nil
@@ -119,4 +121,16 @@ func EvalAll(exprs *types.Pair, env *envir.Env) (types.Sexpr, error) {
 		head = head.Next
 	}
 	return result, nil
+}
+
+func EvalVector(vec *types.Vector, env *envir.Env) (types.Sexpr, error) {
+	var result types.Vector
+	for _, sexpr := range *vec {
+		val, err := Eval(sexpr, env)
+		if err != nil {
+			return nil, err
+		}
+		result = append(result, val)
+	}
+	return &result, nil
 }

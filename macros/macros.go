@@ -63,9 +63,8 @@ func DefineSyntax(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 		return nil, env, fmt.Errorf("syntax didn't match any pattern")
 	}
 	// macro := func(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	// 	if mapping, template, ok := rules.Match(args); ok {
-	// 		transformer := newTransformer(mapping)
-	// 		return transformer.transformSexpr(template), nil
+	// 	if sexpr, ok := rules.Apply(args); ok {
+	// 		return sexpr, nil
 	// 	}
 	// 	return nil, fmt.Errorf("syntax didn't match any pattern")
 	// }

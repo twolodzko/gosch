@@ -4,12 +4,11 @@ import "github.com/twolodzko/gosch/types"
 
 type LetTransformer struct {
 	Transformer
-	suffix string
 }
 
-func newLetTransformer(mappings Mappings) LetTransformer {
-	suffix := newSuffix()
-	return LetTransformer{Transformer{mappings}, suffix}
+func newLetTransformer(transformer Transformer) LetTransformer {
+	transformer.level += 1
+	return LetTransformer{transformer}
 }
 
 // (let ((binding value) ...) ...) body ...)
@@ -65,7 +64,7 @@ func (t *LetTransformer) transformBinding(binding *types.Pair) *types.Pair {
 			val = sym
 		}
 
-		name := newName(sym, t.suffix)
+		name := t.Rename(sym)
 		t.mappings[sym] = name
 
 		return types.NewPair(name, val)

@@ -2,18 +2,17 @@ package macros
 
 import (
 	"fmt"
-	"math/big"
-	"time"
 
 	"github.com/twolodzko/gosch/types"
 )
 
 type Transformer struct {
 	mappings Mappings
+	level    int
 }
 
 func newTransformer(mappings Mappings) Transformer {
-	return Transformer{mappings}
+	return Transformer{mappings, 0}
 }
 
 func (t *Transformer) transform(template types.Sexpr) types.Sexpr {
@@ -45,12 +44,12 @@ func (t *Transformer) transformPair(pair *types.Pair) *types.Pair {
 	if name, ok := pair.This.(types.Symbol); ok {
 		switch name {
 		case "lambda":
-			transformer := newLambdaTransformer(t.mappings)
+			transformer := newLambdaTransformer(*t)
 			if args, body, ok := transformer.parse(pair.Next); ok {
 				return transformer.transform(args, body)
 			}
 		case "let":
-			transformer := newLetTransformer(t.mappings)
+			transformer := newLetTransformer(*t)
 			if bindings, body, ok := transformer.parse(pair.Next); ok {
 				return transformer.transform(bindings, body)
 			}
@@ -78,26 +77,26 @@ func (t *Transformer) transformAll(pair *types.Pair) *types.Pair {
 }
 
 func (t *Transformer) getEllipsis() *types.Pair {
-	ellipsis := t.mappings[Ellipsis].(*types.Pair)
-	return t.transformAll(ellipsis)
-}
-
-// Split Unix timestamp into three blocks, XOR them together, and convert to base 62
-func newSuffix() string {
-	var (
-		h int64 = 0
-		x int64
-		m int64 = 10_000_000
-	)
-	n := time.Now().UnixNano()
-	for n > 0 {
-		x = n % m
-		h ^= x
-		n = n / m
+	if ellipsis, ok := t.mappings[Ellipsis]; ok {
+		return t.transformAll(ellipsis.(*types.Pair))
 	}
-	return big.NewInt(h).Text(62)
+	return &types.Pair{}
 }
 
-func newName(symbol types.Symbol, suffix string) types.Symbol {
-	return fmt.Sprintf("%s:%s", symbol, suffix)
+func (t Transformer) Rename(name types.Symbol) types.Symbol {
+	return fmt.Sprintf("%s_%d", name, t.level)
 }
+
+// type Counter map[types.Symbol]int
+
+// func (c *Counter) Add(key types.Symbol) {
+// 	(*c)[key] = c.Get(key) + 1
+// }
+
+// func (c Counter) Get(key types.Symbol) int {
+// 	if count, ok := c[key]; ok {
+// 		return count
+// 	} else {
+// 		return 0
+// 	}
+// }

@@ -4,12 +4,11 @@ import "github.com/twolodzko/gosch/types"
 
 type LambdaTransformer struct {
 	Transformer
-	suffix string
 }
 
-func newLambdaTransformer(mappings Mappings) LambdaTransformer {
-	suffix := newSuffix()
-	return LambdaTransformer{Transformer{mappings}, suffix}
+func newLambdaTransformer(transformer Transformer) LambdaTransformer {
+	transformer.level += 1
+	return LambdaTransformer{transformer}
 }
 
 // (lambda (args ...) body ...)
@@ -39,7 +38,7 @@ func (t *LambdaTransformer) transformArgs(pair *types.Pair) *types.Pair {
 	for head != nil {
 		switch sym := head.This.(type) {
 		case types.Symbol:
-			name := newName(sym, t.suffix)
+			name := t.Rename(sym)
 			t.mappings[sym] = name
 			args.Append(name)
 		default:

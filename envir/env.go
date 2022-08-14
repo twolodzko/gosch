@@ -1,8 +1,6 @@
 package envir
 
 import (
-	"fmt"
-
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -38,9 +36,9 @@ func (e *Env) FindEnv(name types.Symbol) (*Env, bool) {
 	return nil, false
 }
 
-func (e *Env) Get(name types.Symbol) (types.Sexpr, error) {
+func (e *Env) Get(name types.Symbol) (types.Sexpr, bool) {
 	if env, ok := e.FindEnv(name); ok {
-		return env.Vars[name], nil
+		return env.Vars[name], true
 	}
-	return nil, fmt.Errorf("unbound variable %v", name)
+	return nil, false
 }

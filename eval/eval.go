@@ -61,7 +61,10 @@ func getSymbol(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 		if fn, ok := Procedures[val]; ok {
 			return fn, nil
 		}
-		return env.Get(val)
+		if val, ok := env.Get(val); ok {
+			return val, nil
+		}
+		return nil, fmt.Errorf("unbound variable %v", val)
 	default:
 		return val, nil
 	}

@@ -22,9 +22,9 @@ func Test_EnvGet(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		result, err := env.Get(tt.name)
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
+		result, ok := env.Get(tt.name)
+		if !ok {
+			t.Errorf("variable %v was not found", tt.name)
 		}
 		if !cmp.Equal(result, tt.value) {
 			t.Errorf("for %q expected %v, got: %v", tt.name, tt.value, result)
@@ -46,9 +46,9 @@ func Test_EnvGetUnbound(t *testing.T) {
 		env.Set(tt.name, tt.value)
 	}
 
-	_, err := env.Get("foo")
-	if err == nil || err.Error() != "unbound variable foo" {
-		t.Errorf("expected unbound variable error, got %v", err)
+	_, ok := env.Get("foo")
+	if ok {
+		t.Errorf("got result unbound variable")
 	}
 }
 
@@ -68,9 +68,9 @@ func Test_NestedEnvGet(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		result, err := sybling.Get(tt.name)
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
+		result, ok := sybling.Get(tt.name)
+		if !ok {
+			t.Errorf("variable %v was not found", tt.name)
 		}
 		if !cmp.Equal(result, tt.expected) {
 			t.Errorf("for %q expected %v, got: %v", tt.name, tt.expected, result)

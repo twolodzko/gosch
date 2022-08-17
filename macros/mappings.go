@@ -6,12 +6,12 @@ import (
 
 type Mappings map[types.Symbol]types.Sexpr
 
-func mergeMappings(x, y Mappings) (Mappings, bool) {
+func (x *Mappings) merge(y Mappings) bool {
 	for key, val := range y {
-		if _, ok := x[key]; ok {
-			return Mappings{}, false
+		if _, ok := (*x)[key]; ok {
+			return false
 		}
-		x[key] = val
+		(*x)[key] = val
 	}
-	return x, true
+	return true
 }

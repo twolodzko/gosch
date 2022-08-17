@@ -9,41 +9,43 @@ const (
 	Ellipsis = types.Symbol("...")
 )
 
-func patternFromPair(pair *types.Pair, literals []types.Symbol) PairPattern {
-	var (
-		pattern  Pattern
-		patterns []Pattern
-	)
+func patternFromPair(pair *types.Pair, literals []types.Symbol) *PairPattern {
+	var patterns []Pattern
 
 	if pair == nil || pair.IsNull() {
-		return PairPattern{}
+		return &PairPattern{}
 	}
 
 	head := pair
 	for head != nil {
 		switch obj := head.This.(type) {
 		case types.Symbol:
-			pattern = patternFromSymbol(obj, literals)
+			if obj == Ellipsis {
+				// FIXME: handle errors: ellipsis is first
+				patterns[len(patterns)-1].ToEllipsis()
+			} else {
+				p := patternFromSymbol(obj, literals)
+				patterns = append(patterns, p)
+			}
 		case *types.Pair:
-			pattern = patternFromPair(obj, literals)
+			p := patternFromPair(obj, literals)
+			patterns = append(patterns, p)
 		default:
-			pattern = LiteralPattern{obj}
+			p := &LiteralPattern{obj}
+			patterns = append(patterns, p)
 		}
-		patterns = append(patterns, pattern)
 		head = head.Next
 	}
 
-	return PairPattern{patterns}
+	return &PairPattern{patterns, false}
 }
 
 func patternFromSymbol(obj string, literals []string) Pattern {
 	switch {
 	case isLiteral(obj, literals):
-		return LiteralPattern{obj}
-	case obj == Ellipsis:
-		return EllipsisPattern{}
+		return &LiteralPattern{obj}
 	default:
-		return IdentifierPattern{obj}
+		return &IdentifierPattern{obj, false}
 	}
 }
 

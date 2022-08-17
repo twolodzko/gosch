@@ -24,43 +24,43 @@ func Test_PairFromArray(t *testing.T) {
 			// (x)
 			types.PairFromArray([]types.Sexpr{"x"}),
 			nil,
-			[]Pattern{IdentifierPattern{"x"}},
+			[]Pattern{&IdentifierPattern{"x", false}},
 		},
 		{
 			// (#t)
 			types.PairFromArray([]types.Sexpr{types.Bool(true)}),
 			nil,
-			[]Pattern{LiteralPattern{types.Bool(true)}},
+			[]Pattern{&LiteralPattern{types.Bool(true)}},
 		},
 		{
 			// (())
 			types.NewPair(&types.Pair{}, nil),
 			nil,
-			[]Pattern{PairPattern{}},
+			[]Pattern{&PairPattern{}},
 		},
 		{
 			// (x (y) z)
 			types.PairFromArray([]types.Sexpr{"x", types.NewPair("y", nil), "z"}),
 			nil,
-			[]Pattern{IdentifierPattern{"x"}, PairPattern{[]Pattern{IdentifierPattern{"y"}}}, IdentifierPattern{"z"}},
+			[]Pattern{&IdentifierPattern{"x", false}, &PairPattern{[]Pattern{&IdentifierPattern{"y", false}}, false}, &IdentifierPattern{"z", false}},
 		},
 		{
 			// (x + 1)
 			types.PairFromArray([]types.Sexpr{"x", "+", types.Integer(1)}),
 			[]types.Symbol{"+"},
-			[]Pattern{IdentifierPattern{"x"}, LiteralPattern{"+"}, LiteralPattern{types.Integer(1)}},
+			[]Pattern{&IdentifierPattern{"x", false}, &LiteralPattern{"+"}, &LiteralPattern{types.Integer(1)}},
 		},
 		{
 			// (x y ...)
 			types.PairFromArray([]types.Sexpr{"x", "y", "..."}),
 			nil,
-			[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}},
+			[]Pattern{&IdentifierPattern{"x", false}, &IdentifierPattern{"y", true}},
 		},
 	}
 
 	for _, tt := range testCases {
 		result := patternFromPair(tt.input, tt.literals)
-		expected := PairPattern{tt.expected}
+		expected := &PairPattern{tt.expected, false}
 		if !cmp.Equal(result, expected) {
 			t.Errorf("for %v expected %v, got %v", tt.input, expected, result)
 		}
@@ -76,188 +76,168 @@ func Test_MatchPattern(t *testing.T) {
 	}{
 		{
 			// literal else
-			LiteralPattern{"else"},
+			&LiteralPattern{"else"},
 			types.Symbol("else"),
 			true,
 			Mappings{},
 		},
 		{
 			// literal else
-			LiteralPattern{"else"},
+			&LiteralPattern{"else"},
 			types.Bool(true),
 			false,
 			Mappings{},
 		},
 		{
 			// literal else
-			LiteralPattern{"else"},
+			&LiteralPattern{"else"},
 			&types.Pair{},
 			false,
 			Mappings{},
 		},
 		{
 			// literal _
-			LiteralPattern{"_"},
+			&LiteralPattern{"_"},
 			types.Symbol("_"),
 			true,
 			Mappings{},
 		},
 		{
 			// literal ...
-			LiteralPattern{"..."},
+			&LiteralPattern{"..."},
 			types.Symbol("..."),
 			true,
-			Mappings{},
-		},
-		{
-			// ...
-			EllipsisPattern{},
-			types.Symbol("..."),
-			true,
-			Mappings{},
-		},
-		{
-			// ...
-			EllipsisPattern{},
-			types.Symbol("_"),
-			false,
-			Mappings{},
-		},
-		{
-			// ...
-			EllipsisPattern{},
-			types.Symbol("x"),
-			false,
 			Mappings{},
 		},
 		{
 			// x
-			IdentifierPattern{"x"},
+			&IdentifierPattern{"x", false},
 			types.Symbol("y"),
 			true,
 			Mappings{"x": "y"},
 		},
 		{
 			// x
-			IdentifierPattern{"x"},
+			&IdentifierPattern{"x", false},
 			nil,
 			false,
 			Mappings{},
 		},
 		{
 			// ()
-			PairPattern{},
+			&PairPattern{},
 			types.Symbol("x"),
 			false,
 			Mappings{},
 		},
 		{
 			// ()
-			PairPattern{},
+			&PairPattern{},
 			types.Bool(true),
 			false,
 			Mappings{},
 		},
 		{
 			// ()
-			PairPattern{},
+			&PairPattern{},
 			&types.Pair{},
 			true,
 			Mappings{},
 		},
 		{
 			// ()
-			PairPattern{},
+			&PairPattern{},
 			types.NewPair("x", "y"),
 			false,
 			Mappings{},
 		},
 		{
 			// (x y)
-			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}}},
+			&PairPattern{[]Pattern{&IdentifierPattern{"x", false}, &IdentifierPattern{"y", false}}, false},
 			types.NewPair(types.Symbol("a"), types.Symbol("b")),
 			true,
 			Mappings{"x": "a", "y": "b"},
 		},
 		{
 			// (x y ...)
-			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}}},
+			&PairPattern{[]Pattern{&IdentifierPattern{"x", false}, &IdentifierPattern{"y", true}}, false},
 			types.NewPair(types.Symbol("a"), types.Symbol("b")),
 			true,
-			Mappings{"x": "a", "y": "b"},
+			Mappings{"x": "a", "y": &EllipsisVar{"b"}},
 		},
 		{
 			// (x y ...)
-			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}}},
+			&PairPattern{[]Pattern{&IdentifierPattern{"x", false}, &IdentifierPattern{"y", true}}, false},
 			types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.Symbol("b"), types.Symbol("c"), types.Symbol("d")}),
 			true,
-			Mappings{"x": "a", "y": "b", "...": types.PairFromArray([]types.Sexpr{"c", "d"})},
+			Mappings{"x": "a", "y": &EllipsisVar{"b", "c", "d"}},
 		},
 		{
 			// (x y ...)
-			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}}},
+			&PairPattern{[]Pattern{&IdentifierPattern{"x", false}, &IdentifierPattern{"y", true}}, false},
 			types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.Symbol("b"), &types.Pair{}, types.Bool(false)}),
 			true,
-			Mappings{"x": "a", "y": "b", "...": types.PairFromArray([]types.Sexpr{&types.Pair{}, types.Bool(false)})},
+			Mappings{"x": "a", "y": &EllipsisVar{"b", &types.Pair{}, types.Bool(false)}},
 		},
 		{
 			// (x y ...)
-			PairPattern{[]Pattern{IdentifierPattern{"x"}, IdentifierPattern{"y"}, EllipsisPattern{}}},
+			&PairPattern{[]Pattern{&IdentifierPattern{"x", false}, &IdentifierPattern{"y", true}}, false},
 			types.NewPair(types.Symbol("a"), nil),
 			false,
 			Mappings{},
 		},
-		{
-			// (x (...) y)
-			PairPattern{[]Pattern{IdentifierPattern{"x"}, PairPattern{[]Pattern{EllipsisPattern{}}}, IdentifierPattern{"y"}}},
-			types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.NewPair(types.Symbol("b"), types.Symbol("c")), types.Symbol("d")}),
-			true,
-			Mappings{"x": "a", "...": types.PairFromArray([]types.Sexpr{types.Symbol("b"), types.Symbol("c")}), "y": "d"},
-		},
-		{
-			// (x (...) y)
-			PairPattern{[]Pattern{IdentifierPattern{"x"}, PairPattern{[]Pattern{EllipsisPattern{}}}, IdentifierPattern{"y"}}},
-			types.PairFromArray([]types.Sexpr{types.Symbol("a"), &types.Pair{}, types.Symbol("d")}),
-			true,
-			Mappings{"x": "a", "y": "d"},
-		},
-		{
-			// (x ((() (...) y) z)
-			PairPattern{[]Pattern{
-				IdentifierPattern{"x"},
-				PairPattern{[]Pattern{
-					PairPattern{},
-					PairPattern{[]Pattern{EllipsisPattern{}}},
-					IdentifierPattern{"y"}}},
-				IdentifierPattern{"z"}}},
-			types.PairFromArray([]types.Sexpr{
-				types.Symbol("a"),
-				types.PairFromArray([]types.Sexpr{
-					&types.Pair{},
-					types.PairFromArray([]types.Sexpr{"b", "c"}),
-					types.Symbol("d")}),
-				types.Symbol("e")}),
-			true,
-			Mappings{"x": "a", "y": "d", "z": "e", "...": types.PairFromArray([]types.Sexpr{"b", "c"})},
-		},
-		{
-			// (x ((() (...) y) z)
-			PairPattern{[]Pattern{
-				IdentifierPattern{"x"},
-				PairPattern{[]Pattern{
-					PairPattern{},
-					PairPattern{[]Pattern{EllipsisPattern{}}},
-					IdentifierPattern{"y"}}},
-				IdentifierPattern{"z"}}},
-			types.PairFromArray([]types.Sexpr{
-				types.Symbol("a"),
-				types.PairFromArray([]types.Sexpr{
-					&types.Pair{},
-					types.Symbol("d")}),
-				types.Symbol("e")}),
-			false,
-			Mappings{},
-		},
+		// FIXME: invalida patterns
+		// {
+		// 	// (x (...) y)
+		// 	PairPattern{[]Pattern{IdentifierPattern{"x"}, PairPattern{[]Pattern{EllipsisPattern{}}}, IdentifierPattern{"y"}}},
+		// 	types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.NewPair(types.Symbol("b"), types.Symbol("c")), types.Symbol("d")}),
+		// 	true,
+		// 	Mappings{"x": "a", "...": types.PairFromArray([]types.Sexpr{types.Symbol("b"), types.Symbol("c")}), "y": "d"},
+		// },
+		// {
+		// 	// (x (...) y)
+		// 	PairPattern{[]Pattern{IdentifierPattern{"x"}, PairPattern{[]Pattern{EllipsisPattern{}}}, IdentifierPattern{"y"}}},
+		// 	types.PairFromArray([]types.Sexpr{types.Symbol("a"), &types.Pair{}, types.Symbol("d")}),
+		// 	true,
+		// 	Mappings{"x": "a", "y": "d"},
+		// },
+		// {
+		// 	// (x ((() (...) y) z)
+		// 	PairPattern{[]Pattern{
+		// 		IdentifierPattern{"x"},
+		// 		PairPattern{[]Pattern{
+		// 			PairPattern{},
+		// 			PairPattern{[]Pattern{EllipsisPattern{}}},
+		// 			IdentifierPattern{"y"}}},
+		// 		IdentifierPattern{"z"}}},
+		// 	types.PairFromArray([]types.Sexpr{
+		// 		types.Symbol("a"),
+		// 		types.PairFromArray([]types.Sexpr{
+		// 			&types.Pair{},
+		// 			types.PairFromArray([]types.Sexpr{"b", "c"}),
+		// 			types.Symbol("d")}),
+		// 		types.Symbol("e")}),
+		// 	true,
+		// 	Mappings{"x": "a", "y": "d", "z": "e", "...": types.PairFromArray([]types.Sexpr{"b", "c"})},
+		// },
+		// {
+		// 	// (x ((() (...) y) z)
+		// 	PairPattern{[]Pattern{
+		// 		IdentifierPattern{"x"},
+		// 		PairPattern{[]Pattern{
+		// 			PairPattern{},
+		// 			PairPattern{[]Pattern{EllipsisPattern{}}},
+		// 			IdentifierPattern{"y"}}},
+		// 		IdentifierPattern{"z"}}},
+		// 	types.PairFromArray([]types.Sexpr{
+		// 		types.Symbol("a"),
+		// 		types.PairFromArray([]types.Sexpr{
+		// 			&types.Pair{},
+		// 			types.Symbol("d")}),
+		// 		types.Symbol("e")}),
+		// 	false,
+		// 	Mappings{},
+		// },
 	}
 
 	for _, tt := range testCases {

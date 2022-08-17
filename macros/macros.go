@@ -110,7 +110,7 @@ func extractSyntaxRules(args *types.Pair, literals []types.Symbol) (SyntaxRules,
 		if err := validatePattern(pattern.Patterns); err != nil {
 			return SyntaxRules{}, err
 		}
-		rules.Append(SyntaxRule{pattern, second})
+		rules.Append(SyntaxRule{*pattern, second})
 		head = head.Next
 	}
 	return rules, nil

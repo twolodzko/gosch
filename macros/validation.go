@@ -14,18 +14,19 @@ func validatePattern(pattern []Pattern) error {
 }
 
 func ellipsisIsLast(pattern []Pattern) bool {
-	for i, val := range pattern {
-		switch val := val.(type) {
-		case EllipsisPattern:
-			if i != len(pattern)-1 {
-				return false
-			}
-		case PairPattern:
-			if !ellipsisIsLast(val.Patterns) {
-				return false
-			}
-		}
-	}
+	// FIXME
+	// for i, val := range pattern {
+	// 	switch val := val.(type) {
+	// 	case EllipsisPattern:
+	// 		if i != len(pattern)-1 {
+	// 			return false
+	// 		}
+	// 	case *PairPattern:
+	// 		if !ellipsisIsLast(val.Patterns) {
+	// 			return false
+	// 		}
+	// 	}
+	// }
 	return true
 }
 
@@ -36,12 +37,13 @@ type duplicatedPatterns struct {
 func (d *duplicatedPatterns) hasDuplicates(pattern []Pattern) bool {
 	for _, val := range pattern {
 		switch val := val.(type) {
-		case IdentifierPattern, EllipsisPattern:
+		case *IdentifierPattern:
 			if _, ok := d.seen[val]; ok {
 				return true
 			}
+			// FIXME: fix for ellipsis
 			d.seen[val] = true
-		case PairPattern:
+		case *PairPattern:
 			if d.hasDuplicates(val.Patterns) {
 				return true
 			}

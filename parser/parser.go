@@ -28,7 +28,7 @@ func (p *Parser) Head() rune {
 	return p.str[p.pos]
 }
 
-func (p *Parser) Next() rune {
+func (p *Parser) Following() rune {
 	return p.str[p.pos+1]
 }
 
@@ -80,7 +80,7 @@ func (p *Parser) readSexpr() (types.Sexpr, error) {
 		case ';':
 			p.skipLine()
 		case '#':
-			if p.HasNext() && p.Next() == '(' {
+			if p.HasNext() && p.Following() == '(' {
 				p.pos++
 				return p.readVector()
 			}
@@ -183,7 +183,7 @@ func (p *Parser) readString() (types.String, error) {
 	p.pos++
 	var runes []rune
 	for p.HasNext() {
-		if p.Head() == '\\' && p.HasNext() && p.Next() == '"' {
+		if p.Head() == '\\' && p.HasNext() && p.Following() == '"' {
 			runes = append(runes, '"')
 			p.pos = p.pos + 2
 			continue

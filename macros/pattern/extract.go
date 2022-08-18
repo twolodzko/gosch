@@ -1,6 +1,8 @@
-package macros
+package pattern
 
 import (
+	"fmt"
+
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -9,11 +11,11 @@ const (
 	Ellipsis = types.Symbol("...")
 )
 
-func patternFromPair(pair *types.Pair, literals []types.Symbol) *PairPattern {
+func FromPair(pair *types.Pair, literals []types.Symbol) (*Pair, error) {
 	var patterns []Pattern
 
 	if pair == nil || pair.IsNull() {
-		return &PairPattern{}
+		return &Pair{}, nil
 	}
 
 	head := pair
@@ -21,31 +23,39 @@ func patternFromPair(pair *types.Pair, literals []types.Symbol) *PairPattern {
 		switch obj := head.This.(type) {
 		case types.Symbol:
 			if obj == Ellipsis {
-				// FIXME: handle errors: ellipsis is first
+				if len(patterns) == 0 {
+					return nil, fmt.Errorf("%s needs to be preceeded with a pattern", Ellipsis)
+				}
+				if head.HasNext() {
+					return nil, fmt.Errorf("nothing should follow after %s", Ellipsis)
+				}
 				patterns[len(patterns)-1].ToEllipsis()
 			} else {
-				p := patternFromSymbol(obj, literals)
+				p := fromSymbol(obj, literals)
 				patterns = append(patterns, p)
 			}
 		case *types.Pair:
-			p := patternFromPair(obj, literals)
+			p, err := FromPair(obj, literals)
+			if err != nil {
+				return nil, err
+			}
 			patterns = append(patterns, p)
 		default:
-			p := &LiteralPattern{obj}
+			p := &Literal{obj}
 			patterns = append(patterns, p)
 		}
 		head = head.Next
 	}
 
-	return &PairPattern{patterns, false}
+	return &Pair{patterns, false}, nil
 }
 
-func patternFromSymbol(obj string, literals []string) Pattern {
+func fromSymbol(obj string, literals []string) Pattern {
 	switch {
 	case isLiteral(obj, literals):
-		return &LiteralPattern{obj}
+		return &Literal{obj}
 	default:
-		return &IdentifierPattern{obj, false}
+		return &Identifier{obj, false}
 	}
 }
 

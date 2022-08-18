@@ -5,13 +5,14 @@ import (
 	"strings"
 
 	"github.com/twolodzko/gosch/envir"
-	"github.com/twolodzko/gosch/eval"
+	"github.com/twolodzko/gosch/macros/pattern"
+	"github.com/twolodzko/gosch/macros/template"
 	"github.com/twolodzko/gosch/types"
 )
 
 type SyntaxRule struct {
-	pattern  PairPattern
-	template types.Sexpr
+	pattern  pattern.Pair
+	template template.Sexpr
 }
 
 type SyntaxRules struct {
@@ -26,8 +27,7 @@ func (m *SyntaxRules) Append(rule SyntaxRule) {
 func (m SyntaxRules) Apply(obj types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 	for _, macro := range m.rules {
 		if mapping, ok := macro.pattern.Match(obj); ok {
-			t := newTransformer(mapping, env)
-			return t.transform(macro.template)
+			return macro.template.Transform(mapping), nil
 		}
 	}
 	return nil, fmt.Errorf("the arguments didn't match any pattern")
@@ -46,29 +46,4 @@ func (m SyntaxRules) String() string {
 func (m SyntaxRules) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	sexpr, err := m.Apply(args, env)
 	return sexpr, env, err
-}
-
-// `expand-macro` procedure
-func ExpandMacro(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return nil, eval.ErrBadArgNumber
-	}
-	var (
-		obj types.Sexpr = args.This
-		ok  bool
-	)
-	for {
-		switch m := obj.(type) {
-		case types.Symbol:
-			obj, ok = env.Get(m)
-			if !ok {
-				return nil, fmt.Errorf("%s is not a macro", obj)
-			}
-		case SyntaxRules:
-			sexpr, _, err := m.Call(args.Next, env)
-			return sexpr, err
-		default:
-			return nil, fmt.Errorf("%s is not a macro", obj)
-		}
-	}
 }

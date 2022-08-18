@@ -27,6 +27,8 @@ import (
 
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
+	"github.com/twolodzko/gosch/macros/pattern"
+	"github.com/twolodzko/gosch/macros/template"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -106,11 +108,18 @@ func extractSyntaxRules(args *types.Pair, literals []types.Symbol) (SyntaxRules,
 		if err != nil {
 			return SyntaxRules{}, err
 		}
-		pattern := patternFromPair(first, literals)
-		if err := validatePattern(pattern.Patterns); err != nil {
+
+		pattern, err := pattern.FromPair(first, literals)
+		if err != nil {
 			return SyntaxRules{}, err
 		}
-		rules.Append(SyntaxRule{*pattern, second})
+
+		tempalte, err := template.Parse(second)
+		if err != nil {
+			return SyntaxRules{}, err
+		}
+
+		rules.Append(SyntaxRule{*pattern, tempalte})
 		head = head.Next
 	}
 	return rules, nil
@@ -134,4 +143,29 @@ func maybeSyntaxRule(obj *types.Pair) (*types.Pair, types.Sexpr, error) {
 	first = first.Next
 
 	return first, pair.Next.This, nil
+}
+
+// `expand-macro` procedure
+func ExpandMacro(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+	if args == nil || !args.HasNext() {
+		return nil, eval.ErrBadArgNumber
+	}
+	var (
+		obj types.Sexpr = args.This
+		ok  bool
+	)
+	for {
+		switch m := obj.(type) {
+		case types.Symbol:
+			obj, ok = env.Get(m)
+			if !ok {
+				return nil, fmt.Errorf("%s is not a macro", obj)
+			}
+		case SyntaxRules:
+			sexpr, _, err := m.Call(args.Next, env)
+			return sexpr, err
+		default:
+			return nil, fmt.Errorf("%s is not a macro", obj)
+		}
+	}
 }

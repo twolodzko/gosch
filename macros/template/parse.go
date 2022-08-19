@@ -1,16 +1,13 @@
 package template
 
 import (
+	"fmt"
+
 	"github.com/twolodzko/gosch/macros/pattern"
 	"github.com/twolodzko/gosch/types"
 )
 
-func Parse(sexpr types.Sexpr) (Sexpr, error) {
-	val, err := parseSexpr(sexpr)
-	return Sexpr{val}, err
-}
-
-func parseSexpr(sexpr types.Sexpr) (types.Sexpr, error) {
+func Parse(sexpr types.Sexpr) (types.Sexpr, error) {
 	switch sexpr := sexpr.(type) {
 	case *types.Pair:
 		return parsePair(sexpr)
@@ -19,19 +16,37 @@ func parseSexpr(sexpr types.Sexpr) (types.Sexpr, error) {
 	}
 }
 
-func parsePair(pair *types.Pair) (*types.Pair, error) {
+func parsePair(pair *types.Pair) (types.Sexpr, error) {
 	var (
 		sexprs []types.Sexpr
 		head   = pair
 	)
+
+	switch pair.This {
+	case "lambda":
+		if template, ok := parseLambda(pair.Next); ok {
+			return template, nil
+		}
+	case "let":
+		if template, ok := parseLet(pair.Next); ok {
+			return template, nil
+		}
+	case "do":
+		// FIXME
+	}
+
 	for head != nil {
-		val, err := parseSexpr(head.This)
+		val, err := Parse(head.This)
 		if err != nil {
 			return nil, err
 		}
 
 		if head.HasNext() && head.Next.This == pattern.Ellipsis {
-			sexprs = append(sexprs, Ellipsis{val})
+			val, err := toEllipsis(val)
+			if err != nil {
+				return nil, err
+			}
+			sexprs = append(sexprs, val)
 			head = head.Next
 		} else {
 			sexprs = append(sexprs, val)
@@ -40,4 +55,15 @@ func parsePair(pair *types.Pair) (*types.Pair, error) {
 		head = head.Next
 	}
 	return types.PairFromArray(sexprs), nil
+}
+
+func toEllipsis(sexpr types.Sexpr) (Ellipsis, error) {
+	switch val := sexpr.(type) {
+	case types.Symbol:
+		return EllipsisSymbol(val), nil
+	case *types.Pair:
+		return EllipsisPair(*val), nil
+	default:
+		return nil, fmt.Errorf("%v is not a valid ellipsis", val)
+	}
 }

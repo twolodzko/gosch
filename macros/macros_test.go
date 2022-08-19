@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/google/go-cmp/cmp"
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/scheme"
@@ -150,7 +151,77 @@ func Test_Sum(t *testing.T) {
 	}
 }
 
-// FIXME
+func Test_Lambda(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+	(define-syntax foo
+		(syntax-rules ()
+			((_ x)
+			 (lambda (y)
+			 	(list x y)))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	input := "((foo 'a) 'b)"
+	expected := types.NewPair("a", "b")
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("%s has raised an unexpected error: %v", input, err)
+		return
+	}
+	if len(result) != 1 {
+		t.Errorf("for %s expected single result, got: %v", input, result)
+		return
+	}
+	if !cmp.Equal(result[0], expected) {
+		t.Errorf("for %s expected %v, got: %v", input, expected, result[0])
+	}
+}
+
+func Test_Let(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+	(define-syntax bar
+		(syntax-rules ()
+			((_ x y)
+			 (let ((z y))
+			 	(list x z)))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	input := "(bar 'a 'b)"
+	expected := types.NewPair("a", "b")
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("%s has raised an unexpected error: %v", input, err)
+		return
+	}
+	if len(result) != 1 {
+		t.Errorf("for %s expected single result, got: %v", input, result)
+		return
+	}
+	if !cmp.Equal(result[0], expected) {
+		t.Errorf("for %s expected %v, got: %v", input, expected, result[0])
+	}
+
+}
+
 // func Test_And2Expand(t *testing.T) {
 // 	eval.Procedures = scheme.Procedures
 // 	env := envir.NewEnv()
@@ -176,7 +247,7 @@ func Test_Sum(t *testing.T) {
 
 // 	if len(result) != 1 {
 // 		t.Errorf("expected single result, got: %v", result)
-//	    return
+// 		return
 // 	}
 // 	expected := "(if a (if b c #f) #f)"
 // 	if fmt.Sprintf("%s", result[0]) != expected {
@@ -184,121 +255,121 @@ func Test_Sum(t *testing.T) {
 // 	}
 // }
 
-// func Test_Or2(t *testing.T) {
-// 	eval.Procedures = scheme.Procedures
-// 	env := envir.NewEnv()
+func Test_Or2(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
 
-// 	macro := `
-// 	(define-syntax or2
-// 		(syntax-rules ()
-// 			((_ e1 e2)
-// 			 (let ((t e1))
-// 			 	(if t t e2)))))
-// 	`
+	macro := `
+	(define-syntax or2
+		(syntax-rules ()
+			((_ e1 e2)
+			 (let ((t e1))
+			 	(if t t e2)))))
+	`
 
-// 	_, _, err := eval.EvalString(macro, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 	}
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
-// 	input := `
-// 	(let ((t "okay"))
-// 		(or2 #f t))
-// 	`
+	input := `
+	(let ((t "okay"))
+		(or2 #f t))
+	`
 
-// 	result, _, err := eval.EvalString(input, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 	}
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
-// 	if len(result) != 1 {
-// 		t.Errorf("expected single result, got: %v", result)
-// 		return
-// 	}
-// 	expected := types.String("okay")
-// 	if result[0] != expected {
-// 		t.Errorf("expected %q, got: %q", expected, result[0])
-// 	}
-// }
+	if len(result) != 1 {
+		t.Errorf("expected single result, got: %v", result)
+		return
+	}
+	expected := types.String("okay")
+	if result[0] != expected {
+		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}
 
-// func Test_DoubleLet(t *testing.T) {
-// 	eval.Procedures = scheme.Procedures
-// 	env := envir.NewEnv()
+func Test_DoubleLet(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
 
-// 	macro := `
-// 	(define-syntax letlist
-// 		(syntax-rules ()
-// 			((_ x y)
-// 			 (let ((x x))
-// 			 	(let ((y y))
-// 			 		(list x y))))))
-// 	`
+	macro := `
+	(define-syntax letlist
+		(syntax-rules ()
+			((_ x y)
+			 (let ((x x))
+			 	(let ((y y))
+			 		(list x y))))))
+	`
 
-// 	_, _, err := eval.EvalString(macro, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 	}
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
-// 	input := `
-// 	(let ((x 2)
-// 		  (y 1))
-// 		(letlist y x))
-// 	`
+	input := `
+	(let ((x 2)
+		  (y 1))
+		(letlist y x))
+	`
 
-// 	result, _, err := eval.EvalString(input, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 	}
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
-// 	if len(result) != 1 {
-// 		t.Errorf("expected single result, got: %v", result)
-// 		return
-// 	}
-// 	expected := types.NewPair(types.Integer(1), types.Integer(2))
-// 	if !cmp.Equal(result[0], expected) {
-// 		t.Errorf("expected %q, got: %q", expected, result[0])
-// 	}
-// }
+	if len(result) != 1 {
+		t.Errorf("expected single result, got: %v", result)
+		return
+	}
+	expected := types.NewPair(types.Integer(1), types.Integer(2))
+	if !cmp.Equal(result[0], expected) {
+		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}
 
-// func Test_Swap(t *testing.T) {
-// 	eval.Procedures = scheme.Procedures
-// 	env := envir.NewEnv()
+func Test_Swap(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
 
-// 	macro := `
-// 	(define-syntax swap
-// 		(syntax-rules ()
-// 			((_ x y)
-// 			 (let ((tmp x))
-// 			 	(set! x y)
-// 				(set! y tmp)))))
-// 	`
+	macro := `
+	(define-syntax swap
+		(syntax-rules ()
+			((_ x y)
+			 (let ((tmp x))
+			 	(set! x y)
+				(set! y tmp)))))
+	`
 
-// 	_, _, err := eval.EvalString(macro, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 	}
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
-// 	input := `
-// 	(let ((tmp 5)
-// 		  (other 6))
-// 		(swap tmp other)
-// 		(list tmp other))
-// 	`
+	input := `
+	(let ((tmp 5)
+		  (other 6))
+		(swap tmp other)
+		(list tmp other))
+	`
 
-// 	result, _, err := eval.EvalString(input, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 	}
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
-// 	if len(result) != 1 {
-// 		t.Errorf("expected single result, got: %v", result)
-// 		return
-// 	}
-// 	expected := types.NewPair(types.Integer(6), types.Integer(5))
-// 	if !cmp.Equal(result[0], expected) {
-// 		t.Errorf("expected %q, got: %q", expected, result[0])
-// 	}
-// }
+	if len(result) != 1 {
+		t.Errorf("expected single result, got: %v", result)
+		return
+	}
+	expected := types.NewPair(types.Integer(6), types.Integer(5))
+	if !cmp.Equal(result[0], expected) {
+		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}
 
 func Test_ValidErrors(t *testing.T) {
 	eval.Procedures = scheme.Procedures

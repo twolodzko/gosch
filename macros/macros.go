@@ -162,7 +162,7 @@ func ExpandMacro(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 				return nil, fmt.Errorf("%s is not a macro", obj)
 			}
 		case SyntaxRules:
-			sexpr, _, err := m.Call(args.Next, env)
+			sexpr, err := m.Apply(args.Next, env)
 			return sexpr, err
 		default:
 			return nil, fmt.Errorf("%s is not a macro", obj)

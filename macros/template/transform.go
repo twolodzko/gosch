@@ -1,42 +1,24 @@
 package template
 
 import (
-	"fmt"
-
 	"github.com/twolodzko/gosch/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
 
 type Template interface {
-	Transform(mapping.Mapping) types.Sexpr
+	Transform(mapping.Mapping) (types.Sexpr, error)
 }
 
-// type LambdaTemplate struct {
-// 	Args *types.Pair
-// 	Body *types.Pair
-// }
-
-// type LetTemplate struct {
-// 	Binings *types.Pair
-// 	Body    *types.Pair
-// }
-
-type Sexpr struct {
-	Sexpr types.Sexpr
-}
-
-func (t Sexpr) String() string {
-	return fmt.Sprintf("%s", t.Sexpr)
-}
-
-func (t Sexpr) Transform(m mapping.Mapping) types.Sexpr {
-	switch sexpr := t.Sexpr.(type) {
+func Transform(sexpr types.Sexpr, m mapping.Mapping) (types.Sexpr, error) {
+	switch obj := sexpr.(type) {
 	case types.Symbol:
-		return transformSymbol(sexpr, m)
+		return transformSymbol(obj, m), nil
 	case *types.Pair:
-		return transformPair(sexpr, m)
+		return transformPair(obj, m), nil
+	case Template:
+		return obj.Transform(m)
 	default:
-		return sexpr
+		return obj, nil
 	}
 }
 

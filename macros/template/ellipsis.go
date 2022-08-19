@@ -8,27 +8,19 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-type Ellipsis struct {
-	Sexpr types.Sexpr
+type Ellipsis interface {
+	Transform(mapping.Mapping) *types.Pair
 }
 
-func (e Ellipsis) String() string {
-	return fmt.Sprintf("%s ...", e.Sexpr)
+type EllipsisSymbol types.Symbol
+
+func (t EllipsisSymbol) String() string {
+	return fmt.Sprintf("%s ...", types.Symbol(t))
 }
 
-func (t Ellipsis) Transform(m mapping.Mapping) *types.Pair {
-	switch sexpr := t.Sexpr.(type) {
-	case types.Symbol:
-		return transformEllipsisSymbol(sexpr, m)
-	case *types.Pair:
-		return transformEllipsisPair(sexpr, m)
-	default:
-		return types.NewPair(sexpr, nil)
-	}
-}
-
-func transformEllipsisSymbol(sexpr types.Symbol, m mapping.Mapping) *types.Pair {
-	if val, ok := m[sexpr]; ok {
+func (t EllipsisSymbol) Transform(m mapping.Mapping) *types.Pair {
+	key := types.Symbol(t)
+	if val, ok := m[key]; ok {
 		switch val := val.(type) {
 		case pattern.EllipsisVar:
 			return types.PairFromArray(val)
@@ -36,14 +28,21 @@ func transformEllipsisSymbol(sexpr types.Symbol, m mapping.Mapping) *types.Pair 
 			return types.NewPair(val, nil)
 		}
 	}
-	return types.NewPair(sexpr, nil)
+	return types.NewPair(t, nil)
 }
 
-func transformEllipsisPair(pair *types.Pair, m mapping.Mapping) *types.Pair {
+type EllipsisPair types.Pair
+
+func (t EllipsisPair) String() string {
+	return fmt.Sprintf("%s ...", types.Pair(t))
+}
+
+func (t EllipsisPair) Transform(m mapping.Mapping) *types.Pair {
+	pair := types.Pair(t)
 	ap := types.NewAppendablePair()
 	i := 0
 	for {
-		val, ok := transformEllipsisPairStep(pair, m, i)
+		val, ok := elemPair(&pair, m, i)
 		if !ok {
 			return ap.ToPair()
 		}
@@ -52,21 +51,22 @@ func transformEllipsisPair(pair *types.Pair, m mapping.Mapping) *types.Pair {
 	}
 }
 
-func transformEllipsisPairStep(pair *types.Pair, m mapping.Mapping, i int) (*types.Pair, bool) {
+func elemPair(pair *types.Pair, m mapping.Mapping, i int) (*types.Pair, bool) {
 	ap := types.NewAppendablePair()
 	head := pair
 	for head != nil {
 		switch obj := head.This.(type) {
 		case Ellipsis:
-			ap.Extend(obj.Transform(m))
+			val := obj.Transform(m)
+			ap.Extend(val)
 		case types.Symbol:
-			val, ok := transformSymbolStep(obj, m, i)
+			val, ok := elemSymbol(obj, m, i)
 			if !ok {
 				return nil, ok
 			}
 			ap.Append(val)
 		case *types.Pair:
-			val, ok := transformEllipsisPairStep(obj, m, i)
+			val, ok := elemPair(obj, m, i)
 			if !ok {
 				return nil, ok
 			}
@@ -79,7 +79,7 @@ func transformEllipsisPairStep(pair *types.Pair, m mapping.Mapping, i int) (*typ
 	return ap.ToPair(), true
 }
 
-func transformSymbolStep(sym types.Symbol, m mapping.Mapping, i int) (types.Sexpr, bool) {
+func elemSymbol(sym types.Symbol, m mapping.Mapping, i int) (types.Sexpr, bool) {
 	val := transformSymbol(sym, m)
 	if ellipsis, ok := val.(pattern.EllipsisVar); ok {
 		if i >= len(ellipsis) {

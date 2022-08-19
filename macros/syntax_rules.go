@@ -12,7 +12,7 @@ import (
 
 type SyntaxRule struct {
 	pattern  pattern.Pair
-	template template.Sexpr
+	template types.Sexpr
 }
 
 type SyntaxRules struct {
@@ -27,10 +27,10 @@ func (m *SyntaxRules) Append(rule SyntaxRule) {
 func (m SyntaxRules) Apply(obj types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 	for _, macro := range m.rules {
 		if mapping, ok := macro.pattern.Match(obj); ok {
-			return macro.template.Transform(mapping), nil
+			return template.Transform(macro.template, mapping)
 		}
 	}
-	return nil, fmt.Errorf("the arguments didn't match any pattern")
+	return nil, fmt.Errorf("%s didn't match any pattern", obj)
 }
 
 func (m SyntaxRules) String() string {

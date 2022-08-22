@@ -53,7 +53,7 @@ func (m LispMacro) String() string {
 // Create `macro` function
 //
 //	(macro (args ...) body ...)
-func NewMacro(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func NewLispMacro(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return LispMacro{}, eval.ErrBadArgNumber
 	}

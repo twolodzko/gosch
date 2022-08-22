@@ -71,6 +71,6 @@ var Procedures = eval.ProceduresGetter{
 	"vector-set!":   VectorSet,
 	"vector?":       IsVector,
 	"vector":        Vector,
-	"macro":         NewMacro,
+	"macro":         NewLispMacro,
 	"define-macro":  DefineMacro,
 }

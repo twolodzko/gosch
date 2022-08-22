@@ -43,6 +43,7 @@ func ExpandMacro(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	var (
 		obj types.Sexpr = args.This
 		ok  bool
+		err error
 	)
 	for {
 		switch m := obj.(type) {
@@ -51,11 +52,15 @@ func ExpandMacro(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 			if !ok {
 				return nil, fmt.Errorf("%s is not a macro", obj)
 			}
+		case *types.Pair:
+			obj, err = eval.Eval(m, env)
+			if err != nil {
+				return nil, err
+			}
 		case Macro:
 			sexpr, err := m.Transform(args.Next, env)
 			return sexpr, err
 		default:
-			fmt.Printf("XXX  %T", obj)
 			return nil, fmt.Errorf("%s is not a macro", obj)
 		}
 	}

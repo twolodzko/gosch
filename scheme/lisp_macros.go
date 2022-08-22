@@ -73,25 +73,28 @@ func DefineMacro(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	}
 	switch this := args.This.(type) {
 	case *types.Pair:
-		return defineMacro(this, args.Next.This, env)
+		name, macro, err := extractMacro(this, args.Next.This)
+		if err != nil {
+			return nil, err
+		}
+		env.Set(name, macro)
+		return macro, nil
 	default:
 		return nil, eval.NewErrBadName(args.This)
 	}
 }
 
-func defineMacro(args *types.Pair, template types.Sexpr, env *envir.Env) (types.Sexpr, error) {
+func extractMacro(args *types.Pair, template types.Sexpr) (types.Symbol, types.Sexpr, error) {
 	if args == nil {
-		return nil, eval.ErrBadArgNumber
+		return "", nil, eval.ErrBadArgNumber
 	}
 	name, ok := args.This.(types.Symbol)
 	if !ok {
-		return nil, eval.NewErrBadName(args.This)
+		return "", nil, eval.NewErrBadName(args.This)
 	}
 	vars, err := SymbolsPairToSlice(args.Next)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
-	fn := LispMacro{vars, template}
-	env.Set(name, fn)
-	return fn, nil
+	return name, LispMacro{vars, template}, nil
 }

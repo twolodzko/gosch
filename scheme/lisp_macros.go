@@ -93,8 +93,5 @@ func extractMacro(args *types.Pair, template types.Sexpr) (types.Symbol, types.S
 		return "", nil, eval.NewErrBadName(args.This)
 	}
 	vars, err := SymbolsPairToSlice(args.Next)
-	if err != nil {
-		return "", nil, err
-	}
-	return name, LispMacro{vars, template}, nil
+	return name, LispMacro{vars, template}, err
 }

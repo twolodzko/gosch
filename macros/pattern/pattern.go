@@ -2,6 +2,7 @@ package pattern
 
 import (
 	"fmt"
+	"reflect"
 
 	"github.com/twolodzko/gosch/macros/mapping"
 	"github.com/twolodzko/gosch/types"
@@ -45,7 +46,7 @@ type Literal struct {
 }
 
 func (p Literal) Match(obj types.Sexpr) (mapping.Mapping, bool) {
-	return mapping.Mapping{}, obj == p.Value
+	return mapping.Mapping{}, reflect.DeepEqual(obj, p.Value)
 }
 
 func (p Literal) String() string {

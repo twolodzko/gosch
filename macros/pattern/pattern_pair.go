@@ -33,11 +33,11 @@ func (p Pair) Match(obj types.Sexpr) (mapping.Mapping, bool) {
 			return matchEllipsis(pattern, head, m)
 		}
 
-		subpattern, ok := pattern.Match(head.This)
+		m2, ok := pattern.Match(head.This)
 		if !ok {
 			return mapping.Mapping{}, false
 		}
-		ok = m.Merge(subpattern)
+		ok = m.Merge(m2)
 		if !ok {
 			return mapping.Mapping{}, false
 		}
@@ -95,9 +95,11 @@ func extendMapping(x mapping.Mapping, y mapping.Mapping) mapping.Mapping {
 			default:
 				e = EllipsisVar{xval}
 			}
-			e.Add(yval)
+			e = append(e, yval)
+		} else {
+			e = EllipsisVar{yval}
 		}
-		x[key] = EllipsisVar{yval}
+		x[key] = e
 	}
 	return x
 }

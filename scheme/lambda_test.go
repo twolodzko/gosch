@@ -64,6 +64,7 @@ func Test_SimpleLambdas(t *testing.T) {
 		sexprs, err := parser.Read()
 		if err != nil {
 			t.Errorf("for %v got an unexpected error: %v", tt.input, err)
+			return
 		}
 
 		for _, sexpr := range sexprs {
@@ -71,6 +72,7 @@ func Test_SimpleLambdas(t *testing.T) {
 			result, err := eval.Eval(sexpr, env)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
+				return
 			}
 			if !cmp.Equal(fmt.Sprintf("%v", result), tt.expected) {
 				t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
@@ -118,6 +120,7 @@ func Test_LambdaCalculus(t *testing.T) {
 		sexprs, err := parser.Read()
 		if err != nil {
 			t.Errorf("for %v got an unexpected error: %v", tt.input, err)
+			return
 		}
 
 		for _, sexpr := range sexprs {
@@ -125,6 +128,7 @@ func Test_LambdaCalculus(t *testing.T) {
 			result, err := eval.Eval(sexpr, env)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
+				return
 			}
 			if !cmp.Equal(fmt.Sprintf("%v", result), tt.expected) {
 				t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)

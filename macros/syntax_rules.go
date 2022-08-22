@@ -24,7 +24,7 @@ func (m *SyntaxRules) Append(rule SyntaxRule) {
 	m.rules = append(m.rules, rule)
 }
 
-func (m SyntaxRules) Apply(obj types.Sexpr, env *envir.Env) (types.Sexpr, error) {
+func (m SyntaxRules) Transform(obj types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 	for _, macro := range m.rules {
 		if mapping, ok := macro.pattern.Match(obj); ok {
 			return template.Transform(macro.template, mapping)
@@ -44,6 +44,6 @@ func (m SyntaxRules) String() string {
 
 // SyntaxRules follows the eval.Callable interface
 func (m SyntaxRules) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
-	sexpr, err := m.Apply(args, env)
+	sexpr, err := m.Transform(args, env)
 	return sexpr, env, err
 }

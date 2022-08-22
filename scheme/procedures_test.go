@@ -432,6 +432,13 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(vector? '())", "#f"},
 		{"(vector? '(1 2 3))", "#f"},
 		{"(vector? #t)", "#f"},
+		{"(eq? #() #())", "#t"},
+		{"(eq? #(1 2 3) #(1 2 3))", "#t"},
+		{"(eq? #(#()) #(#()))", "#t"},
+		{"(eq? #(1 2 3) #(1 2))", "#f"},
+		{"(eq? #(1 2) #(1 2 3))", "#f"},
+		{"(eq? #(#()) #(#() #()))", "#f"},
+		{"((macro (x y z) `(list ,x ,y ,z)) 1 (+ 1 1) (/ 6 2))", "(1 2 3)"},
 	}
 
 	for _, tt := range testCases {
@@ -439,6 +446,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		sexprs, err := parser.Read()
 		if err != nil {
 			t.Errorf("for %v got an unexpected error: %v", tt.input, err)
+			return
 		}
 
 		for _, sexpr := range sexprs {
@@ -446,6 +454,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 			result, err := eval.Eval(sexpr, env)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
+				return
 			}
 			if !cmp.Equal(fmt.Sprintf("%v", result), tt.expected) {
 				t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
@@ -753,5 +762,37 @@ func Test_goFn(t *testing.T) {
 
 	if !cmp.Equal(fields, expected) {
 		t.Errorf("expected %v got %v", expected, fields)
+	}
+}
+
+func Test_Or2(t *testing.T) {
+	eval.Procedures = Procedures
+	env := envir.NewEnv()
+
+	macro := "(define-macro (or2 a b) `(let ((temp ,a)) (if temp temp ,b)))"
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	input := `
+	(let ((temp #f)
+		  (perm #t))
+		(or2 temp perm))
+	`
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Errorf("expected single result, got: %v", result)
+		return
+	}
+	expected := types.TRUE
+	if result[0] != expected {
+		t.Errorf("expected %q, got: %q", expected, result[0])
 	}
 }

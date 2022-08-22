@@ -3,6 +3,7 @@ package template
 import (
 	"fmt"
 
+	"github.com/twolodzko/gosch/macros/gensym"
 	"github.com/twolodzko/gosch/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
@@ -34,7 +35,7 @@ func (t LambdaTemplate) transformArgs(m mapping.Mapping) (*types.Pair, error) {
 	for head != nil {
 		switch sym := head.This.(type) {
 		case types.Symbol:
-			name := Rename(sym)
+			name := gensym.Generator.New()
 			m[sym] = name
 			args.Append(name)
 		default:

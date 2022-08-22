@@ -21,12 +21,3 @@ func ellipsisVarFromPair(pair *types.Pair) (EllipsisVar, bool) {
 	}
 	return e, true
 }
-
-func (e *EllipsisVar) Add(val types.Sexpr) {
-	switch val := val.(type) {
-	case EllipsisVar:
-		(*e) = append(*e, val...)
-	default:
-		(*e) = append(*e, val)
-	}
-}

@@ -3,7 +3,6 @@ package scheme
 import (
 	"reflect"
 
-	"github.com/google/go-cmp/cmp"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
@@ -16,9 +15,9 @@ func sameCallables(obj1, obj2 types.Sexpr) bool {
 			return v1.Pointer() == v2.Pointer()
 		}
 	}
-	if v1, ok := obj1.(Lambda); ok {
-		if v2, ok := obj2.(Lambda); ok {
-			return cmp.Equal(v1, v2)
+	if v1, ok := obj1.(eval.Callable); ok {
+		if v2, ok := obj2.(eval.Callable); ok {
+			return reflect.DeepEqual(v1, v2)
 		}
 	}
 	return false
@@ -32,7 +31,7 @@ func Eq(args *types.Pair) (types.Sexpr, error) {
 	if isCallable(args.This) {
 		return types.Bool(sameCallables(args.This, args.Next.This)), nil
 	}
-	return types.Bool(args.This == args.Next.This), nil
+	return types.Bool(reflect.DeepEqual(args.This, args.Next.This)), nil
 }
 
 func Equal(args *types.Pair) (types.Sexpr, error) {

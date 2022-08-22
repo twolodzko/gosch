@@ -3,6 +3,7 @@ package template
 import (
 	"fmt"
 
+	"github.com/twolodzko/gosch/macros/gensym"
 	"github.com/twolodzko/gosch/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
@@ -68,7 +69,7 @@ func (t *LetTemplate) transformBinding(binding *types.Pair, m mapping.Mapping) (
 		}
 
 		// transform the key
-		name := Rename(sym)
+		name := gensym.Generator.New()
 		m[sym] = name
 
 		return types.NewPair(name, val), nil

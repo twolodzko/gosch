@@ -8,7 +8,7 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-// `sefine` procedure
+// `define` procedure
 func Define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
 		return nil, eval.ErrBadArgNumber
@@ -30,7 +30,7 @@ func Define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 
 // Implementation of
 //
-//  (define (name args...) body...)
+//	(define (name args...) body...)
 func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil {
 		return nil, eval.ErrBadArgNumber
@@ -111,7 +111,7 @@ func Eval(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 
 func isCallable(obj types.Sexpr) bool {
 	switch obj.(type) {
-	case eval.Procedure, eval.Primitive, eval.TailCallOptimized, Lambda:
+	case eval.Procedure, eval.Primitive, eval.TailCallOptimized, eval.Callable:
 		return true
 	default:
 		return false

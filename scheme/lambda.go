@@ -17,10 +17,10 @@ type Lambda struct {
 
 // Create `lambda` function
 //
-//  (lambda (args ...) body ...)
+//	(lambda (args ...) body ...)
 func NewLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if args == nil || !args.HasNext() {
-		return nil, eval.ErrBadArgNumber
+		return Lambda{}, eval.ErrBadArgNumber
 	}
 	switch pair := args.This.(type) {
 	case *types.Pair:
@@ -51,36 +51,23 @@ func SymbolsPairToSlice(args *types.Pair) ([]types.Symbol, error) {
 
 // Call `lambda` function
 //
-//  Example:
+//	 Example:
 //
-//  (define x 4)    ;; parent env
-//  (define addX
-//    (lambda (n)   ;; n would be defined at function call
-// 	    (+ x n)))   ;; this x comes from parent env
-//  (let ((x 3))    ;; setting up local env
-//    (addX
-//      (+ x 7)))   ;; this x comes from local env
-//  => (+ 4 (+ 3 7)) = 14
-//       /     |  \
-//   parent  local  calling env
+//	 (define x 4)    ;; parent env
+//	 (define addX
+//	   (lambda (n)   ;; n would be defined at function call
+//		    (+ x n)))   ;; this x comes from parent env
+//	 (let ((x 3))    ;; setting up local env
+//	   (addX
+//	     (+ x 7)))   ;; this x comes from local env
+//	 => (+ 4 (+ 3 7)) = 14
+//	      /     |  \
+//	  parent  local  calling env
 func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 
-	// local env inherits from the env where the lambda was defined
-	local := envir.NewEnvFrom(l.ParentEnv)
-
-	// setup local env
-	head := args
-	for _, name := range l.Vars {
-		if head == nil {
-			return nil, local, eval.ErrBadArgNumber
-		}
-		// arguments are evaluated in the env enclosing the lambda call
-		val, err := eval.Eval(head.This, env)
-		if err != nil {
-			return nil, local, err
-		}
-		local.Set(name, val)
-		head = head.Next
+	local, err := evalAndAssign(args, l.ParentEnv, env, l.Vars)
+	if err != nil {
+		return nil, local, err
 	}
 
 	// the body of the function is evaluated in the local env of the lambda
@@ -99,4 +86,30 @@ func (l Lambda) String() string {
 		head = head.Next
 	}
 	return fmt.Sprintf("(lambda (%v) %v)", vars, body)
+}
+
+func evalAndAssign(args *types.Pair, parentEnv, callEnv *envir.Env, names []types.Symbol) (*envir.Env, error) {
+	// local env inherits from the env where the lambda was defined
+	local := envir.NewEnvFrom(parentEnv)
+
+	// setup local env
+	head := args
+	for _, name := range names {
+		if head == nil {
+			return local, eval.ErrBadArgNumber
+		}
+		// arguments are evaluated in the env enclosing the lambda call
+		val, err := eval.Eval(head.This, callEnv)
+		if err != nil {
+			return local, err
+		}
+		local.Set(name, val)
+		head = head.Next
+	}
+
+	if head != nil && head.HasNext() {
+		return local, eval.ErrBadArgNumber
+	}
+
+	return local, nil
 }

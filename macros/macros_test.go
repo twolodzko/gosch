@@ -44,38 +44,38 @@ func Test_EllipsisExpansion1(t *testing.T) {
 	}
 }
 
-// func Test_EllipsisExpansion2(t *testing.T) {
-// 	eval.Procedures = scheme.Procedures
-// 	env := envir.NewEnv()
+func Test_EllipsisExpansion2(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
 
-// 	macro := `
-// 	(define-syntax bar
-// 		(syntax-rules ()
-// 			((_ (x y) ...)
-// 			 (list '(x y) ... '(y x) ... x ... y ...))))
-// 	`
+	macro := `
+	(define-syntax bar
+		(syntax-rules ()
+			((_ (x y) ...)
+			 (list '(x y) ... '(y x) ... x ... y ...))))
+	`
 
-// 	_, _, err := eval.EvalString(macro, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 		return
-// 	}
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
 
-// 	result, _, err := eval.EvalString("(bar (1 2) (3 4))", env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 		return
-// 	}
+	result, _, err := eval.EvalString("(bar (1 2) (3 4))", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
 
-// 	if len(result) != 1 {
-// 		t.Errorf("expected single result, got: %v", result)
-// 		return
-// 	}
-// 	expected := "((1 2) (3 4) (2 1) (4 3) 1 3 2 4)"
-// 	if fmt.Sprintf("%s", result[0]) != expected {
-// 		t.Errorf("expected %q, got: %q", expected, result[0])
-// 	}
-// }
+	if len(result) != 1 {
+		t.Errorf("expected single result, got: %v", result)
+		return
+	}
+	expected := "((1 2) (3 4) (2 1) (4 3) 1 3 2 4)"
+	if fmt.Sprintf("%s", result[0]) != expected {
+		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}
 
 func Test_EllipsisExpansion3(t *testing.T) {
 	eval.Procedures = scheme.Procedures
@@ -222,38 +222,41 @@ func Test_Let(t *testing.T) {
 
 }
 
-// func Test_And2Expand(t *testing.T) {
-// 	eval.Procedures = scheme.Procedures
-// 	env := envir.NewEnv()
+func Test_And2Expand(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
 
-// 	macro := `
-// 	(define-syntax and2
-// 		(syntax-rules ()
-// 			((_) #t)
-// 			((_ e) e)
-// 			((_ e1 e2 ...)
-// 			 (if e1 (and2 e2 ...) #f))))
-// 	`
+	macro := `
+	(define-syntax and2
+		(syntax-rules ()
+			((_) #t)
+			((_ e) e)
+			((_ e1 e2 ...)
+			 (if
+				e1
+				(and2 e2 ...)
+				#f))))
+	`
 
-// 	_, _, err := eval.EvalString(macro, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 	}
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
-// 	result, _, err := eval.EvalString("(expand-macro and2 a b c)", env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 	}
+	result, _, err := eval.EvalString("(expand-macro and2 a b c)", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
 
-// 	if len(result) != 1 {
-// 		t.Errorf("expected single result, got: %v", result)
-// 		return
-// 	}
-// 	expected := "(if a (if b c #f) #f)"
-// 	if fmt.Sprintf("%s", result[0]) != expected {
-// 		t.Errorf("expected %q, got: %q", expected, result[0])
-// 	}
-// }
+	if len(result) != 1 {
+		t.Errorf("expected single result, got: %v", result)
+		return
+	}
+	expected := "(if a (and2 b c) #f)"
+	if fmt.Sprintf("%s", result[0]) != expected {
+		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}
 
 func Test_Or2(t *testing.T) {
 	eval.Procedures = scheme.Procedures

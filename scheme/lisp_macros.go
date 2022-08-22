@@ -34,7 +34,6 @@ func (m LispMacro) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.E
 func (m LispMacro) String() string {
 	vars := strings.Join(m.Vars, " ")
 	template := ""
-
 	switch obj := m.Template.(type) {
 	case *types.Pair:
 		head := obj
@@ -48,8 +47,7 @@ func (m LispMacro) String() string {
 	default:
 		template += fmt.Sprintf("%v", obj)
 	}
-
-	return fmt.Sprintf("(macro (%v) %v)", vars, template)
+	return fmt.Sprintf("(macro (%v) (%v))", vars, template)
 }
 
 // Create `macro` function

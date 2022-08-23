@@ -11,27 +11,21 @@
 
 ## Oh gosch, it's Scheme
 
-As in classic LISPs, **gosch** recognizes only two data structures *atoms* and *[pairs]*
-(*aka* [linked lists]). There are no plans to implement more advanced data structures like
-vectors. Also, the variety of available data types for atoms is limited to *numbers* (*integers* and *floats*),
-*booleans* (`#t` and `#f`), and *strings*. The implementation is [properly tail-recursive] as [required of Scheme].
-Unlike the classic Scheme, there is a null type `nil` and procedures return it instead of undefined results,
+As in classic LISPs, **gosch** recognizes the two main data structures *atoms* and *[pairs]* (*aka* [linked lists]).
+The variety of available data types for atoms is limited to *numbers* (*integers* and *floats*) and
+*booleans* (`#t` and `#f`). There is also limited support for *strings* and *vectors* `#(x1 x2 ...)` understood
+as zero-indexed, fixed-size arrays. The implementation is [properly tail-recursive] as [required of Scheme].
+Unlike the classic Scheme, there is null type `nil` and procedures return it instead of undefined results,
 for example `(if #f 'ok)` returns `<nil>`. 
 
-**gosch** implements the following primitives:
+**gosch** implements the following procedures:
 
-- `(car pair)` returns first element, and `(cdr pair)` returns second element (tail) of the *pair*.
+- `(car pair)` returns the first element, and `(cdr pair)` returns the second element (tail) of the *pair*.
 - `(cons obj1 obj2)` creates pair where *obj1* is car and *obj2* is cdr. `(list obj1 obj2 ...)` is the same as
-`(cons obj1 (cons obj2 (cons obj3 ...)))`.
-- `(eq? obj1 obj2)` compares if two objects are equal, for pairs only checks if they point to the same memory location.
-- `(define name value)` assigns *value* to a *name* in the current environment. `(set! name value)` if *name* exists
-in the current or enclosing environment, it sets it to the *value*, otherwise it assigns *value* to a *name* in the
-current environment.
-- `(quote expr)` or `'expr` returns *expr* without evaluating it. While `quote` is commonly used for constructing lists,
-[it is not the same] as `list`. `(quasiquote expr)` or `` `expr`` works like `quote`, but parts of the expression can be
-evaluated using `(unquote expr)` or `,expr`, for example `` `(2 + 2 = ,(+ 2 2))`` will evaluate to `(2 + 2 = 4)`.
-- `(eval expr)` does the opposite to `quote` by evaluating *expr*, e.g. `(eval '(+ 2 2))` returns 4 rather than the
-- `(+ 2 2)` list.
+  `(cons obj1 (cons obj2 (cons obj3 ...)))`.
+- `(define name value)` assigns *value* to a *name* in the current environment. `(set! name value)` if the *name* exists
+  in the current or enclosing environment, it sets it to the *value*, otherwise, it assigns *value* to a *name* in the
+  current environment.
 - `(lambda (arg1 arg2 ...) expr1 expr2 ...)` defines a [lambda expression] (*aka* function). There is also an equivalent,
 shorter way of writing `(define name (lambda (arg1 arg2 ...) expr1 expr2 ...))` as `(define (name arg1 arg2 ...) expr1 expr2 ...)`.
 - `(let ((name1 value1) (name2 value2) ...) expr1 expr2 ...)` evaluates *expr1*, *expr2*, ... in the local environment,
@@ -40,25 +34,42 @@ with *name1*, *name2*, ... variables present; returns the result of evaluating t
 condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 - `(begin expr1 expr2 ...)` evaluates *expr1*, *expr2*, ..., returns the result of evaluating the last *exprN* expression.
 - `(do ((var init update) ...) (test result ...) expr ...)` [loop iterator].
+- `(quote expr)` or `'expr` returns *expr* without evaluating it. While `quote` is commonly used for constructing lists,
+  [it is not the same] as `list`. `(quasiquote expr)` or `` `expr`` works like `quote`, but parts of the expression can
+  be evaluated using `(unquote expr)` or `,expr`, for example `` `(2 + 2 = ,(+ 2 2))`` will evaluate to `(2 + 2 = 4)`.
+- `(eval expr)` does the opposite to `quote` by evaluating *expr*, e.g. `(eval '(+ 2 2))` returns `4` rather than the
+`(+ 2 2)` list.
+- `(macro (arg1 arg2 ...) template)` generates [Lisp-style macros] and works similar to `lambda` and evaluates the
+  *template* defined in terms of the `quasiquote` and `unquote` expressions, with the *arg1*, *arg2*, ... arguments
+  using the [syntactic closures]. `(define-macro (name arg1 arg2 ...) template)` can be used as a shorthand for
+  `(define name (macro (arg1 arg2 ...) template))`. `(gensym)` generates unique placeholders for the names used in the
+  macros.
+- `define-syntax` and `syntax-rules` procedures can be used for writing [more advanced], [pattern-based], [hygienic macros].
+- `(eq? obj1 obj2)` compares if two objects are equal, for pairs only checks if they point to the same memory location.
 - Logical `(not obj)`, `and`, and `or`, e.g. `(and obj1 obj2 ...)`.
 - Arithmetic operators `+`, `-`, `*`, `/`, e.g. `(+ x1 x2 ...)`, and `(% x1 x2)` for modulo.
-Those procedures promote integers to floats if any of the arguments is a float. Division `/` always promotes arguments
-to floats, for integer division use `//`.
+  Those procedures promote integers to floats if any of the arguments is a float. Division `/` always promotes arguments
+  to floats, for integer division use `//`.
 - Numerical comparison operators `<`, `=`, `>`, e.g. `(< x1 x2 ...)`.
-- Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `string?`, `symbol?`, `procedure?`, and other
-checkers: `integer?`, `float?`, `null?` (empty list) and `nil?` (null value).
+- Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `string?`, `symbol?`, `procedure?`, `vector?` and other
+  checkers: `integer?`, `float?`, `null?` (empty list) and `nil?` (null value).
 - `->int` and `->float` transformations from any numeric types to integers and floats.
 - `(string expr ...)` converts *expr*'s to string, `(display expr ...)` prints them, and `(error expr ...)` raises
-exceptions with *expr*'s as message. `(substring str start end)` cuts the *start:end* slice of the *str* string.
-`(string-length str)` returns length of a string.
-- `(load path)` reads and executes the code from *path* and returns the result of last expression in the file.
-- There are two map procedures `map` and `go` that apply function to each element of the list. `(go func list)`
-is a parallel map function that runs `(func x)` for each element of the *list*. `go` procedure ignores the upstream
-errors: when `(func x)` errors, the result for the evaluation would be `<nil>`. It assumes pure functions
-and is not thread safe when it comes to write operations, so it can panic when using procedures like `set!`.
-`map` works sequentially and doesn't have those limitations.
-- You can run `(debug #t/#f)` to turn debug mode on and off. In debug mode, all the evaluated expressions and
-their enclosing environments are printed. `(timeit expr)` measures and prints evaluation time of *expr*.
+  exceptions with *expr*'s as message. `(substring str start end)` cuts the *start:end* slice of the *str* string.
+  `(string-length str)` returns length of a string.
+- Vectors can be created using `(vector x1 x2 ...)` or the `#(x1 x2 ...)` shorthand. `(make-vector size default)`
+  creates a vector of length *size* filled with optional *default* values. `vector->list` and `list->vector` can be
+  used for transformations between the two data types. `vector-length` returns the size of the vector.
+  `(vector-ref vec pos)` returns element from the *pos* position of the vector *vec*.
+  `(vector-set! vec pos val)` sets the element at the *pos* position of the vector *vec* to the value *val*.
+- `(load path)` reads and executes the code from *path* and returns the result of the last expression in the file.
+- There are two map procedures `map` and `go` that apply the function to each element of the list. `(go func list)`
+  is a parallel map function that runs `(func x)` for each element of the *list*. `go` procedure ignores the upstream
+  errors: when `(func x)` errors, the result for the evaluation would be `<nil>`. It assumes pure functions
+  and is not thread-safe when it comes to writing operations, so it can panic when using procedures like `set!`.
+  `map` works sequentially and doesn't have those limitations.
+- You can run `(debug #t/#f)` to turn the debug mode on and off. In debug mode, all the evaluated expressions and
+  their enclosing environments are printed. `(timeit expr)` measures and prints evaluation time of the *expr*.
 
 Comments begin with `;` and everything that follows, from the semicolon until the end of the line, is ignored.
 
@@ -134,7 +145,7 @@ Comments begin with `;` and everything that follows, from the semicolon until th
     `let`, and `lambda`. While regular procedures are evaluated by returning the
     result of the computation, in tail-call optimized procedures the last expression
     in the body of the procedure is returned unevaluated. This transforms recursive
-    calls into a for loop. The simplified code below illustrates this:
+    calls into a for-loop. The simplified code below illustrates this:
 
     ```go
     func Eval(sexpr Sexpr, env *Env) Any {
@@ -171,3 +182,8 @@ That's it. Nothing more is needed to build a minimal Scheme.
  [*lexical scoping* or *closures*]: https://en.wikipedia.org/wiki/Closure_(computer_programming)
  [tail-call optimized]: https://stackoverflow.com/questions/310974/what-is-tail-call-optimization
  [loop iterator]: https://www.schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-7.html#%_sec_4.2.4
+ [syntactic closures]: https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.18.3867
+ [more advanced]: https://www.scheme.com/tspl4/syntax.html
+ [hygienic macros]: https://docs.scheme.org/guide/macros/
+ [pattern-based]: https://cs.brown.edu/courses/cs173/2008/Manual/guide/pattern-macros.html
+ [Lisp-style macros]: https://www.cs.utexas.edu/ftp/garbage/cs345/schintro-v14/schintro_130.html#SEC190

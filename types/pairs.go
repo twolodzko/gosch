@@ -58,13 +58,17 @@ func (p *Pair) Len() int {
 }
 
 func (p Pair) String() string {
+	return fmt.Sprintf("(%s)", p.ElemsToString())
+}
+
+func (p Pair) ElemsToString() string {
 	var elems []string
 	head := &p
 	for head != nil && !head.IsNull() {
 		elems = append(elems, fmt.Sprintf("%v", head.This))
 		head = head.Next
 	}
-	return fmt.Sprintf("(%s)", strings.Join(elems, " "))
+	return strings.Join(elems, " ")
 }
 
 func PairFromArray(elems []Sexpr) *Pair {

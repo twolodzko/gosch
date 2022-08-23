@@ -39,7 +39,7 @@ func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if !ok {
 		return nil, eval.NewErrBadName(args.This)
 	}
-	vars, err := SymbolsPairToSlice(args.Next)
+	vars, err := symbolsPairToSlice(args.Next)
 	if err != nil {
 		return nil, err
 	}

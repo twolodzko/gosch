@@ -59,6 +59,9 @@ func MakeVector(args *types.Pair) (types.Sexpr, error) {
 	}
 
 	if args.HasNext() {
+		if args.Next.HasNext() {
+			return nil, eval.ErrBadArgNumber
+		}
 		for i := range vec {
 			vec[i] = args.Next.This
 		}

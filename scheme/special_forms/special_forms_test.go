@@ -139,37 +139,70 @@ func Test_LambdaCalculus(t *testing.T) {
 	}
 }
 
-func Test_SymbolsPairToSlice(t *testing.T) {
+func Test_LispMacroOr2(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
 
-	var testCases = []struct {
-		input    *types.Pair
-		expected []types.Symbol
-	}{
-		{
-			&types.Pair{},
-			nil,
-		},
-		{
-			types.MakePair(types.Symbol("a"), nil),
-			[]types.Symbol{"a"},
-		},
-		{
-			types.MakePair(types.Symbol("a"), types.Symbol("b")),
-			[]types.Symbol{"a", "b"},
-		},
-		{
-			types.PairFromArray([]types.Sexpr{"a", "b", "c"}),
-			[]types.Symbol{"a", "b", "c"},
-		},
+	macro := "(define-macro (or2 a b) `(let ((temp ,a)) (if temp temp ,b)))"
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
 	}
 
-	for _, tt := range testCases {
-		result, err := special_forms.SymbolsPairToSlice(tt.input)
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
-		}
-		if !cmp.Equal(result, tt.expected) {
-			t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
-		}
+	input := `
+	(let ((temp #f)
+		  (perm #t))
+		(or2 temp perm))
+	`
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	if len(result) != 1 {
+		t.Errorf("expected single result, got: %v", result)
+		return
+	}
+	expected := types.TRUE
+	if result[0] != expected {
+		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}
+
+func Test_LispMacroPush(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := "(define-macro (push obj-exp list-var) `(set! ,list-var (cons ,obj-exp ,list-var)))"
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	input := `
+	(define stack '())
+
+	(let ((cons 5))
+		(push 'foo stack))
+
+	stack
+	`
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	if len(result) != 3 {
+		t.Errorf("expected three results, got: %v", result)
+		return
+	}
+	expected := types.NewPair(types.Symbol("foo"), nil)
+	if !cmp.Equal(result[2], expected) {
+		t.Errorf("expected %q, got: %q", expected, result[0])
 	}
 }

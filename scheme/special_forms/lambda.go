@@ -26,7 +26,7 @@ func NewLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	}
 	switch pair := args.This.(type) {
 	case *types.Pair:
-		vars, err := SymbolsPairToSlice(pair)
+		vars, err := symbolsPairToSlice(pair)
 		return Lambda{vars, args.Next, env}, err
 	default:
 		return Lambda{}, eval.NewErrNonList(args.This)
@@ -34,7 +34,7 @@ func NewLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 }
 
 // Transform pair to slice
-func SymbolsPairToSlice(args *types.Pair) ([]types.Symbol, error) {
+func symbolsPairToSlice(args *types.Pair) ([]types.Symbol, error) {
 	var vars []types.Symbol
 	if args == nil || args.IsNull() {
 		return vars, nil

@@ -37,7 +37,7 @@ import (
 )
 
 type Macro interface {
-	Transform(types.Sexpr, *envir.Env) (types.Sexpr, error)
+	Transform(*types.Pair, *envir.Env) (types.Sexpr, *envir.Env, error)
 }
 
 // `expand-macro` procedure
@@ -63,7 +63,7 @@ func ExpandMacro(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 				return nil, err
 			}
 		case Macro:
-			sexpr, err := m.Transform(args.Next, env)
+			sexpr, _, err := m.Transform(args.Next, env)
 			return sexpr, err
 		default:
 			return nil, fmt.Errorf("%s is not a macro", obj)

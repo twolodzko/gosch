@@ -32,17 +32,21 @@ type LispMacro struct {
 	Template *types.Pair
 }
 
-func (m LispMacro) Transform(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
-	return m.Template, nil
-}
-
-func (m LispMacro) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
-	local, err := closureFromArgs(args, env, env, m.Vars)
+func (m LispMacro) Transform(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
+	local, err := makeSyntacticClosure(args, env, m.Vars)
 	if err != nil {
 		return nil, local, err
 	}
+	sexpr, err := traverseToUnquote(m.Template, 0, local)
+	return sexpr, local, err
+}
 
-	sexpr, err := eval.Eval(m.Template, local)
+func (m LispMacro) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
+	sexpr, local, err := m.Transform(args, env)
+	if err != nil {
+		return nil, local, err
+	}
+	sexpr, err = eval.Eval(sexpr, local)
 	return sexpr, env, err
 }
 
@@ -69,7 +73,7 @@ func NewLispMacro(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	}
 	switch pair := args.This.(type) {
 	case *types.Pair:
-		vars, err := SymbolsPairToSlice(pair)
+		vars, err := symbolsPairToSlice(pair)
 		if err != nil {
 			return LispMacro{}, err
 		}
@@ -99,7 +103,7 @@ func DefineMacro(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if !ok {
 		return "", eval.NewErrBadName(args.This)
 	}
-	vars, err := SymbolsPairToSlice(first.Next)
+	vars, err := symbolsPairToSlice(first.Next)
 	if err != nil {
 		return LispMacro{}, err
 	}
@@ -112,4 +116,23 @@ func DefineMacro(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	macro := LispMacro{vars, template}
 	env.Set(name, macro)
 	return macro, nil
+}
+
+func makeSyntacticClosure(args *types.Pair, env *envir.Env, names []types.Symbol) (*envir.Env, error) {
+	local := envir.NewEnvFrom(env)
+
+	head := args
+	for _, name := range names {
+		if head == nil {
+			return local, eval.ErrBadArgNumber
+		}
+		local.Set(name, head.This)
+		head = head.Next
+	}
+
+	if head != nil && head.HasNext() {
+		return local, eval.ErrBadArgNumber
+	}
+
+	return local, nil
 }

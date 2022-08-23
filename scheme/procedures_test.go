@@ -765,35 +765,3 @@ func Test_goFn(t *testing.T) {
 		t.Errorf("expected %v got %v", expected, fields)
 	}
 }
-
-func Test_Or2(t *testing.T) {
-	eval.Procedures = Procedures
-	env := envir.NewEnv()
-
-	macro := "(define-macro (or2 a b) `(let ((temp ,a)) (if temp temp ,b)))"
-
-	_, _, err := eval.EvalString(macro, env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-	}
-
-	input := `
-	(let ((temp #f)
-		  (perm #t))
-		(or2 temp perm))
-	`
-
-	result, _, err := eval.EvalString(input, env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-	}
-
-	if len(result) != 1 {
-		t.Errorf("expected single result, got: %v", result)
-		return
-	}
-	expected := types.TRUE
-	if result[0] != expected {
-		t.Errorf("expected %q, got: %q", expected, result[0])
-	}
-}

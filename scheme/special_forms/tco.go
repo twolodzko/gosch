@@ -8,6 +8,11 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
+var _ eval.TailCallOptimized = Let
+var _ eval.TailCallOptimized = If
+var _ eval.TailCallOptimized = Cond
+var _ eval.TailCallOptimized = Begin
+
 // Tail call optimized procedures
 // see: https://github.com/kanaka/mal/blob/master/process/guide.md#step-5-tail-call-optimization
 

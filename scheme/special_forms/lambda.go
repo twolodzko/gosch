@@ -9,6 +9,8 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
+var _ eval.Callable = (*Lambda)(nil)
+
 type Lambda struct {
 	Vars      []types.Symbol
 	Body      *types.Pair

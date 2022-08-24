@@ -80,7 +80,7 @@ func elemPair(pair *types.Pair, m mapping.Mapping, i int) (*types.Pair, bool) {
 }
 
 func elemSymbol(sym types.Symbol, m mapping.Mapping, i int) (types.Sexpr, bool) {
-	val := transformSymbol(sym, m)
+	val := expandSymbol(sym, m)
 	if ellipsis, ok := val.(pattern.EllipsisVar); ok {
 		if i >= len(ellipsis) {
 			return nil, false

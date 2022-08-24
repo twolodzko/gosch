@@ -95,7 +95,7 @@ func (p *Parser) readSexpr() (types.Sexpr, error) {
 func (p *Parser) readAtom() (types.Sexpr, error) {
 	var runes []rune
 	for p.HasNext() {
-		if unicode.IsSpace(p.Head()) || p.Head() == '(' || p.Head() == ')' {
+		if isWordBoundary(p.Head()) {
 			break
 		}
 		runes = append(runes, p.Head())
@@ -218,4 +218,8 @@ func Quasiquote(s types.Sexpr) types.Sexpr {
 
 func Unquote(s types.Sexpr) types.Sexpr {
 	return types.NewPair("unquote", s)
+}
+
+func isWordBoundary(r rune) bool {
+	return unicode.IsSpace(r) || r == '(' || r == ')'
 }

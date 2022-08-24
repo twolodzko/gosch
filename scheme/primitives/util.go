@@ -10,6 +10,10 @@ import (
 )
 
 func Display(args *types.Pair) (types.Sexpr, error) {
+	if args == nil {
+		fmt.Println()
+		return nil, nil
+	}
 	fmt.Printf("%v\n", args.ElemsToString())
 	return nil, nil
 }

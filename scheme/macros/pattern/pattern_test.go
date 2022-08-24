@@ -187,8 +187,8 @@ func Test_MatchPattern(t *testing.T) {
 			// (x y ...)
 			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
 			types.NewPair(types.Symbol("a"), nil),
-			false,
-			mapping.Mapping{},
+			true,
+			mapping.Mapping{"x": "a", "y": EllipsisVar{}},
 		},
 		{
 			// (x (y ...) z)
@@ -202,7 +202,7 @@ func Test_MatchPattern(t *testing.T) {
 			&Pair{[]Pattern{&Identifier{"x", false}, &Pair{[]Pattern{&Identifier{"y", true}}, false}, &Identifier{"z", false}}, false},
 			types.PairFromArray([]types.Sexpr{types.Symbol("a"), &types.Pair{}, types.Symbol("d")}),
 			true,
-			mapping.Mapping{"x": "a", "z": "d"},
+			mapping.Mapping{"x": "a", "y": EllipsisVar{}, "z": "d"},
 		},
 		{
 			// (x (() (y ...) z) v)
@@ -247,6 +247,14 @@ func Test_MatchPattern(t *testing.T) {
 			false,
 			mapping.Mapping{},
 		},
+		// FIXME
+		// {
+		// 	// ((x y) ...)
+		// 	&Pair{[]Pattern{&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", false}}, true}}, false},
+		// 	&types.Pair{},
+		// 	true,
+		// 	mapping.Mapping{"x": EllipsisVar{}, "y": EllipsisVar{}},
+		// },
 	}
 
 	for _, tt := range testCases {

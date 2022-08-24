@@ -43,7 +43,7 @@ func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if err != nil {
 		return nil, err
 	}
-	fn := Lambda{Vars: vars, Body: body, ParentEnv: env}
+	fn := Lambda{vars, body, env}
 	env.Set(name, fn)
 	return fn, nil
 }

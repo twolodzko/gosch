@@ -12,7 +12,7 @@ type Template interface {
 func Transform(sexpr types.Sexpr, m mapping.Mapping) (types.Sexpr, error) {
 	switch obj := sexpr.(type) {
 	case types.Symbol:
-		return transformSymbol(obj, m), nil
+		return expandSymbol(obj, m), nil
 	case *types.Pair:
 		return transformPair(obj, m), nil
 	case Template:
@@ -22,7 +22,7 @@ func Transform(sexpr types.Sexpr, m mapping.Mapping) (types.Sexpr, error) {
 	}
 }
 
-func transformSymbol(s types.Symbol, m mapping.Mapping) types.Sexpr {
+func expandSymbol(s types.Symbol, m mapping.Mapping) types.Sexpr {
 	if val, ok := m[s]; ok {
 		return val
 	}
@@ -38,7 +38,7 @@ func transformPair(p *types.Pair, m mapping.Mapping) *types.Pair {
 			val := obj.Transform(m)
 			ap.Extend(val)
 		case types.Symbol:
-			val := transformSymbol(obj, m)
+			val := expandSymbol(obj, m)
 			ap.Append(val)
 		case *types.Pair:
 			val := transformPair(obj, m)

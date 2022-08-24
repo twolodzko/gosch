@@ -8,16 +8,16 @@ func (e EllipsisVar) ToPair() *types.Pair {
 	return types.PairFromArray(e)
 }
 
-func ellipsisVarFromPair(pair *types.Pair) (EllipsisVar, bool) {
+func ellipsisVarFromPair(pair *types.Pair) EllipsisVar {
 	if pair == nil || pair.IsNull() {
-		return nil, false
+		return EllipsisVar{}
 	}
 
 	var e EllipsisVar
 	head := pair
-	for head != nil {
+	for head != nil && !head.IsNull() {
 		e = append(e, head.This)
 		head = head.Next
 	}
-	return e, true
+	return e
 }

@@ -82,10 +82,10 @@ func Test_EllipsisExpansion3(t *testing.T) {
 	env := envir.NewEnv()
 
 	macro := `
-(define-syntax baz
-	(syntax-rules ()
-		((_ x ...)
-		 (list '(x x ...) ...))))
+	(define-syntax baz
+		(syntax-rules ()
+			((_ x ...)
+			(list '(x x ...) ...))))
 	`
 
 	_, _, err := eval.EvalString(macro, env)
@@ -104,6 +104,71 @@ func Test_EllipsisExpansion3(t *testing.T) {
 		return
 	}
 	expected := "((1 1 2 3) (2 1 2 3) (3 1 2 3))"
+	if fmt.Sprintf("%s", result[0]) != expected {
+		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}
+
+// FIXME
+// func Test_EllipsisExpansion4(t *testing.T) {
+// 	eval.Procedures = scheme.Procedures
+// 	env := envir.NewEnv()
+
+// 	macro := `
+// 	(define-syntax bar
+// 		(syntax-rules ()
+// 			((_ (x y ...) ...)
+// 			 (list '(x y ...) ...))))
+// 	`
+
+// 	_, _, err := eval.EvalString(macro, env)
+// 	if err != nil {
+// 		t.Errorf("unexpected error: %v", err)
+// 		return
+// 	}
+
+// 	result, _, err := eval.EvalString("(bar (1 2 3) (4 5 6) (7 8 9))", env)
+// 	if err != nil {
+// 		t.Errorf("unexpected error: %v", err)
+// 		return
+// 	}
+// 	if len(result) != 1 {
+// 		t.Errorf("expected single result, got: %v", result)
+// 		return
+// 	}
+// 	expected := "((1 2 3) (4 5 6) (7 8 9))"
+// 	if fmt.Sprintf("%s", result[0]) != expected {
+// 		t.Errorf("expected %q, got: %q", expected, result[0])
+// 	}
+// }
+
+func Test_EllipsisExpansion5(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+  	(define-syntax buz
+		(syntax-rules ()
+			((_ (x ...) y ...)
+			 (list '(x y y ...) ...))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	result, _, err := eval.EvalString("(buz (1 2 3) 4 5 6 7)", env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+	if len(result) != 1 {
+		t.Errorf("expected single result, got: %v", result)
+		return
+	}
+	expected := "((1 4 4 5 6 7) (2 5 4 5 6 7) (3 6 4 5 6 7))"
 	if fmt.Sprintf("%s", result[0]) != expected {
 		t.Errorf("expected %q, got: %q", expected, result[0])
 	}
@@ -369,6 +434,40 @@ func Test_Swap(t *testing.T) {
 		return
 	}
 	expected := types.NewPair(types.Integer(6), types.Integer(5))
+	if !cmp.Equal(result[0], expected) {
+		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}
+
+func Test_MyList(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+	(define-syntax foo
+		(syntax-rules ()
+			((_ e1 e2 ...)
+			 (list e1 e2 ...))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	input := `(foo #t)`
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	if len(result) != 1 {
+		t.Errorf("expected single result, got: %v", result)
+		return
+	}
+	expected := types.NewPair(types.TRUE, nil)
 	if !cmp.Equal(result[0], expected) {
 		t.Errorf("expected %q, got: %q", expected, result[0])
 	}

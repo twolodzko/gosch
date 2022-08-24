@@ -25,12 +25,11 @@ func (p Pair) Match(obj types.Sexpr) (mapping.Mapping, bool) {
 	m := mapping.Mapping{}
 	head := pair
 	for _, pattern := range p.Patterns {
-		if head == nil {
-			return mapping.Mapping{}, false
-		}
-
 		if pattern.IsEllipsis() {
 			return matchEllipsis(pattern, head, m)
+		}
+		if head == nil {
+			return mapping.Mapping{}, false
 		}
 
 		m2, ok := pattern.Match(head.This)
@@ -55,16 +54,14 @@ func (p Pair) Match(obj types.Sexpr) (mapping.Mapping, bool) {
 func matchEllipsis(pattern Pattern, pair *types.Pair, m mapping.Mapping) (mapping.Mapping, bool) {
 	switch pattern := pattern.(type) {
 	case *Pair:
-		subpattern, ok := pattern.matchPairEllipsis(pair)
+		m2, ok := pattern.matchPairEllipsis(pair)
 		if !ok {
 			return mapping.Mapping{}, false
 		}
-		ok = m.Merge(subpattern)
+		ok = m.Merge(m2)
 		return m, ok
 	case *Identifier:
-		if val, ok := ellipsisVarFromPair(pair); ok {
-			m[pattern.Name] = val
-		}
+		m[pattern.Name] = ellipsisVarFromPair(pair)
 		return m, true
 	default:
 		return mapping.Mapping{}, false
@@ -72,18 +69,37 @@ func matchEllipsis(pattern Pattern, pair *types.Pair, m mapping.Mapping) (mappin
 }
 
 func (p *Pair) matchPairEllipsis(pair *types.Pair) (mapping.Mapping, bool) {
-	mappings := mapping.Mapping{}
+	m := mapping.Mapping{}
+
+	if pair == nil || pair.IsNull() {
+		return m, true
+	}
+
 	head := pair
 	for head != nil {
-		m, ok := p.Match(head.This)
+		m2, ok := p.Match(head.This)
 		if !ok {
 			return mapping.Mapping{}, false
 		}
-		mappings = extendMapping(mappings, m)
+		m = extendMapping(m, m2)
 		head = head.Next
 	}
-	return mappings, true
+	return m, true
 }
+
+// TODO: use to initialize mapping for empty pair pattern & validate
+// func (p *Pair) allIdentifiers() []types.Symbol {
+// 	var identifiers []types.Symbol
+// 	for _, val := range p.Patterns {
+// 		switch val := val.(type) {
+// 		case *Identifier:
+// 			identifiers = append(identifiers, val.Name)
+// 		case *Pair:
+// 			identifiers = append(identifiers, val.allIdentifiers()...)
+// 		}
+// 	}
+// 	return identifiers
+// }
 
 func extendMapping(x mapping.Mapping, y mapping.Mapping) mapping.Mapping {
 	for key, yval := range y {

@@ -31,6 +31,8 @@ func parsePair(pair *types.Pair) (types.Sexpr, error) {
 		if template, ok := parseLet(pair.Next); ok {
 			return template, nil
 		}
+	case "let*":
+		// FIXME: like `let`, but bindings need to depend on previous
 	case "do":
 		// FIXME
 	case "macro":

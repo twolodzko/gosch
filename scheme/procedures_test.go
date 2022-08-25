@@ -439,6 +439,8 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(eq? #(1 2) #(1 2 3))", "#f"},
 		{"(eq? #(#()) #(#() #()))", "#f"},
 		{"((macro (x y z) `(list ,x ,y ,z)) 1 (+ 1 1) (/ 6 2))", "(1 2 3)"},
+		{"(let* ((x 1) (y (* x 2))) (/ y x))", "2"},
+		{"(let ((x 0) (y 1)) (let* ((x y) (y x)) (list x y)))", "(1 1)"},
 	}
 
 	for _, tt := range testCases {
@@ -691,6 +693,39 @@ func Test_LambdaLocalVsParentEnv(t *testing.T) {
 		t.Errorf("expected %v, got %v", expected, result[2])
 	}
 }
+
+// FIXME
+// func Test_Reverse(t *testing.T) {
+// 	eval.Procedures = Procedures
+// 	env := envir.NewEnv()
+
+// 	code := `
+// 	(define reverse
+// 		(lambda (ls)
+// 			(let rev ((ls ls) (new '()))
+// 				(if (null? ls)
+// 					new
+// 					(rev (cdr ls) (cons (car ls) new))))))
+// 	`
+
+// 	_, _, err := eval.EvalString(code, env)
+// 	if err != nil {
+// 		t.Errorf("unexpected error: %v", err)
+// 		return
+// 	}
+
+// 	input := "(reverse '())"
+// 	expected := "()"
+
+// 	result, _, err := eval.EvalString(input, env)
+// 	if err != nil {
+// 		t.Errorf("unexpected error: %v", err)
+// 		return
+// 	}
+// 	if fmt.Sprintf("%v", result[0]) != expected {
+// 		t.Errorf("expected %v, got %v", expected, result[2])
+// 	}
+// }
 
 // FIXME
 // func Test_Error(t *testing.T) {

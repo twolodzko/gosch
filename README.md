@@ -29,7 +29,9 @@ for example `(if #f 'ok)` returns `<nil>`.
 - `(lambda (arg1 arg2 ...) expr1 expr2 ...)` defines a [lambda expression] (*aka* function). There is also an equivalent,
 shorter way of writing `(define name (lambda (arg1 arg2 ...) expr1 expr2 ...))` as `(define (name arg1 arg2 ...) expr1 expr2 ...)`.
 - `(let ((name1 value1) (name2 value2) ...) expr1 expr2 ...)` evaluates *expr1*, *expr2*, ... in the local environment,
-with *name1*, *name2*, ... variables present; returns the result of evaluating the last *exprN* expression.
+  with *name1*, *name2*, ... variables present; returns the result of evaluating the last *exprN* expression.
+  `let*` is like `let`, but the *arg1*, *arg2*, ... arguments are evaluated sequentially, from left to right,
+  and the following arguments can depend on the preceeding.
 - `(if condition if-true if-false)` and `(cond (test1 expr1) (test2 expr2) ...)` conditionals with special `else`
 condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 - `(begin expr1 expr2 ...)` evaluates *expr1*, *expr2*, ..., returns the result of evaluating the last *exprN* expression.

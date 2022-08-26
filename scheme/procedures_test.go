@@ -441,6 +441,7 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"((macro (x y z) `(list ,x ,y ,z)) 1 (+ 1 1) (/ 6 2))", "(1 2 3)"},
 		{"(let* ((x 1) (y (* x 2))) (/ y x))", "2"},
 		{"(let ((x 0) (y 1)) (let* ((x y) (y x)) (list x y)))", "(1 1)"},
+		{"(let* ((x 2) (f (lambda (y) (+ x y)))) (f 5))", "7"},
 	}
 
 	for _, tt := range testCases {

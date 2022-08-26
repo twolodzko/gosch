@@ -17,11 +17,6 @@ func Parse(sexpr types.Sexpr) (types.Sexpr, error) {
 }
 
 func parsePair(pair *types.Pair) (types.Sexpr, error) {
-	var (
-		sexprs []types.Sexpr
-		head   = pair
-	)
-
 	switch pair.This {
 	case "lambda":
 		if template, ok := parseLambda(pair.Next); ok {
@@ -31,14 +26,19 @@ func parsePair(pair *types.Pair) (types.Sexpr, error) {
 		if template, ok := parseLet(pair.Next); ok {
 			return template, nil
 		}
-	case "let*":
-		// FIXME: like `let`, but bindings need to depend on previous
-	case "do":
 		// FIXME
-	case "macro":
-		// FIXME
+		// case "let*":
+		// case "do":
+		// case "macro":
 	}
+	return parseAll(pair)
+}
 
+func parseAll(pair *types.Pair) (*types.Pair, error) {
+	var (
+		sexprs []types.Sexpr
+		head   = pair
+	)
 	for head != nil {
 		val, err := Parse(head.This)
 		if err != nil {

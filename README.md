@@ -46,7 +46,6 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
   using the [syntactic closures]. `(define-macro (name arg1 arg2 ...) template)` can be used as a shorthand for
   `(define name (macro (arg1 arg2 ...) template))`. `(gensym)` generates unique placeholders for the names used in the
   macros.
-- `define-syntax` and `syntax-rules` procedures can be used for writing [more advanced], [pattern-based], [hygienic macros].
 - `(eq? obj1 obj2)` compares if two objects are equal, for pairs only checks if they point to the same memory location.
 - Logical `(not obj)`, `and`, and `or`, e.g. `(and obj1 obj2 ...)`.
 - Arithmetic operators `+`, `-`, `*`, `/`, e.g. `(+ x1 x2 ...)`, and `(% x1 x2)` for modulo.
@@ -185,7 +184,4 @@ That's it. Nothing more is needed to build a minimal Scheme.
  [tail-call optimized]: https://stackoverflow.com/questions/310974/what-is-tail-call-optimization
  [loop iterator]: https://www.schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-7.html#%_sec_4.2.4
  [syntactic closures]: https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.18.3867
- [more advanced]: https://www.scheme.com/tspl4/syntax.html
- [hygienic macros]: https://docs.scheme.org/guide/macros/
- [pattern-based]: https://cs.brown.edu/courses/cs173/2008/Manual/guide/pattern-macros.html
  [Lisp-style macros]: https://www.cs.utexas.edu/ftp/garbage/cs345/schintro-v14/schintro_130.html#SEC190

@@ -8,6 +8,7 @@ import (
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/scheme"
+	"github.com/twolodzko/gosch/scheme/macros/gensym"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -470,6 +471,80 @@ func Test_MyList(t *testing.T) {
 	expected := types.NewPair(types.TRUE, nil)
 	if !cmp.Equal(result[0], expected) {
 		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}
+
+func Test_LambdaWrapper(t *testing.T) {
+	gensym.Generator.Reset()
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+	(define-syntax lambd
+		(syntax-rules ()
+			((_ (arg ...) expr ...)
+			 (lambda (arg ...) expr ...))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	input := "(expand-macro lambd (x) x)"
+
+	expected := "(lambda (g0001) g0001)"
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("%s has raised an unexpected error: %v", input, err)
+		return
+	}
+	if len(result) != 1 {
+		t.Errorf("for %s expected single result, got: %v", input, result)
+		return
+	}
+	if fmt.Sprintf("%s", result[0]) != expected {
+		t.Errorf("for %s expected %v, got: %v", input, expected, result[0])
+	}
+}
+
+func Test_MyLet(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+	(define-syntax mylet
+		(syntax-rules ()
+			((_ ((k v) ...) expr ...)
+			 ((lambda (k ...) expr ...)
+			 	v ...))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	input := `
+	(mylet ((x 1) (y 2))
+		(+ x y))
+	`
+	expected := types.Integer(3)
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("%s has raised an unexpected error: %v", input, err)
+		return
+	}
+	if len(result) != 1 {
+		t.Errorf("for %s expected single result, got: %v", input, result)
+		return
+	}
+	if !cmp.Equal(result[0], expected) {
+		t.Errorf("for %s expected %v, got: %v", input, expected, result[0])
 	}
 }
 

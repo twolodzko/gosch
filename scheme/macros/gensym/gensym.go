@@ -12,3 +12,7 @@ func (g *gensym) New() string {
 	g.counter++
 	return fmt.Sprintf("g%04d", g.counter)
 }
+
+func (g *gensym) Reset() {
+	g.counter = 0
+}

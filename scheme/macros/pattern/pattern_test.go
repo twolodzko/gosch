@@ -13,49 +13,49 @@ func Test_FromPair(t *testing.T) {
 	var testCases = []struct {
 		input    *types.Pair
 		literals []types.Symbol
-		expected []Pattern
+		expected *Pair
 	}{
 		{
 			// ()
 			types.PairFromArray([]types.Sexpr{}),
 			nil,
-			nil,
+			&Pair{},
 		},
 		{
 			// (x)
 			types.PairFromArray([]types.Sexpr{"x"}),
 			nil,
-			[]Pattern{&Identifier{"x", false}},
+			&Pair{[]Pattern{&Identifier{"x", false}}, false},
 		},
 		{
 			// (#t)
 			types.PairFromArray([]types.Sexpr{types.Bool(true)}),
 			nil,
-			[]Pattern{&Literal{types.Bool(true)}},
+			&Pair{[]Pattern{&Literal{types.Bool(true)}}, false},
 		},
 		{
 			// (())
 			types.NewPair(&types.Pair{}, nil),
 			nil,
-			[]Pattern{&Pair{}},
+			&Pair{[]Pattern{&Pair{}}, false},
 		},
 		{
 			// (x (y) z)
 			types.PairFromArray([]types.Sexpr{"x", types.NewPair("y", nil), "z"}),
 			nil,
-			[]Pattern{&Identifier{"x", false}, &Pair{[]Pattern{&Identifier{"y", false}}, false}, &Identifier{"z", false}},
+			&Pair{[]Pattern{&Identifier{"x", false}, &Pair{[]Pattern{&Identifier{"y", false}}, false}, &Identifier{"z", false}}, false},
 		},
 		{
 			// (x + 1)
 			types.PairFromArray([]types.Sexpr{"x", "+", types.Integer(1)}),
 			[]types.Symbol{"+"},
-			[]Pattern{&Identifier{"x", false}, &Literal{"+"}, &Literal{types.Integer(1)}},
+			&Pair{[]Pattern{&Identifier{"x", false}, &Literal{"+"}, &Literal{types.Integer(1)}}, false},
 		},
 		{
 			// (x y ...)
 			types.PairFromArray([]types.Sexpr{"x", "y", "..."}),
 			nil,
-			[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}},
+			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
 		},
 	}
 
@@ -64,9 +64,8 @@ func Test_FromPair(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %s", err)
 		}
-		expected := &Pair{tt.expected, false}
-		if !cmp.Equal(result, expected) {
-			t.Errorf("for %v expected %v, got %v", tt.input, expected, result)
+		if !cmp.Equal(result, tt.expected) {
+			t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
 		}
 	}
 }

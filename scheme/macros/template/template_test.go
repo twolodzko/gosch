@@ -118,7 +118,6 @@ func Test_Transform(t *testing.T) {
 		},
 		{
 			// ((list x y ...) ...)
-
 			types.NewPair(
 				EllipsisPair(
 					*types.PairFromArray(
@@ -131,7 +130,6 @@ func Test_Transform(t *testing.T) {
 				),
 				nil,
 			),
-
 			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}, "y": pattern.EllipsisVar{"a", "b"}},
 			types.PairFromArray([]types.Sexpr{
 				types.PairFromArray([]types.Sexpr{"list", 1, "a", "b"}),

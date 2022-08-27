@@ -124,10 +124,10 @@ func Test_ParseExpectError(t *testing.T) {
 		input    string
 		expected string
 	}{
-		{"(", "list was not closed with )"},
-		{"(a", "list was not closed with )"},
-		{"(lorem ipsum", "list was not closed with )"},
-		{"lorem ipsum)", "unexpected )"},
+		{"(", "list was not closed with closing bracket"},
+		{"(a", "list was not closed with closing bracket"},
+		{"(lorem ipsum", "list was not closed with closing bracket"},
+		{"lorem ipsum)", "unexpected closing bracket"},
 	}
 	for _, tt := range testCases {
 		parser := NewParser(tt.input)
@@ -157,5 +157,19 @@ func Test_Quote(t *testing.T) {
 		if !cmp.Equal(result, tt.expected) {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
 		}
+	}
+}
+
+func Test_DoubleBrackets(t *testing.T) {
+	input := `
+	(define factorial
+		(lambda (n)
+			(do ([i n (- i 1)] [a 1 (* a i)])
+				((zero? i) a))))
+	`
+	parser := NewParser(input)
+	_, err := parser.Read()
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
 	}
 }

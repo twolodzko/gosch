@@ -56,10 +56,10 @@ func (reader *blockReader) shouldStop(line string) bool {
 		// comment - ignore rest of the line
 		case ';':
 			return false
-		// list - wait till closing brace
-		case '(':
+		// list - wait till closing bracket
+		case '(', '[':
 			reader.openBlocksCount++
-		case ')':
+		case ')', ']':
 			reader.openBlocksCount--
 
 			if reader.openBlocksCount <= 0 {

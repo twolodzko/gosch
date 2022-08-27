@@ -71,10 +71,10 @@ func (p *Parser) readSexpr() (types.Sexpr, error) {
 			p.pos++
 			val, err := p.readSexpr()
 			return Unquote(val), err
-		case '(':
+		case '(', '[':
 			return p.readPair()
-		case ')':
-			return nil, fmt.Errorf("unexpected )")
+		case ')', ']':
+			return nil, fmt.Errorf("unexpected closing bracket")
 		case '"':
 			return p.readString()
 		case ';':
@@ -144,7 +144,7 @@ func (p *Parser) readPair() (*types.Pair, error) {
 		switch {
 		case unicode.IsSpace(p.Head()):
 			p.pos++
-		case p.Head() == ')':
+		case isClosingBracket(p.Head()):
 			p.pos++
 			return ap.ToPair(), nil
 		default:
@@ -158,7 +158,7 @@ func (p *Parser) readPair() (*types.Pair, error) {
 			}
 		}
 	}
-	return nil, fmt.Errorf("list was not closed with )")
+	return nil, fmt.Errorf("list was not closed with closing bracket")
 }
 
 func (p *Parser) readVector() (*types.Vector, error) {
@@ -179,7 +179,7 @@ func (p *Parser) readVector() (*types.Vector, error) {
 			vec = append(vec, elem)
 		}
 	}
-	return nil, fmt.Errorf("vector was not closed with )")
+	return nil, fmt.Errorf("vector was not closed with closing bracket")
 }
 
 func (p *Parser) readString() (types.String, error) {
@@ -224,5 +224,13 @@ func Unquote(s types.Sexpr) types.Sexpr {
 }
 
 func isWordBoundary(r rune) bool {
-	return unicode.IsSpace(r) || r == '(' || r == ')'
+	return unicode.IsSpace(r) || isOpeningBracket(r) || isClosingBracket(r)
+}
+
+func isOpeningBracket(r rune) bool {
+	return r == '(' || r == '['
+}
+
+func isClosingBracket(r rune) bool {
+	return r == ')' || r == ']'
 }

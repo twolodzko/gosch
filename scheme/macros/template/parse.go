@@ -18,6 +18,8 @@ func Parse(sexpr types.Sexpr) (types.Sexpr, error) {
 
 func parsePair(pair *types.Pair) (types.Sexpr, error) {
 	switch pair.This {
+	case "lambda":
+		return parseLambda(pair.Next)
 	case "let":
 		return parseLet(pair.Next)
 	// FIXME

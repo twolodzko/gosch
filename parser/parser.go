@@ -152,7 +152,10 @@ func (p *Parser) readPair() (*types.Pair, error) {
 			if err != nil {
 				return nil, err
 			}
-			ap.Append(elem)
+			// ignore the dotted pair syntax
+			if elem != "." {
+				ap.Append(elem)
+			}
 		}
 	}
 	return nil, fmt.Errorf("list was not closed with )")

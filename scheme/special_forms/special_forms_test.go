@@ -206,3 +206,73 @@ func Test_LispMacroPush(t *testing.T) {
 		t.Errorf("expected %q, got: %q", expected, result[0])
 	}
 }
+
+func Test_DoFactorial(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	code := `
+	(define factorial
+		(lambda (n)
+			(do ((i n (- i 1)) (a 1 (* a i)))
+				((= 0 i) a))))
+	`
+
+	_, _, err := eval.EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	input := "(factorial 10)"
+	expected := "3628800"
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	if len(result) != 1 {
+		t.Errorf("expected three results, got: %v", result)
+		return
+	}
+	if fmt.Sprintf("%v", result[0]) != expected {
+		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}
+
+func Test_DoFibonacci(t *testing.T) {
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	code := `
+	(define fibonacci
+		(lambda (n)
+			(if (= n 0)
+				0
+				(do ((i n (- i 1)) (a1 1 (+ a1 a2)) (a2 0 a1))
+					((= i 1) a1)))))
+	`
+
+	_, _, err := eval.EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	input := "(fibonacci 6)"
+	expected := "8"
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	if len(result) != 1 {
+		t.Errorf("expected three results, got: %v", result)
+		return
+	}
+	if fmt.Sprintf("%v", result[0]) != expected {
+		t.Errorf("expected %q, got: %q", expected, result[0])
+	}
+}

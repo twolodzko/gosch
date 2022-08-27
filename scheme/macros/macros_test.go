@@ -704,6 +704,44 @@ func Test_LispMacrosExpand(t *testing.T) {
 	}
 }
 
+func Test_DoExpand(t *testing.T) {
+	gensym.Generator.Reset()
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+	(define-syntax dododoo
+		(syntax-rules ()
+			((_ init max x ...)
+			(do
+				((i init (+ 1 i))
+				(lst '() (cons (list i x ...) lst)))
+				((> i max) lst)))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	input := "(expand-macro dododoo 1 5 'a 'b 'c)"
+	expected := "(do ((g0001 1 (+ 1 g0001)) (g0002 (quote ()) (cons (list g0001 (quote a) (quote b) (quote c)) g0002))) ((> g0001 5) g0002))"
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("%s has raised an unexpected error: %v", input, err)
+		return
+	}
+	if len(result) != 1 {
+		t.Errorf("for %s expected single result, got: %v", input, result)
+		return
+	}
+	if fmt.Sprintf("%s", result[0]) != expected {
+		t.Errorf("for %s expected %v, got: %v", input, expected, result[0])
+	}
+}
+
 func Test_ValidErrors(t *testing.T) {
 	eval.Procedures = scheme.Procedures
 

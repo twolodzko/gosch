@@ -26,8 +26,8 @@ func parsePair(pair *types.Pair) (types.Sexpr, error) {
 		return parseLetStar(pair.Next)
 	case "macro":
 		return parseLispMacro(pair.Next)
-	// FIXME
-	// case "do":
+	case "do":
+		return parseDo(pair.Next)
 	default:
 		return parseAll(pair)
 	}

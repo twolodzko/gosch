@@ -4,6 +4,7 @@ import (
 	"fmt"
 
 	"github.com/twolodzko/gosch/eval"
+	"github.com/twolodzko/gosch/scheme/macros/gensym"
 	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
@@ -19,7 +20,7 @@ func (t LambdaTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
 	ap.Append("lambda")
 
-	args, err := transformPair(t.Args, m)
+	args, err := t.transformArgs(m)
 	if err != nil {
 		return nil, err
 	}
@@ -31,6 +32,42 @@ func (t LambdaTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
 	}
 	ap.Extend(body)
 
+	return ap.ToPair(), nil
+}
+
+func (t LambdaTemplate) transformArgs(m mapping.Mapping) (*types.Pair, error) {
+	ap := types.NewAppendablePair()
+	head := t.Args
+	for head != nil {
+		switch obj := head.This.(type) {
+		case Ellipsis:
+			val := obj.Transform(m)
+			ap.Extend(val)
+		case Template:
+			val, err := obj.Transform(m)
+			if err != nil {
+				return nil, err
+			}
+			ap.Append(val)
+		case types.Symbol:
+			if val, ok := m[obj]; ok {
+				ap.Append(val)
+			} else {
+				val := gensym.Generator.New()
+				m[obj] = val
+				ap.Append(val)
+			}
+		case *types.Pair:
+			val, err := transformPair(obj, m)
+			if err != nil {
+				return nil, err
+			}
+			ap.Append(val)
+		default:
+			ap.Append(obj)
+		}
+		head = head.Next
+	}
 	return ap.ToPair(), nil
 }
 

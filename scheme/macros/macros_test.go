@@ -510,6 +510,42 @@ func Test_LambdaWrapper(t *testing.T) {
 	}
 }
 
+func Test_LambdaGenerator(t *testing.T) {
+	gensym.Generator.Reset()
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+	(define-syntax listgen
+		(syntax-rules ()
+			((_ x ...)
+			 (lambda (y)
+				(list y x ...)))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	input := "(expand-macro listgen 1 2 3)"
+	expected := "(lambda (g0001) (list g0001 1 2 3))"
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("%s has raised an unexpected error: %v", input, err)
+		return
+	}
+	if len(result) != 1 {
+		t.Errorf("for %s expected single result, got: %v", input, result)
+		return
+	}
+	if fmt.Sprintf("%s", result[0]) != expected {
+		t.Errorf("for %s expected %v, got: %v", input, expected, result[0])
+	}
+}
+
 func Test_MyLet(t *testing.T) {
 	eval.Procedures = scheme.Procedures
 	env := envir.NewEnv()

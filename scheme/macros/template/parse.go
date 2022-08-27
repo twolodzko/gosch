@@ -19,19 +19,16 @@ func Parse(sexpr types.Sexpr) (types.Sexpr, error) {
 func parsePair(pair *types.Pair) (types.Sexpr, error) {
 	switch pair.This {
 	case "lambda":
-		if template, ok := parseLambda(pair.Next); ok {
-			return template, nil
-		}
+		return parseLambda(pair.Next)
 	case "let":
-		if template, ok := parseLet(pair.Next); ok {
-			return template, nil
-		}
-		// FIXME
-		// case "let*":
-		// case "do":
-		// case "macro":
+		return parseLet(pair.Next)
+	// FIXME
+	// case "let*":
+	// case "do":
+	// case "macro":
+	default:
+		return parseAll(pair)
 	}
-	return parseAll(pair)
 }
 
 func parseAll(pair *types.Pair) (*types.Pair, error) {

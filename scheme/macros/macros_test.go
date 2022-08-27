@@ -387,6 +387,7 @@ func Test_DoubleLet(t *testing.T) {
 	result, _, err := eval.EvalString(input, env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
+		return
 	}
 
 	if len(result) != 1 {

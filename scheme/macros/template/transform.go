@@ -14,7 +14,7 @@ func Transform(sexpr types.Sexpr, m mapping.Mapping) (types.Sexpr, error) {
 	case types.Symbol:
 		return expandSymbol(obj, m), nil
 	case *types.Pair:
-		return transformPair(obj, m), nil
+		return transformPair(obj, m)
 	case Template:
 		return obj.Transform(m)
 	default:
@@ -29,7 +29,7 @@ func expandSymbol(s types.Symbol, m mapping.Mapping) types.Sexpr {
 	return s
 }
 
-func transformPair(p *types.Pair, m mapping.Mapping) *types.Pair {
+func transformPair(p *types.Pair, m mapping.Mapping) (*types.Pair, error) {
 	ap := types.NewAppendablePair()
 	head := p
 	for head != nil {
@@ -37,16 +37,25 @@ func transformPair(p *types.Pair, m mapping.Mapping) *types.Pair {
 		case Ellipsis:
 			val := obj.Transform(m)
 			ap.Extend(val)
+		case Template:
+			val, err := obj.Transform(m)
+			if err != nil {
+				return nil, err
+			}
+			ap.Append(val)
 		case types.Symbol:
 			val := expandSymbol(obj, m)
 			ap.Append(val)
 		case *types.Pair:
-			val := transformPair(obj, m)
+			val, err := transformPair(obj, m)
+			if err != nil {
+				return nil, err
+			}
 			ap.Append(val)
 		default:
 			ap.Append(obj)
 		}
 		head = head.Next
 	}
-	return ap.ToPair()
+	return ap.ToPair(), nil
 }

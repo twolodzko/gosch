@@ -3,10 +3,13 @@ package template
 import (
 	"fmt"
 
+	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/scheme/macros/gensym"
 	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
+
+var _ Template = (*LetTemplate)(nil)
 
 type LetTemplate struct {
 	Binings *types.Pair
@@ -23,7 +26,10 @@ func (t LetTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
 	}
 	ap.Append(args)
 
-	body := transformPair(t.Body, m)
+	body, err := transformPair(t.Body, m)
+	if err != nil {
+		return nil, err
+	}
 	ap.Extend(body)
 
 	return ap.ToPair(), nil
@@ -57,7 +63,7 @@ func (t *LetTemplate) transformBindings(m mapping.Mapping) (*types.Pair, error) 
 
 func (t *LetTemplate) transformBinding(binding *types.Pair, m mapping.Mapping) (types.Sexpr, error) {
 	if binding == nil || binding.IsNull() || !binding.HasNext() {
-		return transformPair(binding, m), nil
+		return transformPair(binding, m)
 	}
 
 	switch sym := binding.This.(type) {
@@ -79,15 +85,23 @@ func (t *LetTemplate) transformBinding(binding *types.Pair, m mapping.Mapping) (
 }
 
 // (let ((binding value) ...) ...) body ...)
-func parseLet(args *types.Pair) (LetTemplate, bool) {
+func parseLet(args *types.Pair) (LetTemplate, error) {
 	if args == nil || !args.HasNext() {
-		return LetTemplate{}, false
+		return LetTemplate{}, eval.ErrBadArgNumber
 	}
-	switch params := args.This.(type) {
+	switch obj := args.This.(type) {
 	case *types.Pair:
-		return LetTemplate{params, args.Next}, true
+		bindings, err := parseAll(obj)
+		if err != nil {
+			return LetTemplate{}, err
+		}
+		body, err := parseAll(args.Next)
+		if err != nil {
+			return LetTemplate{}, err
+		}
+		return LetTemplate{bindings, body}, nil
 	default:
-		return LetTemplate{}, false
+		return LetTemplate{}, eval.NewErrNonList(args.This)
 	}
 }
 

@@ -3,10 +3,13 @@ package template
 import (
 	"fmt"
 
+	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/scheme/macros/gensym"
 	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
+
+var _ Template = (*LambdaTemplate)(nil)
 
 type LambdaTemplate struct {
 	Args *types.Pair
@@ -23,7 +26,10 @@ func (t LambdaTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
 	}
 	ap.Append(args)
 
-	body := transformPair(t.Body, m)
+	body, err := transformPair(t.Body, m)
+	if err != nil {
+		return nil, err
+	}
 	ap.Extend(body)
 
 	return ap.ToPair(), nil
@@ -33,10 +39,10 @@ func (t LambdaTemplate) transformArgs(m mapping.Mapping) (*types.Pair, error) {
 	args := types.NewAppendablePair()
 	head := t.Args
 	for head != nil {
-		switch sym := head.This.(type) {
+		switch obj := head.This.(type) {
 		case types.Symbol:
 			name := gensym.Generator.New()
-			m[sym] = name
+			m[obj] = name
 			args.Append(name)
 		default:
 			val, err := Transform(head.This, m)
@@ -51,15 +57,23 @@ func (t LambdaTemplate) transformArgs(m mapping.Mapping) (*types.Pair, error) {
 }
 
 // (lambda (args ...) body ...)
-func parseLambda(args *types.Pair) (LambdaTemplate, bool) {
+func parseLambda(args *types.Pair) (LambdaTemplate, error) {
 	if args == nil || !args.HasNext() {
-		return LambdaTemplate{}, false
+		return LambdaTemplate{}, eval.ErrBadArgNumber
 	}
-	switch params := args.This.(type) {
+	switch obj := args.This.(type) {
 	case *types.Pair:
-		return LambdaTemplate{params, args.Next}, true
+		params, err := parseAll(obj)
+		if err != nil {
+			return LambdaTemplate{}, err
+		}
+		body, err := parseAll(args.Next)
+		if err != nil {
+			return LambdaTemplate{}, err
+		}
+		return LambdaTemplate{params, body}, nil
 	default:
-		return LambdaTemplate{}, false
+		return LambdaTemplate{}, eval.NewErrNonList(args.This)
 	}
 }
 

@@ -584,6 +584,126 @@ func Test_MyLet(t *testing.T) {
 	}
 }
 
+func Test_Shawdowing(t *testing.T) {
+	gensym.Generator.Reset()
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+	(define-syntax tuple
+		(syntax-rules ()
+			((_ v z)
+			((lambda (x y)
+					(let ((y x) (x y))
+						(list x y))) v z))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	input := `
+	(let ((x 'a) (y 'b))
+		(expand-macro tuple x y))
+	`
+	expected := "((lambda (g0001 g0002) (let ((g0003 g0001) (g0004 g0002)) (list g0004 g0003))) x y)"
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("%s has raised an unexpected error: %v", input, err)
+		return
+	}
+	if len(result) != 1 {
+		t.Errorf("for %s expected single result, got: %v", input, result)
+		return
+	}
+	if fmt.Sprintf("%s", result[0]) != expected {
+		t.Errorf("for %s expected %v, got: %v", input, expected, result[0])
+	}
+}
+
+func Test_LetStar(t *testing.T) {
+	gensym.Generator.Reset()
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+	(define-syntax tuple
+		(syntax-rules ()
+			((_ v z)
+			((lambda (x y)
+					(let* ((y x) (x y))
+						(list x y))) v z))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	input := `
+	(let ((x 'a) (y 'b))
+		(expand-macro tuple x y))
+	`
+	expected := "((lambda (g0001 g0002) (let* ((g0003 g0001) (g0004 g0003)) (list g0004 g0003))) x y)"
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("%s has raised an unexpected error: %v", input, err)
+		return
+	}
+	if len(result) != 1 {
+		t.Errorf("for %s expected single result, got: %v", input, result)
+		return
+	}
+	if fmt.Sprintf("%s", result[0]) != expected {
+		t.Errorf("for %s expected %v, got: %v", input, expected, result[0])
+	}
+}
+
+func Test_LispMacrosExpand(t *testing.T) {
+	gensym.Generator.Reset()
+	eval.Procedures = scheme.Procedures
+	env := envir.NewEnv()
+
+	macro := `
+	(define-syntax mkmacro
+		(syntax-rules ()
+			((_ args ...)
+			 (macro (x y)
+					(quasiquote
+						(list
+							(unquote x)
+							(unquote y)
+							args ...))))))
+	`
+
+	_, _, err := eval.EvalString(macro, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	input := "(expand-macro mkmacro 'a 'b)"
+	expected := "(macro (g0001 g0002) (quasiquote (list (unquote g0001) (unquote g0002) (quote a) (quote b))))"
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("%s has raised an unexpected error: %v", input, err)
+		return
+	}
+	if len(result) != 1 {
+		t.Errorf("for %s expected single result, got: %v", input, result)
+		return
+	}
+	if fmt.Sprintf("%s", result[0]) != expected {
+		t.Errorf("for %s expected %v, got: %v", input, expected, result[0])
+	}
+}
+
 func Test_ValidErrors(t *testing.T) {
 	eval.Procedures = scheme.Procedures
 

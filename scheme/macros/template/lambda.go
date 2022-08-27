@@ -20,7 +20,7 @@ func (t LambdaTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
 	ap.Append("lambda")
 
-	args, err := t.transformArgs(m)
+	args, err := transformArgs(t.Args, m)
 	if err != nil {
 		return nil, err
 	}
@@ -35,14 +35,19 @@ func (t LambdaTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
 	return ap.ToPair(), nil
 }
 
-func (t LambdaTemplate) transformArgs(m mapping.Mapping) (*types.Pair, error) {
+func transformArgs(args *types.Pair, m mapping.Mapping) (*types.Pair, error) {
 	ap := types.NewAppendablePair()
-	head := t.Args
+	head := args
 	for head != nil {
 		switch obj := head.This.(type) {
 		case types.Symbol:
-			val := expandOrRenameSymbol(obj, m)
-			ap.Append(val)
+			if val, ok := m[obj]; ok {
+				ap.Append(val)
+			} else {
+				val := gensym.Generator.New()
+				m[obj] = val
+				ap.Append(val)
+			}
 		case Ellipsis:
 			val := obj.Transform(m)
 			ap.Extend(val)
@@ -81,13 +86,4 @@ func (t LambdaTemplate) String() string {
 	ap.Append(t.Args)
 	ap.Extend(t.Body)
 	return fmt.Sprintf("%v", ap.ToPair())
-}
-
-func expandOrRenameSymbol(s types.Symbol, m mapping.Mapping) types.Sexpr {
-	if val, ok := m[s]; ok {
-		return val
-	}
-	val := gensym.Generator.New()
-	m[s] = val
-	return val
 }

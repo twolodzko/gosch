@@ -22,10 +22,12 @@ func parsePair(pair *types.Pair) (types.Sexpr, error) {
 		return parseLambda(pair.Next)
 	case "let":
 		return parseLet(pair.Next)
+	case "let*":
+		return parseLetStar(pair.Next)
+	case "macro":
+		return parseLispMacro(pair.Next)
 	// FIXME
-	// case "let*":
 	// case "do":
-	// case "macro":
 	default:
 		return parseAll(pair)
 	}

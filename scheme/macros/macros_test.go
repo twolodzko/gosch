@@ -12,166 +12,89 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func Test_EllipsisExpansion1(t *testing.T) {
+func Test_EllipsisExpansion(t *testing.T) {
 	eval.Procedures = scheme.Procedures
-	env := envir.NewEnv()
 
-	macro := `
-	(define-syntax foo
-		(syntax-rules ()
-			((_ (x ...) y ...)
-			 (list '(x y ...) ...))))
-	`
-
-	_, _, err := eval.EvalString(macro, env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-		return
+	var testCases = []struct {
+		macro    string
+		input    string
+		expected string
+	}{
+		{
+			`
+			(define-syntax foo
+				(syntax-rules ()
+					((_ (x ...) y ...)
+					(list '(x y ...) ...))))
+			`,
+			"(foo (1 2) 3 4)",
+			"((1 3 4) (2 3 4))",
+		},
+		{
+			`
+			(define-syntax bar
+				(syntax-rules ()
+					((_ (x y) ...)
+					(list '(x y) ... '(y x) ... x ... y ...))))
+			`,
+			"(bar (1 2) (3 4))",
+			"((1 2) (3 4) (2 1) (4 3) 1 3 2 4)",
+		},
+		{
+			`
+			(define-syntax baz
+				(syntax-rules ()
+					((_ x ...)
+					(list '(x x ...) ...))))
+			`,
+			"(baz 1 2 3)",
+			"((1 1 2 3) (2 1 2 3) (3 1 2 3))",
+		},
+		{
+			`
+			(define-syntax buz
+				(syntax-rules ()
+					((_ (x ...) y ...)
+					(list '(x y y ...) ...))))
+			`,
+			"(buz (1 2 3) 4 5 6 7)",
+			"((1 4 4 5 6 7) (2 5 4 5 6 7) (3 6 4 5 6 7))",
+		},
+		// FIXME
+		// {
+		// 	`
+		// 	(define-syntax bar
+		// 		(syntax-rules ()
+		// 			((_ (x y ...) ...)
+		// 			(list '(x y ...) ...))))
+		// 	`,
+		// 	"(bar (1 2 3) (4 5 6) (7 8 9))",
+		// 	"((1 2 3) (4 5 6) (7 8 9))",
+		// },
 	}
 
-	result, _, err := eval.EvalString("(foo (1 2) 3 4)", env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-		return
-	}
+	for _, tt := range testCases {
+		env := envir.NewEnv()
 
-	if len(result) != 1 {
-		t.Errorf("expected single result, got: %v", result)
-		return
-	}
-	expected := "((1 3 4) (2 3 4))"
-	if fmt.Sprintf("%s", result[0]) != expected {
-		t.Errorf("expected %q, got: %q", expected, result[0])
-	}
-}
+		_, _, err := eval.EvalString(tt.macro, env)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+			return
+		}
 
-func Test_EllipsisExpansion2(t *testing.T) {
-	eval.Procedures = scheme.Procedures
-	env := envir.NewEnv()
+		result, _, err := eval.EvalString(tt.input, env)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+			return
+		}
 
-	macro := `
-	(define-syntax bar
-		(syntax-rules ()
-			((_ (x y) ...)
-			 (list '(x y) ... '(y x) ... x ... y ...))))
-	`
-
-	_, _, err := eval.EvalString(macro, env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-		return
-	}
-
-	result, _, err := eval.EvalString("(bar (1 2) (3 4))", env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-		return
-	}
-
-	if len(result) != 1 {
-		t.Errorf("expected single result, got: %v", result)
-		return
-	}
-	expected := "((1 2) (3 4) (2 1) (4 3) 1 3 2 4)"
-	if fmt.Sprintf("%s", result[0]) != expected {
-		t.Errorf("expected %q, got: %q", expected, result[0])
-	}
-}
-
-func Test_EllipsisExpansion3(t *testing.T) {
-	eval.Procedures = scheme.Procedures
-	env := envir.NewEnv()
-
-	macro := `
-	(define-syntax baz
-		(syntax-rules ()
-			((_ x ...)
-			(list '(x x ...) ...))))
-	`
-
-	_, _, err := eval.EvalString(macro, env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-		return
-	}
-
-	result, _, err := eval.EvalString("(baz 1 2 3)", env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-		return
-	}
-	if len(result) != 1 {
-		t.Errorf("expected single result, got: %v", result)
-		return
-	}
-	expected := "((1 1 2 3) (2 1 2 3) (3 1 2 3))"
-	if fmt.Sprintf("%s", result[0]) != expected {
-		t.Errorf("expected %q, got: %q", expected, result[0])
-	}
-}
-
-// FIXME
-// func Test_EllipsisExpansion4(t *testing.T) {
-// 	eval.Procedures = scheme.Procedures
-// 	env := envir.NewEnv()
-
-// 	macro := `
-// 	(define-syntax bar
-// 		(syntax-rules ()
-// 			((_ (x y ...) ...)
-// 			 (list '(x y ...) ...))))
-// 	`
-
-// 	_, _, err := eval.EvalString(macro, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 		return
-// 	}
-
-// 	result, _, err := eval.EvalString("(bar (1 2 3) (4 5 6) (7 8 9))", env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 		return
-// 	}
-// 	if len(result) != 1 {
-// 		t.Errorf("expected single result, got: %v", result)
-// 		return
-// 	}
-// 	expected := "((1 2 3) (4 5 6) (7 8 9))"
-// 	if fmt.Sprintf("%s", result[0]) != expected {
-// 		t.Errorf("expected %q, got: %q", expected, result[0])
-// 	}
-// }
-
-func Test_EllipsisExpansion5(t *testing.T) {
-	eval.Procedures = scheme.Procedures
-	env := envir.NewEnv()
-
-	macro := `
-  	(define-syntax buz
-		(syntax-rules ()
-			((_ (x ...) y ...)
-			 (list '(x y y ...) ...))))
-	`
-
-	_, _, err := eval.EvalString(macro, env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-		return
-	}
-
-	result, _, err := eval.EvalString("(buz (1 2 3) 4 5 6 7)", env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-		return
-	}
-	if len(result) != 1 {
-		t.Errorf("expected single result, got: %v", result)
-		return
-	}
-	expected := "((1 4 4 5 6 7) (2 5 4 5 6 7) (3 6 4 5 6 7))"
-	if fmt.Sprintf("%s", result[0]) != expected {
-		t.Errorf("expected %q, got: %q", expected, result[0])
+		if len(result) != 1 {
+			t.Errorf("expected single result, got: %v", result)
+			return
+		}
+		if fmt.Sprintf("%s", result[0]) != tt.expected {
+			t.Errorf("expected %q, got: %q", tt.expected, result[0])
+		}
 	}
 }
 

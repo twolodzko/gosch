@@ -12,7 +12,7 @@
 ## Oh gosch, it's Scheme
 
 As in classic Lisps, **gosch** recognizes the two main data structures *atoms* and *[pairs]* (*aka* [linked lists]).
-The variety of available data types for atoms is limited to *numbers* (*integers* and *floats*) and
+The variety of available data types is limited to *atoms* like *numbers* (*integers* and *floats*) and
 *booleans* (`#t` and `#f`). There is also limited support for *strings* and *vectors* `#(x1 x2 ...)` understood
 as zero-indexed, fixed-size arrays. The implementation is [properly tail-recursive] as [required by Scheme].
 Unlike the classic Scheme, there is null type `nil` and procedures return it instead of undefined results,

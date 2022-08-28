@@ -43,7 +43,7 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
   be evaluated using `(unquote expr)` or `,expr`, for example `` `(2 + 2 = ,(+ 2 2))`` will evaluate to `(2 + 2 = 4)`.
 - `(eval expr)` does the opposite to `quote` by evaluating *expr*, e.g. `(eval '(+ 2 2))` returns `4` rather than the
 `(+ 2 2)` list.
-- `(macro (arg1 arg2 ...) template)` generates [Lisp-style macros] and works similar to `lambda` and evaluates the
+- `(macro (arg1 arg2 ...) template)` generates [Lisp-style macros]. It works similarly to `lambda`` and evaluates the
   *template* defined in terms of the `quasiquote` and `unquote` expressions, with the *arg1*, *arg2*, ... arguments
   using the [syntactic closures]. `(define-macro (name arg1 arg2 ...) template)` can be used as a shorthand for
   `(define name (macro (arg1 arg2 ...) template))`. `(gensym)` generates unique placeholders for the names used in the

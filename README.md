@@ -11,12 +11,14 @@
 
 ## Oh gosch, it's Scheme
 
-As in classic LISPs, **gosch** recognizes the two main data structures *atoms* and *[pairs]* (*aka* [linked lists]).
+As in classic Lisps, **gosch** recognizes the two main data structures *atoms* and *[pairs]* (*aka* [linked lists]).
 The variety of available data types for atoms is limited to *numbers* (*integers* and *floats*) and
 *booleans* (`#t` and `#f`). There is also limited support for *strings* and *vectors* `#(x1 x2 ...)` understood
-as zero-indexed, fixed-size arrays. The implementation is [properly tail-recursive] as [required of Scheme].
+as zero-indexed, fixed-size arrays. The implementation is [properly tail-recursive] as [required by Scheme].
 Unlike the classic Scheme, there is null type `nil` and procedures return it instead of undefined results,
-for example `(if #f 'ok)` returns `<nil>`. 
+for example `(if #f 'ok)` returns `<nil>`. There is no distinction between round and square brackets, so they can be
+used interchangeably. Unlike in some Lisps, all the lists are guaranteed to be [proper] and there are no dotted pairs.
+Dots within lists are ignored, so using [dotted pair notation] would not raise errors.
 
 **gosch** implements the following procedures:
 
@@ -58,7 +60,7 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 - `(string expr ...)` converts *expr*'s to string, `(display expr ...)` prints them, and `(error expr ...)` raises
   exceptions with *expr*'s as message. `(substring str start end)` cuts the *start:end* slice of the *str* string.
   `(string-length str)` returns length of a string.
-- Vectors can be created using `(vector x1 x2 ...)` or the `#(x1 x2 ...)` shorthand. `(make-vector size default)`
+- [Vectors] can be created using `(vector x1 x2 ...)` or the `#(x1 x2 ...)` shorthand. `(make-vector size default)`
   creates a vector of length *size* filled with optional *default* values. `vector->list` and `list->vector` can be
   used for transformations between the two data types. `vector-length` returns the size of the vector.
   `(vector-ref vec pos)` returns element from the *pos* position of the vector *vec*.
@@ -75,7 +77,7 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 Comments begin with `;` and everything that follows, from the semicolon until the end of the line, is ignored.
 
 
-## Details of the LISP design
+## Details of the Lisp design
 
 1. Everything is an *[S-expression]*.
 2. There are two kinds of S-expressions: *atom* and *pair* of S-expressions.
@@ -89,7 +91,7 @@ Comments begin with `;` and everything that follows, from the semicolon until th
    }
    ```
    
-   As in every LISP, they are written as `(this next)`. Pair has head and tail,
+   As in every Lisp, they are written as `(this next)`. The pair has a head and tail,
    that can be accessed using the `car` and `cdr` procedures.
 
    ```
@@ -103,14 +105,14 @@ Comments begin with `;` and everything that follows, from the semicolon until th
 
    Accessing the first element of the linked list, removing it, or prepending pair
    with a new value have O(1) complexity, so those operations would happen the
-   most often in LISPs.
+   most often in Lisps.
 5. A *procedure* (function) is also just a pair, where the name of the procedure
    is the first element of the pair, and the arguments are the following elements.
    For example, `(+ 1 2 3)` is a function that calculates the sum of the three numbers.
 6. There is a special kind of atom, a *symbol* that can be used by itself or
    as a placeholder.
 7. When evaluating an S-expression, the following rules apply:  
-   1. *symbol* is evaluated by looking up for the value it points to in the
+   1. a *symbol* is evaluated by looking up for the value it points to in the
       surrounding environment (see below).
    2. other *atoms* are evaluated to themselves.
    3. a *pair* is evaluated by evaluating each of its elements, and then
@@ -121,7 +123,7 @@ Comments begin with `;` and everything that follows, from the semicolon until th
    will evaluate the arguments conditionally; `and` and `or` will evaluate
    the arguments sequentially, possibly stopping before evaluating
    every argument.
-9. Everything residues within some surrounding *environment*. By default,
+9. Everything resides within some surrounding *environment*. By default,
    this is a global environment, but there are procedures (`let`, `do`, and `lambda`)
    that can create their environments. For example:
 
@@ -177,7 +179,7 @@ That's it. Nothing more is needed to build a minimal Scheme.
  [disjoint types]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_5.html#SEC23
  [lambda expression]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_6.html#SEC30
  [properly tail-recursive]: https://github.com/kanaka/mal/blob/master/process/guide.md#step-5-tail-call-optimization
- [required of Scheme]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_3.html#SEC6
+ [required by Scheme]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_3.html#SEC6
  [it is not the same]: https://stackoverflow.com/questions/34984552/what-is-the-difference-between-quote-and-list
  [S-expression]: https://en.wikipedia.org/wiki/S-expression
  [*lexical scoping* or *closures*]: https://en.wikipedia.org/wiki/Closure_(computer_programming)
@@ -185,3 +187,6 @@ That's it. Nothing more is needed to build a minimal Scheme.
  [loop iterator]: https://www.schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-7.html#%_sec_4.2.4
  [syntactic closures]: https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.18.3867
  [Lisp-style macros]: https://www.cs.utexas.edu/ftp/garbage/cs345/schintro-v14/schintro_130.html#SEC190
+ [dotted pair notation]: https://www.gnu.org/software/emacs/manual/html_node/elisp/Dotted-Pair-Notation.html
+ [proper]: https://wiki.c2.com/?ProperList
+ [vectors]: https://www.scheme.com/tspl4/objects.html#./objects:h9

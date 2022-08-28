@@ -19,6 +19,7 @@ func Test_EvalMacros(t *testing.T) {
 		input    string
 		expected string
 	}{
+		// macro expansion
 		{
 			`
 			(define-syntax foo
@@ -81,6 +82,7 @@ func Test_EvalMacros(t *testing.T) {
 			"((foo 'a) 'b)",
 			"(a b)",
 		},
+		// preserving scopes
 		{
 			`
 			(define-syntax bar
@@ -92,6 +94,7 @@ func Test_EvalMacros(t *testing.T) {
 			"(bar 'a 'b)",
 			"(a b)",
 		},
+		// macro expansion
 		{
 			`
 			(define-syntax and2
@@ -107,6 +110,7 @@ func Test_EvalMacros(t *testing.T) {
 			"(expand-macro and2 a b c)",
 			"(if a (and2 b c) #f)",
 		},
+		// shadowing
 		{
 			`
 			(define-syntax or2
@@ -121,6 +125,7 @@ func Test_EvalMacros(t *testing.T) {
 			`,
 			`"okay"`,
 		},
+		// shadowing
 		{
 			`
 			(define-syntax letlist
@@ -137,6 +142,7 @@ func Test_EvalMacros(t *testing.T) {
 			`,
 			"(1 2)",
 		},
+		// shadowing
 		{
 			`
 			(define-syntax swap
@@ -164,6 +170,7 @@ func Test_EvalMacros(t *testing.T) {
 			"(foo #t)",
 			"(#t)",
 		},
+		// lambda
 		{
 			`
 			(define-syntax lambd
@@ -174,6 +181,7 @@ func Test_EvalMacros(t *testing.T) {
 			"((lambd (x) x) 'ok)",
 			"ok",
 		},
+		// lambda
 		{
 			`
 			(define-syntax listgen
@@ -185,6 +193,7 @@ func Test_EvalMacros(t *testing.T) {
 			"(expand-macro listgen 1 2 3)",
 			"(lambda (g0001) (list g0001 1 2 3))",
 		},
+		// lambda
 		{
 			`
 			(define-syntax mylet
@@ -199,6 +208,7 @@ func Test_EvalMacros(t *testing.T) {
 			`,
 			"3",
 		},
+		// let
 		{
 			`
 			(define-syntax tuple
@@ -214,6 +224,7 @@ func Test_EvalMacros(t *testing.T) {
 			`,
 			"((lambda (g0001 g0002) (let ((g0003 g0001) (g0004 g0002)) (list g0004 g0003))) x y)",
 		},
+		// let*
 		{
 			`
 			(define-syntax tuple
@@ -229,6 +240,7 @@ func Test_EvalMacros(t *testing.T) {
 			`,
 			"((lambda (g0001 g0002) (let* ((g0003 g0001) (g0004 g0003)) (list g0004 g0003))) x y)",
 		},
+		// macro
 		{
 			`
 			(define-syntax mkmacro
@@ -244,6 +256,7 @@ func Test_EvalMacros(t *testing.T) {
 			"(expand-macro mkmacro 'a 'b)",
 			"(macro (g0001 g0002) (quasiquote (list (unquote g0001) (unquote g0002) (quote a) (quote b))))",
 		},
+		// do
 		{
 			`
 			(define-syntax dododoo

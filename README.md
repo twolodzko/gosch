@@ -112,7 +112,7 @@ Comments begin with `;` and everything that follows, from the semicolon until th
 6. There is a special kind of atom, a *symbol* that can be used by itself or
    as a placeholder.
 7. When evaluating an S-expression, the following rules apply:  
-   1. a *symbol* is evaluated by looking up for the value it points to in the
+   1. a *symbol* is evaluated by looking up the value it points to in the
       surrounding environment (see below).
    2. other *atoms* are evaluated to themselves.
    3. a *pair* is evaluated by evaluating each of its elements, and then

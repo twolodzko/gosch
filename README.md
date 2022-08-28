@@ -59,7 +59,7 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 - `->int` and `->float` transformations from any numeric types to integers and floats.
 - `(string expr ...)` converts *expr*'s to string, `(display expr ...)` prints them, and `(error expr ...)` raises
   exceptions with *expr*'s as message. `(substring str start end)` cuts the *start:end* slice of the *str* string.
-  `(string-length str)` returns length of a string.
+  `(string-length str)` returns the length of a string.
 - [Vectors] can be created using `(vector x1 x2 ...)` or the `#(x1 x2 ...)` shorthand. `(make-vector size default)`
   creates a vector of length *size* filled with optional *default* values. `vector->list` and `list->vector` can be
   used for transformations between the two data types. `vector-length` returns the size of the vector.

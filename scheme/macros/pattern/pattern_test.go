@@ -8,59 +8,53 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func Test_FromPair(t *testing.T) {
+func Test_Extract(t *testing.T) {
 
 	var testCases = []struct {
 		input    *types.Pair
 		literals []types.Symbol
-		expected *Pair
+		expected *Pattern
 	}{
 		{
 			// ()
 			&types.Pair{},
 			nil,
-			&Pair{},
+			&Pattern{&Pair{}},
 		},
 		{
 			// (x)
 			types.NewPair("x"),
 			nil,
-			&Pair{[]Pattern{&Identifier{"x", false}}, false},
+			&Pattern{&Pair{[]Subpattern{&Identifier{"x", false}}, false}},
 		},
 		{
 			// (#t)
 			types.NewPair(types.Bool(true)),
 			nil,
-			&Pair{[]Pattern{&Literal{types.Bool(true)}}, false},
-		},
-		{
-			// (())
-			types.NewPair(&types.Pair{}),
-			nil,
-			&Pair{[]Pattern{&Pair{}}, false},
+			&Pattern{&Pair{[]Subpattern{&Literal{types.Bool(true)}}, false}},
 		},
 		{
 			// (x (y) z)
 			types.NewPair("x", types.NewPair("y"), "z"),
 			nil,
-			&Pair{[]Pattern{&Identifier{"x", false}, &Pair{[]Pattern{&Identifier{"y", false}}, false}, &Identifier{"z", false}}, false},
+			&Pattern{&Pair{[]Subpattern{&Identifier{"x", false}, &Pair{[]Subpattern{&Identifier{"y", false}}, false}, &Identifier{"z", false}}, false}},
 		},
 		{
 			// (x + 1)
 			types.NewPair("x", "+", types.Integer(1)),
 			[]types.Symbol{"+"},
-			&Pair{[]Pattern{&Identifier{"x", false}, &Literal{"+"}, &Literal{types.Integer(1)}}, false},
+			&Pattern{&Pair{[]Subpattern{&Identifier{"x", false}, &Literal{"+"}, &Literal{types.Integer(1)}}, false}},
 		},
 		{
 			// (x y ...)
 			types.NewPair("x", "y", "..."),
 			nil,
-			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
+			&Pattern{&Pair{[]Subpattern{&Identifier{"x", false}, &Identifier{"y", true}}, false}},
 		},
 	}
 
 	for _, tt := range testCases {
-		result, err := FromPair(tt.input, tt.literals)
+		result, err := Extract(types.NewPair(tt.input), tt.literals)
 		if err != nil {
 			t.Errorf("unexpected error: %s", err)
 		}
@@ -72,7 +66,7 @@ func Test_FromPair(t *testing.T) {
 
 func Test_MatchPattern(t *testing.T) {
 	var testCases = []struct {
-		pattern  Pattern
+		pattern  Subpattern
 		input    types.Sexpr
 		expected bool
 		mapping  mapping.Mapping
@@ -156,60 +150,60 @@ func Test_MatchPattern(t *testing.T) {
 		},
 		{
 			// (x y)
-			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", false}}, false},
+			&Pair{[]Subpattern{&Identifier{"x", false}, &Identifier{"y", false}}, false},
 			types.NewPair(types.Symbol("a"), types.Symbol("b")),
 			true,
 			mapping.Mapping{"x": "a", "y": "b"},
 		},
 		{
 			// (x y ...)
-			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
+			&Pair{[]Subpattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
 			types.NewPair(types.Symbol("a"), types.Symbol("b")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{"b"}},
 		},
 		{
 			// (x y ...)
-			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
+			&Pair{[]Subpattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
 			types.NewPair(types.Symbol("a"), types.Symbol("b"), types.Symbol("c"), types.Symbol("d")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{"b", "c", "d"}},
 		},
 		{
 			// (x y ...)
-			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
+			&Pair{[]Subpattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
 			types.NewPair(types.Symbol("a"), types.Symbol("b"), &types.Pair{}, types.Bool(false)),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{"b", &types.Pair{}, types.Bool(false)}},
 		},
 		{
 			// (x y ...)
-			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
+			&Pair{[]Subpattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
 			types.NewPair(types.Symbol("a")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{}},
 		},
 		{
 			// (x (y ...) z)
-			&Pair{[]Pattern{&Identifier{"x", false}, &Pair{[]Pattern{&Identifier{"y", true}}, false}, &Identifier{"z", false}}, false},
+			&Pair{[]Subpattern{&Identifier{"x", false}, &Pair{[]Subpattern{&Identifier{"y", true}}, false}, &Identifier{"z", false}}, false},
 			types.NewPair(types.Symbol("a"), types.NewPair(types.Symbol("b"), types.Symbol("c")), types.Symbol("d")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{types.Symbol("b"), types.Symbol("c")}, "z": "d"},
 		},
 		{
 			// (x (y ...) z)
-			&Pair{[]Pattern{&Identifier{"x", false}, &Pair{[]Pattern{&Identifier{"y", true}}, false}, &Identifier{"z", false}}, false},
+			&Pair{[]Subpattern{&Identifier{"x", false}, &Pair{[]Subpattern{&Identifier{"y", true}}, false}, &Identifier{"z", false}}, false},
 			types.NewPair(types.Symbol("a"), &types.Pair{}, types.Symbol("d")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{}, "z": "d"},
 		},
 		{
 			// (x (() (y ...) z) v)
-			&Pair{[]Pattern{
+			&Pair{[]Subpattern{
 				&Identifier{"x", false},
-				&Pair{[]Pattern{
+				&Pair{[]Subpattern{
 					&Pair{},
-					&Pair{[]Pattern{&Identifier{"y", true}}, false},
+					&Pair{[]Subpattern{&Identifier{"y", true}}, false},
 					&Identifier{"z", false},
 				}, false},
 				&Identifier{"v", false},
@@ -226,11 +220,11 @@ func Test_MatchPattern(t *testing.T) {
 		},
 		{
 			// (x (() (y ...) z) v)
-			&Pair{[]Pattern{
+			&Pair{[]Subpattern{
 				&Identifier{"x", false},
-				&Pair{[]Pattern{
+				&Pair{[]Subpattern{
 					&Pair{},
-					&Pair{[]Pattern{&Identifier{"y", true}}, false},
+					&Pair{[]Subpattern{&Identifier{"y", true}}, false},
 					&Identifier{"z", false},
 				}, false},
 				&Identifier{"v", false},
@@ -248,11 +242,11 @@ func Test_MatchPattern(t *testing.T) {
 		},
 		// FIXME
 		// {
-		// 	// ((x y) ...)
+		// 	// x (y (z ...) ...) ...
 		// 	&Pair{[]Pattern{&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", false}}, true}}, false},
 		// 	&types.Pair{},
 		// 	true,
-		// 	mapping.Mapping{"x": EllipsisVar{}, "y": EllipsisVar{}},
+		// 	mapping.Mapping{"x": EllipsisVar{}, "y": EllipsisVar{EllipsisVar{}}, "z": EllipsisVar{EllipsisVar{EllipsisVar{}}}},
 		// },
 	}
 

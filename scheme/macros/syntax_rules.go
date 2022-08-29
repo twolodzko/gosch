@@ -15,7 +15,7 @@ var _ Macro = (*SyntaxRules)(nil)
 var _ eval.Callable = (*SyntaxRules)(nil)
 
 type SyntaxRule struct {
-	pattern  pattern.Pair
+	pattern  pattern.Pattern
 	template types.Sexpr
 }
 
@@ -42,7 +42,7 @@ func (m SyntaxRules) String() string {
 	literals := strings.Join(m.literals, " ")
 	var rules []string
 	for _, rule := range m.rules {
-		rules = append(rules, fmt.Sprintf("(%s %s)", rule.pattern, rule.template))
+		rules = append(rules, fmt.Sprintf("((_ %s) %s)", rule.pattern, rule.template))
 	}
 	return fmt.Sprintf("(syntax-rules (%s) %s)", literals, strings.Join(rules, " "))
 }

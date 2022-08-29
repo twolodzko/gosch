@@ -86,7 +86,7 @@ func extractSyntaxRules(args *types.Pair, literals []types.Symbol) (SyntaxRules,
 			return SyntaxRules{}, err
 		}
 
-		pattern, err := pattern.FromPair(first, literals)
+		pattern, err := pattern.Extract(first, literals)
 		if err != nil {
 			return SyntaxRules{}, err
 		}

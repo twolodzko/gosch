@@ -11,11 +11,17 @@ const (
 	Ellipsis = types.Symbol("...")
 )
 
-func FromPair(pair *types.Pair, literals []types.Symbol) (*Pair, error) {
-	var patterns []Pattern
+func Extract(pair *types.Pair, literals []types.Symbol) (*Pattern, error) {
+	p, err := fromPair(pair, literals)
+	pattern := Pattern(p)
+	return &pattern, err
+}
+
+func fromPair(pair *types.Pair, literals []types.Symbol) ([]Subpattern, error) {
+	var patterns []Subpattern
 
 	if pair == nil || pair.IsNull() {
-		return &Pair{}, nil
+		return patterns, nil
 	}
 
 	head := pair
@@ -35,11 +41,17 @@ func FromPair(pair *types.Pair, literals []types.Symbol) (*Pair, error) {
 				patterns = append(patterns, p)
 			}
 		case *types.Pair:
-			p, err := FromPair(obj, literals)
+			matched, err := fromPair(obj, literals)
 			if err != nil {
 				return nil, err
 			}
-			patterns = append(patterns, p)
+			var pair *Pair
+			if len(matched) > 0 {
+				pair = &Pair{matched, false}
+			} else {
+				pair = &Pair{}
+			}
+			patterns = append(patterns, pair)
 		default:
 			p := &Literal{obj}
 			patterns = append(patterns, p)
@@ -47,10 +59,10 @@ func FromPair(pair *types.Pair, literals []types.Symbol) (*Pair, error) {
 		head = head.Next
 	}
 
-	return &Pair{patterns, false}, nil
+	return patterns, nil
 }
 
-func fromSymbol(obj string, literals []string) Pattern {
+func fromSymbol(obj string, literals []string) Subpattern {
 	switch {
 	case isLiteral(obj, literals):
 		return &Literal{obj}

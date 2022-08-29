@@ -201,7 +201,7 @@ func Test_LispMacroPush(t *testing.T) {
 		t.Errorf("expected three results, got: %v", result)
 		return
 	}
-	expected := types.NewPair(types.Symbol("foo"), nil)
+	expected := types.NewPair(types.Symbol("foo"))
 	if !cmp.Equal(result[2], expected) {
 		t.Errorf("expected %q, got: %q", expected, result[0])
 	}

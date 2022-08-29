@@ -10,8 +10,8 @@ import (
 )
 
 func Test_EvalArgs(t *testing.T) {
-	input := types.PairFromArray(parser.Quote("a"), parser.Quote("b"))
-	expected := types.PairFromArray("a", "b")
+	input := types.NewPair(parser.Quote("a"), parser.Quote("b"))
+	expected := types.NewPair("a", "b")
 
 	Procedures = ProceduresGetter{
 		"quote": func(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
@@ -32,7 +32,7 @@ func Test_EvalArgs(t *testing.T) {
 	}
 
 	// Eval should not mutate the input
-	inputCopy := types.PairFromArray(parser.Quote("a"), parser.Quote("b"))
+	inputCopy := types.NewPair(parser.Quote("a"), parser.Quote("b"))
 	if !cmp.Equal(input, inputCopy) {
 		t.Errorf("input %v has changed to %v", inputCopy, input)
 	}

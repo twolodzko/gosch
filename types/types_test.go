@@ -7,7 +7,7 @@ import (
 	"github.com/google/go-cmp/cmp"
 )
 
-func Test_PairFromArray(t *testing.T) {
+func Test_NewPairMulti(t *testing.T) {
 	var testCases = []struct {
 		input    []Sexpr
 		expected *Pair
@@ -19,14 +19,14 @@ func Test_PairFromArray(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		result := PairFromArray(tt.input...)
+		result := NewPair(tt.input...)
 		if !cmp.Equal(result, tt.expected) {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
 		}
 	}
 }
 
-func Test_NewPair(t *testing.T) {
+func Test_MakePair(t *testing.T) {
 	var testCases = []struct {
 		x, y     Sexpr
 		expected *Pair
@@ -125,11 +125,11 @@ func Test_ExtendAppendablePair(t *testing.T) {
 		{nil, &Pair{1, nil}, nil, &Pair{1, nil}},
 		{nil, NewPair(1, 2), nil, NewPair(1, 2)},
 		{nil, &Pair{&Pair{}, nil}, nil, &Pair{&Pair{}, nil}},
-		{[]Sexpr{1, 2, 3}, &Pair{}, nil, PairFromArray(1, 2, 3)},
-		{[]Sexpr{1, 2, 3}, &Pair{4, nil}, nil, PairFromArray(1, 2, 3, 4)},
-		{[]Sexpr{1, 2, 3}, NewPair(4, 5), nil, PairFromArray(1, 2, 3, 4, 5)},
-		{[]Sexpr{1, 2, 3}, &Pair{4, nil}, 5, PairFromArray(1, 2, 3, 4, 5)},
-		{[]Sexpr{1, 2, &Pair{}}, &Pair{&Pair{}, nil}, 3, PairFromArray(1, 2, &Pair{}, &Pair{}, 3)},
+		{[]Sexpr{1, 2, 3}, &Pair{}, nil, NewPair(1, 2, 3)},
+		{[]Sexpr{1, 2, 3}, &Pair{4, nil}, nil, NewPair(1, 2, 3, 4)},
+		{[]Sexpr{1, 2, 3}, NewPair(4, 5), nil, NewPair(1, 2, 3, 4, 5)},
+		{[]Sexpr{1, 2, 3}, &Pair{4, nil}, 5, NewPair(1, 2, 3, 4, 5)},
+		{[]Sexpr{1, 2, &Pair{}}, &Pair{&Pair{}, nil}, 3, NewPair(1, 2, &Pair{}, &Pair{}, 3)},
 	}
 
 	for _, tt := range testCases {

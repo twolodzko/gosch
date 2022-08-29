@@ -23,37 +23,37 @@ func Test_FromPair(t *testing.T) {
 		},
 		{
 			// (x)
-			types.PairFromArray("x"),
+			types.NewPair("x"),
 			nil,
 			&Pair{[]Pattern{&Identifier{"x", false}}, false},
 		},
 		{
 			// (#t)
-			types.PairFromArray(types.Bool(true)),
+			types.NewPair(types.Bool(true)),
 			nil,
 			&Pair{[]Pattern{&Literal{types.Bool(true)}}, false},
 		},
 		{
 			// (())
-			types.NewPair(&types.Pair{}, nil),
+			types.NewPair(&types.Pair{}),
 			nil,
 			&Pair{[]Pattern{&Pair{}}, false},
 		},
 		{
 			// (x (y) z)
-			types.PairFromArray("x", types.NewPair("y", nil), "z"),
+			types.NewPair("x", types.NewPair("y"), "z"),
 			nil,
 			&Pair{[]Pattern{&Identifier{"x", false}, &Pair{[]Pattern{&Identifier{"y", false}}, false}, &Identifier{"z", false}}, false},
 		},
 		{
 			// (x + 1)
-			types.PairFromArray("x", "+", types.Integer(1)),
+			types.NewPair("x", "+", types.Integer(1)),
 			[]types.Symbol{"+"},
 			&Pair{[]Pattern{&Identifier{"x", false}, &Literal{"+"}, &Literal{types.Integer(1)}}, false},
 		},
 		{
 			// (x y ...)
-			types.PairFromArray("x", "y", "..."),
+			types.NewPair("x", "y", "..."),
 			nil,
 			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
 		},
@@ -171,35 +171,35 @@ func Test_MatchPattern(t *testing.T) {
 		{
 			// (x y ...)
 			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
-			types.PairFromArray(types.Symbol("a"), types.Symbol("b"), types.Symbol("c"), types.Symbol("d")),
+			types.NewPair(types.Symbol("a"), types.Symbol("b"), types.Symbol("c"), types.Symbol("d")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{"b", "c", "d"}},
 		},
 		{
 			// (x y ...)
 			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
-			types.PairFromArray(types.Symbol("a"), types.Symbol("b"), &types.Pair{}, types.Bool(false)),
+			types.NewPair(types.Symbol("a"), types.Symbol("b"), &types.Pair{}, types.Bool(false)),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{"b", &types.Pair{}, types.Bool(false)}},
 		},
 		{
 			// (x y ...)
 			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
-			types.NewPair(types.Symbol("a"), nil),
+			types.NewPair(types.Symbol("a")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{}},
 		},
 		{
 			// (x (y ...) z)
 			&Pair{[]Pattern{&Identifier{"x", false}, &Pair{[]Pattern{&Identifier{"y", true}}, false}, &Identifier{"z", false}}, false},
-			types.PairFromArray(types.Symbol("a"), types.NewPair(types.Symbol("b"), types.Symbol("c")), types.Symbol("d")),
+			types.NewPair(types.Symbol("a"), types.NewPair(types.Symbol("b"), types.Symbol("c")), types.Symbol("d")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{types.Symbol("b"), types.Symbol("c")}, "z": "d"},
 		},
 		{
 			// (x (y ...) z)
 			&Pair{[]Pattern{&Identifier{"x", false}, &Pair{[]Pattern{&Identifier{"y", true}}, false}, &Identifier{"z", false}}, false},
-			types.PairFromArray(types.Symbol("a"), &types.Pair{}, types.Symbol("d")),
+			types.NewPair(types.Symbol("a"), &types.Pair{}, types.Symbol("d")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{}, "z": "d"},
 		},
@@ -214,11 +214,11 @@ func Test_MatchPattern(t *testing.T) {
 				}, false},
 				&Identifier{"v", false},
 			}, false},
-			types.PairFromArray(
+			types.NewPair(
 				types.Symbol("a"),
-				types.PairFromArray(
+				types.NewPair(
 					&types.Pair{},
-					types.PairFromArray("b", "c"),
+					types.NewPair("b", "c"),
 					types.Symbol("d")),
 				types.Symbol("e")),
 			true,
@@ -235,9 +235,9 @@ func Test_MatchPattern(t *testing.T) {
 				}, false},
 				&Identifier{"v", false},
 			}, false},
-			types.PairFromArray(
+			types.NewPair(
 				types.Symbol("a"),
-				types.PairFromArray(
+				types.NewPair(
 					&types.Pair{},
 					types.Symbol("d"),
 				),

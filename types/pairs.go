@@ -10,12 +10,19 @@ type Pair struct {
 	Next *Pair
 }
 
-func NewPair(this, next Sexpr) *Pair {
-	switch next := next.(type) {
-	case nil:
-		return &Pair{this, nil}
+func NewPair(elems ...Sexpr) *Pair {
+	switch len(elems) {
+	case 0:
+		return &Pair{}
+	case 1:
+		if elems[0] == nil {
+			return nil
+		}
+		return &Pair{elems[0], nil}
 	default:
-		return &Pair{this, &Pair{next, nil}}
+		this := elems[0]
+		next := NewPair(elems[1:]...)
+		return &Pair{this, next}
 	}
 }
 
@@ -71,19 +78,6 @@ func (p Pair) ElemsToString() string {
 	return strings.Join(elems, " ")
 }
 
-func PairFromArray(elems ...Sexpr) *Pair {
-	switch len(elems) {
-	case 0:
-		return &Pair{}
-	case 1:
-		return &Pair{elems[0], nil}
-	default:
-		this := elems[0]
-		next := PairFromArray(elems[1:]...)
-		return &Pair{this, next}
-	}
-}
-
 type AppendablePair struct {
 	pair *Pair
 	Last *Pair
@@ -95,7 +89,7 @@ func NewAppendablePair() *AppendablePair {
 }
 
 func (p *AppendablePair) Append(sexpr Sexpr) {
-	p.Last.Next = MakePair(sexpr, nil)
+	p.Last.Next = NewPair(sexpr)
 	p.Last = p.Last.Next
 }
 

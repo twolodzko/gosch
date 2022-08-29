@@ -18,17 +18,17 @@ func Test_Parse(t *testing.T) {
 		// (x ...)
 		{
 			types.NewPair(types.Symbol("x"), types.Symbol(pattern.Ellipsis)),
-			types.NewPair(EllipsisSymbol("x"), nil),
+			types.NewPair(EllipsisSymbol("x")),
 		},
 		// ((x) ...)
 		{
-			types.NewPair(types.NewPair(types.Symbol("x"), nil), types.Symbol(pattern.Ellipsis)),
-			types.NewPair(EllipsisPair(*types.NewPair(types.Symbol("x"), nil)), nil),
+			types.NewPair(types.NewPair(types.Symbol("x")), types.Symbol(pattern.Ellipsis)),
+			types.NewPair(EllipsisPair(*types.NewPair(types.Symbol("x")))),
 		},
 		// ((x y ...) ...)
 		{
-			types.NewPair(types.PairFromArray(types.Symbol("x"), types.Symbol("y"), types.Symbol("...")), types.Symbol(pattern.Ellipsis)),
-			types.NewPair(EllipsisPair(*types.NewPair(types.Symbol("x"), EllipsisSymbol("y"))), nil),
+			types.NewPair(types.NewPair(types.Symbol("x"), types.Symbol("y"), types.Symbol("...")), types.Symbol(pattern.Ellipsis)),
+			types.NewPair(EllipsisPair(*types.NewPair(types.Symbol("x"), EllipsisSymbol("y")))),
 		},
 	}
 
@@ -82,57 +82,56 @@ func Test_Transform(t *testing.T) {
 		},
 		{
 			// (x ...)
-			types.NewPair(EllipsisSymbol("x"), nil),
+			types.NewPair(EllipsisSymbol("x")),
 			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}},
-			types.PairFromArray(1, 2, 3),
+			types.NewPair(1, 2, 3),
 		},
 		{
 			// ('x ...)
-			types.NewPair(EllipsisPair(*(parser.Quote(types.Symbol("x")).(*types.Pair))), nil),
+			types.NewPair(EllipsisPair(*(parser.Quote(types.Symbol("x")).(*types.Pair)))),
 			mapping.Mapping{"x": pattern.EllipsisVar{"a", "b", "c"}},
-			types.PairFromArray(parser.Quote("a"), parser.Quote("b"), parser.Quote("c")),
+			types.NewPair(parser.Quote("a"), parser.Quote("b"), parser.Quote("c")),
 		},
 		{
 			// (x ... y)
-			types.PairFromArray(EllipsisSymbol("x"), types.Symbol("y")),
+			types.NewPair(EllipsisSymbol("x"), types.Symbol("y")),
 			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}},
-			types.PairFromArray(1, 2, 3, types.Symbol("y")),
+			types.NewPair(1, 2, 3, types.Symbol("y")),
 		},
 		{
 			// ((x y) ...)
-			types.NewPair(EllipsisPair(*types.NewPair(types.Symbol("x"), types.Symbol("y"))), nil),
+			types.NewPair(EllipsisPair(*types.NewPair(types.Symbol("x"), types.Symbol("y")))),
 			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}, "y": pattern.EllipsisVar{4, 5, 6}},
-			types.PairFromArray(types.NewPair(1, 4), types.NewPair(2, 5), types.NewPair(3, 6)),
+			types.NewPair(types.NewPair(1, 4), types.NewPair(2, 5), types.NewPair(3, 6)),
 		},
 		{
 			// ('(x y) ...)
-			types.NewPair(EllipsisPair(*(parser.Quote(types.NewPair(types.Symbol("x"), types.Symbol("y"))).(*types.Pair))), nil),
+			types.NewPair(EllipsisPair(*(parser.Quote(types.NewPair(types.Symbol("x"), types.Symbol("y"))).(*types.Pair)))),
 			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}, "y": pattern.EllipsisVar{4, 5, 6}},
-			types.PairFromArray(parser.Quote(types.NewPair(1, 4)), parser.Quote(types.NewPair(2, 5)), parser.Quote(types.NewPair(3, 6))),
+			types.NewPair(parser.Quote(types.NewPair(1, 4)), parser.Quote(types.NewPair(2, 5)), parser.Quote(types.NewPair(3, 6))),
 		},
 		{
 			// ((x y) ...) with y != EllipsisVar
-			types.NewPair(EllipsisPair(*types.NewPair(types.Symbol("x"), types.Symbol("y"))), nil),
+			types.NewPair(EllipsisPair(*types.NewPair(types.Symbol("x"), types.Symbol("y")))),
 			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}, "y": types.TRUE},
-			types.PairFromArray(types.NewPair(1, types.TRUE), types.NewPair(2, types.TRUE), types.NewPair(3, types.TRUE)),
+			types.NewPair(types.NewPair(1, types.TRUE), types.NewPair(2, types.TRUE), types.NewPair(3, types.TRUE)),
 		},
 		{
 			// ((list x y ...) ...)
 			types.NewPair(
 				EllipsisPair(
-					*types.PairFromArray(
+					*types.NewPair(
 						types.Symbol("list"),
 						types.Symbol("x"),
 						EllipsisSymbol("y"),
 					),
 				),
-				nil,
 			),
 			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}, "y": pattern.EllipsisVar{"a", "b"}},
-			types.PairFromArray(
-				types.PairFromArray("list", 1, "a", "b"),
-				types.PairFromArray("list", 2, "a", "b"),
-				types.PairFromArray("list", 3, "a", "b"),
+			types.NewPair(
+				types.NewPair("list", 1, "a", "b"),
+				types.NewPair("list", 2, "a", "b"),
+				types.NewPair("list", 3, "a", "b"),
 			),
 		},
 	}

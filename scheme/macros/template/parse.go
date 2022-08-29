@@ -57,7 +57,7 @@ func parseAll(pair *types.Pair) (*types.Pair, error) {
 
 		head = head.Next
 	}
-	return types.PairFromArray(sexprs...), nil
+	return types.NewPair(sexprs...), nil
 }
 
 func toEllipsis(sexpr types.Sexpr) (Ellipsis, error) {

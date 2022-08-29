@@ -23,7 +23,7 @@ func (t EllipsisSymbol) Transform(m mapping.Mapping) *types.Pair {
 	if val, ok := m[key]; ok {
 		switch val := val.(type) {
 		case pattern.EllipsisVar:
-			return types.PairFromArray(val)
+			return types.PairFromArray(val...)
 		default:
 			return types.NewPair(val, nil)
 		}

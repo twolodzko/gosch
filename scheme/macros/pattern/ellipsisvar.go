@@ -5,7 +5,7 @@ import "github.com/twolodzko/gosch/types"
 type EllipsisVar []types.Sexpr
 
 func (e EllipsisVar) ToPair() *types.Pair {
-	return types.PairFromArray(e)
+	return types.PairFromArray(e...)
 }
 
 func ellipsisVarFromPair(pair *types.Pair) EllipsisVar {

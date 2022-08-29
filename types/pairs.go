@@ -71,7 +71,7 @@ func (p Pair) ElemsToString() string {
 	return strings.Join(elems, " ")
 }
 
-func PairFromArray(elems []Sexpr) *Pair {
+func PairFromArray(elems ...Sexpr) *Pair {
 	switch len(elems) {
 	case 0:
 		return &Pair{}
@@ -79,7 +79,7 @@ func PairFromArray(elems []Sexpr) *Pair {
 		return &Pair{elems[0], nil}
 	default:
 		this := elems[0]
-		next := PairFromArray(elems[1:])
+		next := PairFromArray(elems[1:]...)
 		return &Pair{this, next}
 	}
 }

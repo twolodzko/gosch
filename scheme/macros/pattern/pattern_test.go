@@ -17,19 +17,19 @@ func Test_FromPair(t *testing.T) {
 	}{
 		{
 			// ()
-			types.PairFromArray([]types.Sexpr{}),
+			&types.Pair{},
 			nil,
 			&Pair{},
 		},
 		{
 			// (x)
-			types.PairFromArray([]types.Sexpr{"x"}),
+			types.PairFromArray("x"),
 			nil,
 			&Pair{[]Pattern{&Identifier{"x", false}}, false},
 		},
 		{
 			// (#t)
-			types.PairFromArray([]types.Sexpr{types.Bool(true)}),
+			types.PairFromArray(types.Bool(true)),
 			nil,
 			&Pair{[]Pattern{&Literal{types.Bool(true)}}, false},
 		},
@@ -41,19 +41,19 @@ func Test_FromPair(t *testing.T) {
 		},
 		{
 			// (x (y) z)
-			types.PairFromArray([]types.Sexpr{"x", types.NewPair("y", nil), "z"}),
+			types.PairFromArray("x", types.NewPair("y", nil), "z"),
 			nil,
 			&Pair{[]Pattern{&Identifier{"x", false}, &Pair{[]Pattern{&Identifier{"y", false}}, false}, &Identifier{"z", false}}, false},
 		},
 		{
 			// (x + 1)
-			types.PairFromArray([]types.Sexpr{"x", "+", types.Integer(1)}),
+			types.PairFromArray("x", "+", types.Integer(1)),
 			[]types.Symbol{"+"},
 			&Pair{[]Pattern{&Identifier{"x", false}, &Literal{"+"}, &Literal{types.Integer(1)}}, false},
 		},
 		{
 			// (x y ...)
-			types.PairFromArray([]types.Sexpr{"x", "y", "..."}),
+			types.PairFromArray("x", "y", "..."),
 			nil,
 			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
 		},
@@ -171,14 +171,14 @@ func Test_MatchPattern(t *testing.T) {
 		{
 			// (x y ...)
 			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
-			types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.Symbol("b"), types.Symbol("c"), types.Symbol("d")}),
+			types.PairFromArray(types.Symbol("a"), types.Symbol("b"), types.Symbol("c"), types.Symbol("d")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{"b", "c", "d"}},
 		},
 		{
 			// (x y ...)
 			&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
-			types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.Symbol("b"), &types.Pair{}, types.Bool(false)}),
+			types.PairFromArray(types.Symbol("a"), types.Symbol("b"), &types.Pair{}, types.Bool(false)),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{"b", &types.Pair{}, types.Bool(false)}},
 		},
@@ -192,14 +192,14 @@ func Test_MatchPattern(t *testing.T) {
 		{
 			// (x (y ...) z)
 			&Pair{[]Pattern{&Identifier{"x", false}, &Pair{[]Pattern{&Identifier{"y", true}}, false}, &Identifier{"z", false}}, false},
-			types.PairFromArray([]types.Sexpr{types.Symbol("a"), types.NewPair(types.Symbol("b"), types.Symbol("c")), types.Symbol("d")}),
+			types.PairFromArray(types.Symbol("a"), types.NewPair(types.Symbol("b"), types.Symbol("c")), types.Symbol("d")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{types.Symbol("b"), types.Symbol("c")}, "z": "d"},
 		},
 		{
 			// (x (y ...) z)
 			&Pair{[]Pattern{&Identifier{"x", false}, &Pair{[]Pattern{&Identifier{"y", true}}, false}, &Identifier{"z", false}}, false},
-			types.PairFromArray([]types.Sexpr{types.Symbol("a"), &types.Pair{}, types.Symbol("d")}),
+			types.PairFromArray(types.Symbol("a"), &types.Pair{}, types.Symbol("d")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{}, "z": "d"},
 		},
@@ -214,13 +214,13 @@ func Test_MatchPattern(t *testing.T) {
 				}, false},
 				&Identifier{"v", false},
 			}, false},
-			types.PairFromArray([]types.Sexpr{
+			types.PairFromArray(
 				types.Symbol("a"),
-				types.PairFromArray([]types.Sexpr{
+				types.PairFromArray(
 					&types.Pair{},
-					types.PairFromArray([]types.Sexpr{"b", "c"}),
-					types.Symbol("d")}),
-				types.Symbol("e")}),
+					types.PairFromArray("b", "c"),
+					types.Symbol("d")),
+				types.Symbol("e")),
 			true,
 			mapping.Mapping{"x": "a", "y": EllipsisVar{"b", "c"}, "z": "d", "v": "e"},
 		},
@@ -235,14 +235,14 @@ func Test_MatchPattern(t *testing.T) {
 				}, false},
 				&Identifier{"v", false},
 			}, false},
-			types.PairFromArray([]types.Sexpr{
+			types.PairFromArray(
 				types.Symbol("a"),
-				types.PairFromArray([]types.Sexpr{
+				types.PairFromArray(
 					&types.Pair{},
 					types.Symbol("d"),
-				}),
+				),
 				types.Symbol("e"),
-			}),
+			),
 			false,
 			mapping.Mapping{},
 		},

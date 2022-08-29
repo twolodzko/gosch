@@ -26,7 +26,7 @@ func Test_symbolsPairToSlice(t *testing.T) {
 			[]types.Symbol{"a", "b"},
 		},
 		{
-			types.PairFromArray([]types.Sexpr{"a", "b", "c"}),
+			types.PairFromArray("a", "b", "c"),
 			[]types.Symbol{"a", "b", "c"},
 		},
 	}

@@ -15,9 +15,6 @@ func NewPair(elems ...Sexpr) *Pair {
 	case 0:
 		return &Pair{}
 	case 1:
-		if elems[0] == nil {
-			return nil
-		}
 		return &Pair{elems[0], nil}
 	default:
 		this := elems[0]
@@ -31,6 +28,10 @@ func MakePair(this Sexpr, next Sexpr) *Pair {
 	case *Pair:
 		return &Pair{this, next}
 	default:
+		if next == nil {
+			// explicitly created proper list with one element
+			return &Pair{this, nil}
+		}
 		return NewPair(this, next)
 	}
 }

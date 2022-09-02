@@ -94,35 +94,26 @@ func (p *Pair) matchPairEllipsis(pair *types.Pair) (mapping.Mapping, bool) {
 	return m, true
 }
 
-// TODO: use to initialize mapping for empty pair pattern & validate
-// func (p *Pair) allIdentifiers() []types.Symbol {
-// 	var identifiers []types.Symbol
-// 	for _, val := range p.Patterns {
-// 		switch val := val.(type) {
-// 		case *Identifier:
-// 			identifiers = append(identifiers, val.Name)
-// 		case *Pair:
-// 			identifiers = append(identifiers, val.allIdentifiers()...)
-// 		}
-// 	}
-// 	return identifiers
-// }
-
 func extendMapping(x mapping.Mapping, y mapping.Mapping) mapping.Mapping {
 	for key, yval := range y {
-		var e EllipsisVar
 		if xval, ok := x[key]; ok {
 			switch xval := xval.(type) {
+			case NestedEllipsis:
+				x[key] = append(xval, yval)
 			case EllipsisVar:
-				e = xval
+				x[key] = append(xval, yval)
 			default:
-				e = EllipsisVar{xval}
+				e := EllipsisVar{xval}
+				x[key] = append(e, yval)
 			}
-			e = append(e, yval)
 		} else {
-			e = EllipsisVar{yval}
+			switch yval := yval.(type) {
+			case EllipsisVar, NestedEllipsis:
+				x[key] = NestedEllipsis{yval}
+			default:
+				x[key] = EllipsisVar{yval}
+			}
 		}
-		x[key] = e
 	}
 	return x
 }

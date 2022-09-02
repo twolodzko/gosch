@@ -42,7 +42,12 @@ func (t EllipsisPair) Transform(m mapping.Mapping) *types.Pair {
 	ap := types.NewAppendablePair()
 	i := 0
 	for {
-		val, ok := elemPair(&pair, m, i)
+		m2, ok := extractEllipsis(i, m)
+		if !ok {
+			return ap.ToPair()
+		}
+
+		val, ok := elemPair(&pair, m2, i)
 		if !ok {
 			return ap.ToPair()
 		}
@@ -88,4 +93,20 @@ func elemSymbol(sym types.Symbol, m mapping.Mapping, i int) (types.Sexpr, bool) 
 		val = ellipsis[i]
 	}
 	return val, true
+}
+
+func extractEllipsis(i int, m mapping.Mapping) (mapping.Mapping, bool) {
+	m2 := make(mapping.Mapping)
+	for k, v := range m {
+		switch v := v.(type) {
+		case pattern.NestedEllipsis:
+			if i >= len(v) {
+				return m2, false
+			}
+			m2[k] = v[i]
+		default:
+			m2[k] = v
+		}
+	}
+	return m2, true
 }

@@ -60,16 +60,37 @@ func Test_EvalMacros(t *testing.T) {
 			"(buz (1 2 3) 4 5 6 7)",
 			"((1 4 4 5 6 7) (2 5 4 5 6 7) (3 6 4 5 6 7))",
 		},
+		{
+			`
+			(define-syntax bar
+				(syntax-rules ()
+					((_ (x y ...) ...)
+					 (list '(x y ...) ...))))
+			`,
+			"(bar (1 2 3) (4 5 6) (7 8 9))",
+			"((1 2 3) (4 5 6) (7 8 9))",
+		},
+		// FIXME
+		{
+			`
+			(define-syntax foo
+				(syntax-rules ()
+						((_ x (y (z ...) ...) ...)
+						 (list '(x (y (z ...) ...) ...)))))
+			`,
+			"(foo 'a ('b) ('c ('d 'e) ('f)) (('h)))",
+			"(('a ('b) ('c ('d 'e) ('f)) (('h))))",
+		},
 		// FIXME
 		// {
 		// 	`
-		// 	(define-syntax bar
+		// 	(define-syntax foo
 		// 		(syntax-rules ()
-		// 			((_ (x y ...) ...)
-		// 			 (list '(x y ...) ...))))
+		// 				((_ x (y (z ...) ...) ...)
+		// 				 (list '(x (x y (x y ... z ...) ...) ...)))))
 		// 	`,
-		// 	"(bar (1 2 3) (4 5 6) (7 8 9))",
-		// 	"((1 2 3) (4 5 6) (7 8 9))",
+		// 	"(foo 'a ('b) ('c ('d 'e) ('f)) (('h)))",
+		// 	"(('a ('a 'b) ('a 'c ('a 'b 'c ('h) 'd 'e) ('a 'b 'c ('h) 'f)) ('a ('h))))",
 		// },
 		{
 			`
@@ -254,7 +275,7 @@ func Test_EvalMacros(t *testing.T) {
 									args ...))))))
 			`,
 			"(expand-macro mkmacro 'a 'b)",
-			"(macro (g0001 g0002) (quasiquote (list (unquote g0001) (unquote g0002) (quote a) (quote b))))",
+			"(macro (g0001 g0002) `(list ,g0001 ,g0002 'a 'b))",
 		},
 		// do
 		{
@@ -268,7 +289,7 @@ func Test_EvalMacros(t *testing.T) {
 						((> i max) lst)))))
 			`,
 			"(expand-macro dododoo 1 5 'a 'b 'c)",
-			"(do ((g0001 1 (+ 1 g0001)) (g0002 (quote ()) (cons (list g0001 (quote a) (quote b) (quote c)) g0002))) ((> g0001 5) g0002))",
+			"(do ((g0001 1 (+ 1 g0001)) (g0002 '() (cons (list g0001 'a 'b 'c) g0002))) ((> g0001 5) g0002))",
 		},
 	}
 

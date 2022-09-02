@@ -66,7 +66,15 @@ func (p *Pair) Len() int {
 }
 
 func (p Pair) String() string {
-	return fmt.Sprintf("(%s)", p.ElemsToString())
+	switch p.This {
+	case "quote":
+		return fmt.Sprintf("'%v", p.Next.This)
+	case "quasiquote":
+		return fmt.Sprintf("`%v", p.Next.This)
+	case "unquote":
+		return fmt.Sprintf(",%v", p.Next.This)
+	}
+	return fmt.Sprintf("(%v)", p.ElemsToString())
 }
 
 func (p Pair) ElemsToString() string {

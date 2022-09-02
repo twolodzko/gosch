@@ -292,9 +292,9 @@ func Test_MatchPattern(t *testing.T) {
 			mapping.Mapping{
 				"x": "a",
 				"y": EllipsisVar{"b", "c", "g"},
-				"z": EllipsisVar{
-					EllipsisVar{EllipsisVar{"d", "e"}, EllipsisVar{"f"}},
-					EllipsisVar{EllipsisVar{"h"}},
+				"z": NestedEllipsis{
+					NestedEllipsis{EllipsisVar{"d", "e"}, EllipsisVar{"f"}},
+					NestedEllipsis{EllipsisVar{"h"}},
 				},
 			},
 		},

@@ -1,8 +1,13 @@
 package pattern
 
-import "github.com/twolodzko/gosch/types"
+import (
+	"github.com/twolodzko/gosch/types"
+)
 
-type EllipsisVar []types.Sexpr
+type (
+	EllipsisVar    []types.Sexpr
+	NestedEllipsis []interface{}
+)
 
 func (e EllipsisVar) ToPair() *types.Pair {
 	return types.NewPair(e...)

@@ -298,6 +298,27 @@ func Test_MatchPattern(t *testing.T) {
 				},
 			},
 		},
+		{
+			// (x (y (z ...) ...) ...)
+			&Pair{[]Subpattern{
+				&Identifier{"x", false},
+				&Pair{[]Subpattern{
+					&Identifier{"y", false},
+					&Pair{[]Subpattern{
+						&Identifier{"z", true},
+					}, true},
+				}, true},
+			}, false},
+			// (a (b) (c (d e) (f)) ((h)))
+			types.NewPair(
+				"a",
+				types.NewPair("b"),
+				types.NewPair("c", types.NewPair("d", "e"), types.NewPair("f")),
+				types.NewPair("h", "wrong"),
+			),
+			false,
+			mapping.Mapping{},
+		},
 	}
 
 	for _, tt := range testCases {

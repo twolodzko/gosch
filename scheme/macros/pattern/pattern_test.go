@@ -66,10 +66,10 @@ func Test_Extract(t *testing.T) {
 
 func Test_MatchPattern(t *testing.T) {
 	var testCases = []struct {
-		pattern  Subpattern
-		input    types.Sexpr
-		expected bool
-		mapping  mapping.Mapping
+		pattern     Subpattern
+		input       types.Sexpr
+		shouldMatch bool
+		mapping     mapping.Mapping
 	}{
 		{
 			// literal else
@@ -240,21 +240,72 @@ func Test_MatchPattern(t *testing.T) {
 			false,
 			mapping.Mapping{},
 		},
-		// FIXME
-		// {
-		// 	// x (y (z ...) ...) ...
-		// 	&Pair{[]Pattern{&Pair{[]Pattern{&Identifier{"x", false}, &Identifier{"y", false}}, true}}, false},
-		// 	&types.Pair{},
-		// 	true,
-		// 	mapping.Mapping{"x": EllipsisVar{}, "y": EllipsisVar{EllipsisVar{}}, "z": EllipsisVar{EllipsisVar{EllipsisVar{}}}},
-		// },
+		{
+			// (x (y (z ...) ...) ...)
+			&Pair{[]Subpattern{
+				&Identifier{"x", false},
+				&Pair{[]Subpattern{
+					&Identifier{"y", false},
+					&Pair{[]Subpattern{
+						&Identifier{"z", true},
+					}, true},
+				}, true},
+			}, false},
+			types.NewPair("a"),
+			true,
+			mapping.Mapping{"x": "a"},
+		},
+		{
+			// (x (y (z ...) ...) ...)
+			&Pair{[]Subpattern{
+				&Identifier{"x", false},
+				&Pair{[]Subpattern{
+					&Identifier{"y", false},
+					&Pair{[]Subpattern{
+						&Identifier{"z", true},
+					}, true},
+				}, true},
+			}, false},
+			types.NewPair("a"),
+			true,
+			mapping.Mapping{"x": "a"},
+		},
+		{
+			// (x (y (z ...) ...) ...)
+			&Pair{[]Subpattern{
+				&Identifier{"x", false},
+				&Pair{[]Subpattern{
+					&Identifier{"y", false},
+					&Pair{[]Subpattern{
+						&Identifier{"z", true},
+					}, true},
+				}, true},
+			}, false},
+			// (a (b) (c (d e) (f)) (g (h)))
+			types.NewPair(
+				"a",
+				types.NewPair("b"),
+				types.NewPair("c", types.NewPair("d", "e"), types.NewPair("f")),
+				types.NewPair("g", types.NewPair("h")),
+			),
+			true,
+			mapping.Mapping{
+				"x": "a",
+				"y": EllipsisVar{"b", "c", "g"},
+				"z": EllipsisVar{
+					EllipsisVar{EllipsisVar{"d", "e"}, EllipsisVar{"f"}},
+					EllipsisVar{EllipsisVar{"h"}},
+				},
+			},
+		},
 	}
 
 	for _, tt := range testCases {
-		mapping, result := tt.pattern.Match(tt.input)
+		mapping, ok := tt.pattern.Match(tt.input)
 
-		if !cmp.Equal(result, tt.expected) {
-			t.Errorf("for pattern %v and input %v expected %v, got %v", tt.pattern, tt.input, tt.expected, result)
+		if ok != tt.shouldMatch {
+			t.Errorf("for pattern %v and input %v expected %v, got %v", tt.pattern, tt.input, tt.shouldMatch, ok)
+			return
 		}
 		if !cmp.Equal(mapping, tt.mapping) {
 			t.Errorf("for pattern %v and input %v expected %v, got %v", tt.pattern, tt.input, tt.mapping, mapping)

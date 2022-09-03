@@ -291,6 +291,16 @@ func Test_EvalMacros(t *testing.T) {
 			"(expand-macro dododoo 1 5 'a 'b 'c)",
 			"(do ((g0001 1 (+ 1 g0001)) (g0002 '() (cons (list g0001 'a 'b 'c) g0002))) ((> g0001 5) g0002))",
 		},
+		{
+			`
+			(define-syntax pairs
+				(syntax-rules ()
+					((_ (k ...) (v ...))
+					 (list '(k v) ...))))
+			`,
+			"(pairs (1 2 3 4) ('a 'b 'c))",
+			"((1 'a) (2 'b) (3 'c))",
+		},
 	}
 
 	for _, tt := range testCases {

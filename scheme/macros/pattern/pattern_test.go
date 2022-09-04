@@ -253,7 +253,7 @@ func Test_MatchPattern(t *testing.T) {
 			}, false},
 			types.NewPair("a"),
 			true,
-			mapping.Mapping{"x": "a", "y": NestedEllipsis{EllipsisVar{}}, "z": NestedEllipsis{NestedEllipsis{EllipsisVar{}}}},
+			mapping.Mapping{"x": "a", "y": EllipsisVar{EllipsisVar{}}, "z": EllipsisVar{EllipsisVar{EllipsisVar{}}}},
 		},
 		{
 			// (x (y (z ...) ...) ...)
@@ -277,10 +277,10 @@ func Test_MatchPattern(t *testing.T) {
 			mapping.Mapping{
 				"x": "a",
 				"y": EllipsisVar{"b", "c", "g"},
-				"z": NestedEllipsis{
-					NestedEllipsis{EllipsisVar{}},
-					NestedEllipsis{EllipsisVar{"d", "e"}, EllipsisVar{"f"}},
-					NestedEllipsis{EllipsisVar{"h"}},
+				"z": EllipsisVar{
+					EllipsisVar{EllipsisVar{}},
+					EllipsisVar{EllipsisVar{"d", "e"}, EllipsisVar{"f"}},
+					EllipsisVar{EllipsisVar{"h"}},
 				},
 			},
 		},

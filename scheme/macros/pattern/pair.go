@@ -50,7 +50,7 @@ func (p *Pair) MatchEllipsis(pair *types.Pair, m mapping.Mapping) (mapping.Mappi
 
 	if pair == nil || pair.IsNull() {
 		for k, v := range p.EmptyMatch() {
-			m[k] = NestedEllipsis{v}
+			m[k] = EllipsisVar{v}
 		}
 		return m, true
 	}
@@ -77,7 +77,7 @@ func (p *Pair) EmptyMatch() mapping.Mapping {
 			m[s.Name] = EllipsisVar{}
 		case *Pair:
 			for k, v := range s.EmptyMatch() {
-				m[k] = NestedEllipsis{v}
+				m[k] = EllipsisVar{v}
 			}
 		}
 	}
@@ -88,8 +88,6 @@ func extendMapping(x mapping.Mapping, y mapping.Mapping) mapping.Mapping {
 	for key, yval := range y {
 		if xval, ok := x[key]; ok {
 			switch xval := xval.(type) {
-			case NestedEllipsis:
-				x[key] = append(xval, yval)
 			case EllipsisVar:
 				x[key] = append(xval, yval)
 			default:
@@ -97,12 +95,7 @@ func extendMapping(x mapping.Mapping, y mapping.Mapping) mapping.Mapping {
 				x[key] = append(e, yval)
 			}
 		} else {
-			switch yval := yval.(type) {
-			case EllipsisVar, NestedEllipsis:
-				x[key] = NestedEllipsis{yval}
-			default:
-				x[key] = EllipsisVar{yval}
-			}
+			x[key] = EllipsisVar{yval}
 		}
 	}
 	return x

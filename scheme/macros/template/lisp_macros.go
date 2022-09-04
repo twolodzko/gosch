@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	"github.com/twolodzko/gosch/eval"
-	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -15,7 +14,7 @@ type LispMacroTemplate struct {
 	Body *types.Pair
 }
 
-func (t LispMacroTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
+func (t LispMacroTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
 	ap.Append("macro")
 

@@ -5,7 +5,6 @@ import (
 
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/scheme/macros/gensym"
-	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -16,7 +15,7 @@ type DoTemplate struct {
 	Body     *types.Pair
 }
 
-func (t DoTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
+func (t DoTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
 	ap.Append("do")
 
@@ -35,7 +34,7 @@ func (t DoTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
 	return ap.ToPair(), nil
 }
 
-func transformDoBindings(pair *types.Pair, m mapping.Mapping) (*types.Pair, error) {
+func transformDoBindings(pair *types.Pair, m *MappingIterator) (*types.Pair, error) {
 	var (
 		val      types.Sexpr
 		bindings = types.NewAppendablePair()
@@ -61,7 +60,7 @@ func transformDoBindings(pair *types.Pair, m mapping.Mapping) (*types.Pair, erro
 	return bindings.ToPair(), nil
 }
 
-func transformDoBinding(binding *types.Pair, m mapping.Mapping) (types.Sexpr, error) {
+func transformDoBinding(binding *types.Pair, m *MappingIterator) (types.Sexpr, error) {
 	if binding == nil || binding.IsNull() || !binding.HasNext() {
 		return transformPair(binding, m)
 	}
@@ -69,7 +68,7 @@ func transformDoBinding(binding *types.Pair, m mapping.Mapping) (types.Sexpr, er
 	switch sym := binding.This.(type) {
 	case types.Symbol:
 		name := gensym.Generator.New()
-		m[sym] = name
+		m.Set(sym, name)
 
 		val, err := transformPair(binding.Next, m)
 		if err != nil {

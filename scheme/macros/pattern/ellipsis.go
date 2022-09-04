@@ -4,10 +4,7 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-type (
-	EllipsisVar    []types.Sexpr
-	NestedEllipsis []interface{}
-)
+type EllipsisVar []types.Sexpr
 
 func (e EllipsisVar) ToPair() *types.Pair {
 	return types.NewPair(e...)

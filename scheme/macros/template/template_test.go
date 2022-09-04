@@ -137,7 +137,8 @@ func Test_Transform(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		result, err := Transform(tt.template, tt.mapping)
+		m := NewMappingIterator(tt.mapping)
+		result, err := Transform(tt.template, m)
 		if err != nil {
 			t.Errorf("unexpected error: %s", err)
 			return

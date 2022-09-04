@@ -1,15 +1,14 @@
 package template
 
 import (
-	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
 
 type Template interface {
-	Transform(mapping.Mapping) (types.Sexpr, error)
+	Transform(*MappingIterator) (types.Sexpr, error)
 }
 
-func Transform(sexpr types.Sexpr, m mapping.Mapping) (types.Sexpr, error) {
+func Transform(sexpr types.Sexpr, m *MappingIterator) (types.Sexpr, error) {
 	switch obj := sexpr.(type) {
 	case types.Symbol:
 		return expandSymbol(obj, m), nil
@@ -22,14 +21,14 @@ func Transform(sexpr types.Sexpr, m mapping.Mapping) (types.Sexpr, error) {
 	}
 }
 
-func expandSymbol(s types.Symbol, m mapping.Mapping) types.Sexpr {
-	if val, ok := m[s]; ok {
+func expandSymbol(s types.Symbol, m *MappingIterator) types.Sexpr {
+	if val, ok := m.Get(s); ok {
 		return val
 	}
 	return s
 }
 
-func transformPair(p *types.Pair, m mapping.Mapping) (*types.Pair, error) {
+func transformPair(p *types.Pair, m *MappingIterator) (*types.Pair, error) {
 	ap := types.NewAppendablePair()
 	head := p
 	for head != nil {

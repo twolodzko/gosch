@@ -5,7 +5,6 @@ import (
 
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/scheme/macros/gensym"
-	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -16,7 +15,7 @@ type LambdaTemplate struct {
 	Body *types.Pair
 }
 
-func (t LambdaTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
+func (t LambdaTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
 	ap.Append("lambda")
 
@@ -35,17 +34,17 @@ func (t LambdaTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
 	return ap.ToPair(), nil
 }
 
-func transformArgs(args *types.Pair, m mapping.Mapping) (*types.Pair, error) {
+func transformArgs(args *types.Pair, m *MappingIterator) (*types.Pair, error) {
 	ap := types.NewAppendablePair()
 	head := args
 	for head != nil {
 		switch obj := head.This.(type) {
 		case types.Symbol:
-			if val, ok := m[obj]; ok {
+			if val, ok := m.Get(obj); ok {
 				ap.Append(val)
 			} else {
 				val := gensym.Generator.New()
-				m[obj] = val
+				m.Set(obj, val)
 				ap.Append(val)
 			}
 		case Ellipsis:

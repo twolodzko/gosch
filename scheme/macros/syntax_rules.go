@@ -31,7 +31,8 @@ func (m *SyntaxRules) Append(rule SyntaxRule) {
 func (m SyntaxRules) Transform(obj *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	for _, macro := range m.rules {
 		if mapping, ok := macro.pattern.Match(obj); ok {
-			sexpr, err := template.Transform(macro.template, mapping)
+			m := template.NewMappingIterator(mapping)
+			sexpr, err := template.Transform(macro.template, m)
 			return sexpr, env, err
 		}
 	}

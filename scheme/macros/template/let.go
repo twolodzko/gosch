@@ -5,7 +5,6 @@ import (
 
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/scheme/macros/gensym"
-	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -17,7 +16,7 @@ type LetTemplate struct {
 	Body    *types.Pair
 }
 
-func (t LetTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
+func (t LetTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
 	ap.Append("let")
 
@@ -37,7 +36,7 @@ func (t LetTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
 	return ap.ToPair(), nil
 }
 
-func transformBindings(pair *types.Pair, parent, local mapping.Mapping) (*types.Pair, error) {
+func transformBindings(pair *types.Pair, parent, local *MappingIterator) (*types.Pair, error) {
 	var (
 		val      types.Sexpr
 		bindings = types.NewAppendablePair()
@@ -63,7 +62,7 @@ func transformBindings(pair *types.Pair, parent, local mapping.Mapping) (*types.
 	return bindings.ToPair(), nil
 }
 
-func transformBinding(binding *types.Pair, parent, local mapping.Mapping) (types.Sexpr, error) {
+func transformBinding(binding *types.Pair, parent, local *MappingIterator) (types.Sexpr, error) {
 	if binding == nil || binding.IsNull() || !binding.HasNext() {
 		return transformPair(binding, parent)
 	}
@@ -78,7 +77,7 @@ func transformBinding(binding *types.Pair, parent, local mapping.Mapping) (types
 
 		// transform the key
 		name := gensym.Generator.New()
-		local[sym] = name
+		local.Set(sym, name)
 
 		return types.NewPair(name, val), nil
 	default:
@@ -120,7 +119,7 @@ type LetStarTemplate struct {
 	Body    *types.Pair
 }
 
-func (t LetStarTemplate) Transform(m mapping.Mapping) (types.Sexpr, error) {
+func (t LetStarTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
 	ap.Append("let*")
 

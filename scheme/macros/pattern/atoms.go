@@ -38,6 +38,11 @@ func (p Identifier) IsEllipsis() bool {
 	return p.Repeated
 }
 
+func (p Identifier) MatchEllipsis(pair *types.Pair, m mapping.Mapping) (mapping.Mapping, bool) {
+	m[p.Name] = ellipsisVarFromPair(pair)
+	return m, true
+}
+
 type Literal struct {
 	Value types.Sexpr
 }
@@ -56,4 +61,8 @@ func (p *Literal) ToEllipsis() {
 
 func (p Literal) IsEllipsis() bool {
 	return false
+}
+
+func (p Literal) MatchEllipsis(pair *types.Pair, m mapping.Mapping) (mapping.Mapping, bool) {
+	return mapping.Mapping{}, false
 }

@@ -44,3 +44,66 @@ func (p *Pair) ToEllipsis() {
 func (p Pair) IsEllipsis() bool {
 	return p.Repeated
 }
+
+func (p *Pair) MatchEllipsis(pair *types.Pair, m mapping.Mapping) (mapping.Mapping, bool) {
+	m2 := mapping.Mapping{}
+
+	if pair == nil || pair.IsNull() {
+		for k, v := range p.EmptyMatch() {
+			m[k] = NestedEllipsis{v}
+		}
+		return m, true
+	}
+
+	head := pair
+	for head != nil {
+		m2, ok := p.Match(head.This)
+		if !ok {
+			return mapping.Mapping{}, false
+		}
+		m = extendMapping(m, m2)
+		head = head.Next
+	}
+
+	ok := m.Merge(m2)
+	return m, ok
+}
+
+func (p *Pair) EmptyMatch() mapping.Mapping {
+	m := mapping.Mapping{}
+	for _, s := range p.Patterns {
+		switch s := s.(type) {
+		case *Identifier:
+			m[s.Name] = EllipsisVar{}
+		case *Pair:
+			for k, v := range s.EmptyMatch() {
+				m[k] = NestedEllipsis{v}
+			}
+		}
+	}
+	return m
+}
+
+func extendMapping(x mapping.Mapping, y mapping.Mapping) mapping.Mapping {
+	for key, yval := range y {
+		if xval, ok := x[key]; ok {
+			switch xval := xval.(type) {
+			case NestedEllipsis:
+				x[key] = append(xval, yval)
+			case EllipsisVar:
+				x[key] = append(xval, yval)
+			default:
+				e := EllipsisVar{xval}
+				x[key] = append(e, yval)
+			}
+		} else {
+			switch yval := yval.(type) {
+			case EllipsisVar, NestedEllipsis:
+				x[key] = NestedEllipsis{yval}
+			default:
+				x[key] = EllipsisVar{yval}
+			}
+		}
+	}
+	return x
+}

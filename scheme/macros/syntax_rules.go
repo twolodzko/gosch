@@ -6,6 +6,7 @@ import (
 
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
+	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/scheme/macros/pattern"
 	"github.com/twolodzko/gosch/scheme/macros/template"
 	"github.com/twolodzko/gosch/types"
@@ -31,8 +32,7 @@ func (m *SyntaxRules) Append(rule SyntaxRule) {
 func (m SyntaxRules) Transform(obj *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	for _, macro := range m.rules {
 		if mapping, ok := macro.pattern.Match(obj); ok {
-			m := template.NewMappingIterator(mapping)
-			sexpr, err := template.Transform(macro.template, m)
+			sexpr, err := transform(macro.template, mapping)
 			return sexpr, env, err
 		}
 	}
@@ -51,4 +51,9 @@ func (m SyntaxRules) String() string {
 // SyntaxRules follows the eval.Callable interface
 func (m SyntaxRules) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	return m.Transform(args, env)
+}
+
+func transform(sexpr types.Sexpr, m mapping.Mapping) (types.Sexpr, error) {
+	mapping := template.NewMappingIterator(m)
+	return template.Transform(sexpr, mapping)
 }

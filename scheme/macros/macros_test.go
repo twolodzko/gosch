@@ -293,13 +293,24 @@ func Test_EvalMacros(t *testing.T) {
 		},
 		{
 			`
-			(define-syntax pairs
+			(define-syntax to-pairs
 				(syntax-rules ()
 					((_ (k ...) (v ...))
 					 (list '(k v) ...))))
 			`,
-			"(pairs (1 2 3 4) ('a 'b 'c))",
+			"(to-pairs (1 2 3 4) ('a 'b 'c))",
 			"((1 'a) (2 'b) (3 'c))",
+		},
+		// unpack ellipisis pair
+		{
+			`
+			(define-syntax pairs-to-lists
+				(syntax-rules ()
+					((_ (k v) ...)
+					 (list '(k ...) '(v ...)))))
+			`,
+			"(pairs-to-lists (1 'a) (2 'b) (3 'c))",
+			"((1 2 3) ('a 'b 'c))",
 		},
 	}
 

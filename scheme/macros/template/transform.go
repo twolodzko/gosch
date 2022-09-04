@@ -11,7 +11,7 @@ type Template interface {
 func Transform(sexpr types.Sexpr, m *MappingIterator) (types.Sexpr, error) {
 	switch obj := sexpr.(type) {
 	case types.Symbol:
-		return expandSymbol(obj, m), nil
+		return transformSymbol(obj, m)
 	case *types.Pair:
 		return transformPair(obj, m)
 	case Template:
@@ -21,11 +21,11 @@ func Transform(sexpr types.Sexpr, m *MappingIterator) (types.Sexpr, error) {
 	}
 }
 
-func expandSymbol(s types.Symbol, m *MappingIterator) types.Sexpr {
-	if val, ok := m.Get(s); ok {
-		return val
+func transformSymbol(s types.Symbol, m *MappingIterator) (types.Sexpr, error) {
+	if !m.Has(s) {
+		return s, nil
 	}
-	return s
+	return m.Get(s)
 }
 
 func transformPair(p *types.Pair, m *MappingIterator) (*types.Pair, error) {
@@ -34,7 +34,10 @@ func transformPair(p *types.Pair, m *MappingIterator) (*types.Pair, error) {
 	for head != nil {
 		switch obj := head.This.(type) {
 		case Ellipsis:
-			val, _ := obj.Transform(m)
+			val, err := obj.Transform(m)
+			if err != nil {
+				return nil, err
+			}
 			ap.Extend(val)
 		case Template:
 			val, err := obj.Transform(m)
@@ -43,7 +46,10 @@ func transformPair(p *types.Pair, m *MappingIterator) (*types.Pair, error) {
 			}
 			ap.Append(val)
 		case types.Symbol:
-			val := expandSymbol(obj, m)
+			val, err := transformSymbol(obj, m)
+			if err != nil {
+				return nil, err
+			}
 			ap.Append(val)
 		case *types.Pair:
 			val, err := transformPair(obj, m)

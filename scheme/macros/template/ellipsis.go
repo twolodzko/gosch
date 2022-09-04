@@ -1,17 +1,20 @@
 package template
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/twolodzko/gosch/scheme/macros/pattern"
 	"github.com/twolodzko/gosch/types"
 )
 
+var ErrEllipsisOutOfBounds = errors.New("ellipsis variable out of bounds")
+
 var _ Ellipsis = (*EllipsisSymbol)(nil)
 var _ Ellipsis = (*EllipsisPair)(nil)
 
 type Ellipsis interface {
-	Transform(*MappingIterator) (*types.Pair, bool)
+	Transform(*MappingIterator) (*types.Pair, error)
 }
 
 type EllipsisSymbol types.Symbol
@@ -20,17 +23,19 @@ func (t EllipsisSymbol) String() string {
 	return fmt.Sprintf("%s ...", types.Symbol(t))
 }
 
-func (t EllipsisSymbol) Transform(m *MappingIterator) (*types.Pair, bool) {
+func (t EllipsisSymbol) Transform(m *MappingIterator) (*types.Pair, error) {
 	key := types.Symbol(t)
-	if val, ok := m.GetEllipsis(key); ok {
-		switch val := val.(type) {
-		case pattern.EllipsisVar:
-			return types.NewPair(val...), true
-		default:
-			return types.NewPair(val), true
-		}
+	val, err := m.GetEllipsis(key)
+	if err != nil {
+		return &types.Pair{}, err
 	}
-	return &types.Pair{}, false
+
+	switch val := val.(type) {
+	case pattern.EllipsisVar:
+		return types.NewPair(val...), nil
+	default:
+		return types.NewPair(val), nil
+	}
 }
 
 type EllipsisPair types.Pair
@@ -39,52 +44,21 @@ func (t EllipsisPair) String() string {
 	return fmt.Sprintf("%s ...", types.Pair(t))
 }
 
-func (t EllipsisPair) Transform(m *MappingIterator) (*types.Pair, bool) {
+func (t EllipsisPair) Transform(m *MappingIterator) (*types.Pair, error) {
 	pair := types.Pair(t)
 	ap := types.NewAppendablePair()
 	m2 := m.NextLevel()
 
 	for {
-		val, ok := elemPair(&pair, m2)
-		if !ok {
-			return ap.ToPair(), ok
+		val, err := transformPair(&pair, m2)
+
+		if err == ErrEllipsisOutOfBounds {
+			return ap.ToPair(), nil
+		} else if err != nil {
+			return nil, err
 		}
+
 		ap.Append(val)
 		m2.Next()
 	}
-}
-
-func elemPair(pair *types.Pair, m *MappingIterator) (*types.Pair, bool) {
-	ap := types.NewAppendablePair()
-	head := pair
-	for head != nil {
-		switch obj := head.This.(type) {
-		case Ellipsis:
-			val, ok := obj.Transform(m)
-			if !ok {
-				return nil, ok
-			}
-			ap.Extend(val)
-		case types.Symbol:
-			if !m.Has(obj) {
-				ap.Append(obj)
-			} else {
-				val, ok := m.Get(obj)
-				if !ok {
-					return nil, ok
-				}
-				ap.Append(val)
-			}
-		case *types.Pair:
-			val, ok := elemPair(obj, m)
-			if !ok {
-				return nil, ok
-			}
-			ap.Append(val)
-		default:
-			ap.Append(obj)
-		}
-		head = head.Next
-	}
-	return ap.ToPair(), true
 }

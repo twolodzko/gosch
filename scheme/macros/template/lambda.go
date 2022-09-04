@@ -40,7 +40,11 @@ func transformArgs(args *types.Pair, m *MappingIterator) (*types.Pair, error) {
 	for head != nil {
 		switch obj := head.This.(type) {
 		case types.Symbol:
-			if val, ok := m.Get(obj); ok {
+			if m.Has(obj) {
+				val, err := m.Get(obj)
+				if err != nil {
+					return nil, err
+				}
 				ap.Append(val)
 			} else {
 				val := gensym.Generator.New()
@@ -48,7 +52,10 @@ func transformArgs(args *types.Pair, m *MappingIterator) (*types.Pair, error) {
 				ap.Append(val)
 			}
 		case Ellipsis:
-			val, _ := obj.Transform(m)
+			val, err := obj.Transform(m)
+			if err != nil {
+				return nil, err
+			}
 			ap.Extend(val)
 		default:
 			return nil, eval.NewErrBadName(head.This)

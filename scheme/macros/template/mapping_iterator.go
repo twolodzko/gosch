@@ -1,10 +1,14 @@
 package template
 
 import (
+	"errors"
+
 	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/scheme/macros/pattern"
 	"github.com/twolodzko/gosch/types"
 )
+
+var ErrNoKey = errors.New("unknown mapping")
 
 type MappingIterator struct {
 	Mapping mapping.Mapping
@@ -15,29 +19,35 @@ func NewMappingIterator(m mapping.Mapping) *MappingIterator {
 	return &MappingIterator{m, []int{}}
 }
 
-func (m MappingIterator) Get(key types.Symbol) (types.Sexpr, bool) {
+func (m MappingIterator) Get(key types.Symbol) (types.Sexpr, error) {
 	val, ok := m.Mapping[key]
 	if !m.IsNested() {
-		return val, ok
+		if !ok {
+			return nil, ErrNoKey
+		}
+		return val, nil
 	}
 	switch val := val.(type) {
 	case pattern.EllipsisVar:
 		return extractEllipsisVar(val, m.Index, false)
 	default:
-		return val, true
+		return val, nil
 	}
 }
 
-func (m MappingIterator) GetEllipsis(key types.Symbol) (types.Sexpr, bool) {
+func (m MappingIterator) GetEllipsis(key types.Symbol) (types.Sexpr, error) {
 	val, ok := m.Mapping[key]
 	if !m.IsNested() {
-		return val, ok
+		if !ok {
+			return nil, ErrNoKey
+		}
+		return val, nil
 	}
 	switch val := val.(type) {
 	case pattern.EllipsisVar:
 		return extractEllipsisVar(val, m.Index, true)
 	default:
-		return val, true
+		return val, nil
 	}
 }
 
@@ -70,19 +80,23 @@ func (m MappingIterator) IsNested() bool {
 	return len(m.Index) > 0
 }
 
-func extractEllipsisVar(val pattern.EllipsisVar, index []int, ellipsis bool) (types.Sexpr, bool) {
+func extractEllipsisVar(val pattern.EllipsisVar, index []int, ellipsis bool) (types.Sexpr, error) {
 	for _, i := range index {
 		if i >= len(val) {
 			if len(val) == 0 {
-				return nil, false
+				return nil, ErrEllipsisOutOfBounds
 			}
 			switch val[0].(type) {
 			case pattern.EllipsisVar:
 				// has no following items
-				return nil, false
+				return nil, ErrEllipsisOutOfBounds
 			default:
 				// is the upmost level
-				return val, ellipsis
+				if ellipsis {
+					return val, nil
+				} else {
+					return nil, ErrEllipsisOutOfBounds
+				}
 			}
 		}
 
@@ -92,11 +106,11 @@ func extractEllipsisVar(val pattern.EllipsisVar, index []int, ellipsis bool) (ty
 		default:
 			// upmost level
 			if ellipsis {
-				return val, true
+				return val, nil
 			} else {
-				return obj, true
+				return obj, nil
 			}
 		}
 	}
-	return val, true
+	return val, nil
 }

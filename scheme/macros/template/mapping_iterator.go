@@ -1,14 +1,10 @@
 package template
 
 import (
-	"errors"
-
 	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/scheme/macros/pattern"
 	"github.com/twolodzko/gosch/types"
 )
-
-var ErrNoKey = errors.New("unknown mapping")
 
 type MappingIterator struct {
 	Mapping mapping.Mapping
@@ -20,11 +16,8 @@ func NewMappingIterator(m mapping.Mapping) *MappingIterator {
 }
 
 func (m MappingIterator) Get(key types.Symbol) (types.Sexpr, error) {
-	val, ok := m.Mapping[key]
+	val := m.Mapping[key]
 	if !m.IsNested() {
-		if !ok {
-			return nil, ErrNoKey
-		}
 		return val, nil
 	}
 	switch val := val.(type) {
@@ -36,11 +29,8 @@ func (m MappingIterator) Get(key types.Symbol) (types.Sexpr, error) {
 }
 
 func (m MappingIterator) GetEllipsis(key types.Symbol) (types.Sexpr, error) {
-	val, ok := m.Mapping[key]
+	val := m.Mapping[key]
 	if !m.IsNested() {
-		if !ok {
-			return nil, ErrNoKey
-		}
 		return val, nil
 	}
 	switch val := val.(type) {

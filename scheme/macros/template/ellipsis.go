@@ -25,6 +25,9 @@ func (t EllipsisSymbol) String() string {
 
 func (t EllipsisSymbol) Transform(m *MappingIterator) (*types.Pair, error) {
 	key := types.Symbol(t)
+	if !m.Has(key) {
+		return &types.Pair{}, nil
+	}
 	val, err := m.GetEllipsis(key)
 	if err != nil {
 		return &types.Pair{}, err

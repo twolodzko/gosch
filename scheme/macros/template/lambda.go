@@ -48,7 +48,7 @@ func transformArgs(args *types.Pair, m *MappingIterator) (*types.Pair, error) {
 				ap.Append(val)
 			}
 		case Ellipsis:
-			val := obj.Transform(m)
+			val, _ := obj.Transform(m)
 			ap.Extend(val)
 		default:
 			return nil, eval.NewErrBadName(head.This)

@@ -7,8 +7,11 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
+var _ Ellipsis = (*EllipsisSymbol)(nil)
+var _ Ellipsis = (*EllipsisPair)(nil)
+
 type Ellipsis interface {
-	Transform(*MappingIterator) *types.Pair
+	Transform(*MappingIterator) (*types.Pair, bool)
 }
 
 type EllipsisSymbol types.Symbol
@@ -17,17 +20,17 @@ func (t EllipsisSymbol) String() string {
 	return fmt.Sprintf("%s ...", types.Symbol(t))
 }
 
-func (t EllipsisSymbol) Transform(m *MappingIterator) *types.Pair {
+func (t EllipsisSymbol) Transform(m *MappingIterator) (*types.Pair, bool) {
 	key := types.Symbol(t)
-	if val, ok := m.Get(key); ok {
+	if val, ok := m.GetEllipsis(key); ok {
 		switch val := val.(type) {
 		case pattern.EllipsisVar:
-			return types.NewPair(val...)
+			return types.NewPair(val...), true
 		default:
-			return types.NewPair(val)
+			return types.NewPair(val), true
 		}
 	}
-	return types.NewPair(t)
+	return &types.Pair{}, false
 }
 
 type EllipsisPair types.Pair
@@ -36,15 +39,15 @@ func (t EllipsisPair) String() string {
 	return fmt.Sprintf("%s ...", types.Pair(t))
 }
 
-func (t EllipsisPair) Transform(m *MappingIterator) *types.Pair {
+func (t EllipsisPair) Transform(m *MappingIterator) (*types.Pair, bool) {
 	pair := types.Pair(t)
 	ap := types.NewAppendablePair()
-	m2 := m.Deeper()
+	m2 := m.NextLevel()
 
 	for {
 		val, ok := elemPair(&pair, m2)
 		if !ok {
-			return ap.ToPair()
+			return ap.ToPair(), ok
 		}
 		ap.Append(val)
 		m2.Next()
@@ -57,13 +60,16 @@ func elemPair(pair *types.Pair, m *MappingIterator) (*types.Pair, bool) {
 	for head != nil {
 		switch obj := head.This.(type) {
 		case Ellipsis:
-			val := obj.Transform(m)
+			val, ok := obj.Transform(m)
+			if !ok {
+				return nil, ok
+			}
 			ap.Extend(val)
 		case types.Symbol:
 			if !m.Has(obj) {
 				ap.Append(obj)
 			} else {
-				val, ok := m.GetEllipsis(obj)
+				val, ok := m.Get(obj)
 				if !ok {
 					return nil, ok
 				}

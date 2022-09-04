@@ -34,7 +34,7 @@ func transformPair(p *types.Pair, m *MappingIterator) (*types.Pair, error) {
 	for head != nil {
 		switch obj := head.This.(type) {
 		case Ellipsis:
-			val := obj.Transform(m)
+			val, _ := obj.Transform(m)
 			ap.Extend(val)
 		case Template:
 			val, err := obj.Transform(m)

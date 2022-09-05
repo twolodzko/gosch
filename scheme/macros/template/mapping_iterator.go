@@ -60,10 +60,6 @@ func (m MappingIterator) NextLevel() *MappingIterator {
 	return &MappingIterator{mapping, index}
 }
 
-func (m MappingIterator) RootLevel() bool {
-	return len(m.Index) == 0
-}
-
 func (m *MappingIterator) Next() {
 	if m.IsNested() {
 		m.Index[len(m.Index)-1]++
@@ -75,10 +71,6 @@ func (m MappingIterator) IsNested() bool {
 }
 
 func extractEllipsisVar(val pattern.EllipsisVar, index []int, ellipsis bool) (types.Sexpr, error) {
-	if len(val) == 0 {
-		return nil, ErrEllipsisOutOfBounds
-	}
-
 	for _, i := range index {
 		if i >= len(val) {
 			switch val[0].(type) {
@@ -106,6 +98,10 @@ func extractEllipsisVar(val pattern.EllipsisVar, index []int, ellipsis bool) (ty
 				return obj, nil
 			}
 		}
+	}
+
+	if len(val) == 0 {
+		return nil, ErrEmptyEllipsis
 	}
 	return val, nil
 }

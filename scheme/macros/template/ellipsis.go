@@ -36,9 +36,6 @@ func (t EllipsisSymbol) Transform(m *MappingIterator) (*types.Pair, error) {
 
 	switch val := val.(type) {
 	case pattern.EllipsisVar:
-		if len(val) == 0 && !m.RootLevel() {
-			return nil, ErrEmptyEllipsis
-		}
 		return types.NewPair(val...), nil
 	default:
 		return types.NewPair(val), nil

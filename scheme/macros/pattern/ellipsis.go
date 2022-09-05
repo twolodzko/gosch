@@ -10,6 +10,14 @@ func (e EllipsisVar) ToPair() *types.Pair {
 	return types.NewPair(e...)
 }
 
+func (e EllipsisVar) IsNested() bool {
+	if len(e) == 0 {
+		return false
+	}
+	_, ok := e[0].(EllipsisVar)
+	return ok
+}
+
 func ellipsisVarFromPair(pair *types.Pair) EllipsisVar {
 	if pair == nil || pair.IsNull() {
 		return EllipsisVar{}

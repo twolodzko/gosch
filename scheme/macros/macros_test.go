@@ -80,17 +80,16 @@ func Test_EvalMacros(t *testing.T) {
 			"(foo 'a ('b) ('c ('d 'e) ('f)) (('h)))",
 			"(('a ('b) ('c ('d 'e) ('f)) (('h))))",
 		},
-		// FIXME
-		// {
-		// 	`
-		// 	(define-syntax foo
-		// 		(syntax-rules ()
-		// 				((_ x (y (z ...) ...) ...)
-		// 				 (list '(x (x y (x y ... z ...) ...) ...)))))
-		// 	`,
-		// 	"(foo 'a ('b) ('c ('d 'e) ('f)) (('h)))",
-		// 	"(('a ('a 'b) ('a 'c ('a 'b 'c ('h) 'd 'e) ('a 'b 'c ('h) 'f)) ('a ('h))))",
-		// },
+		{
+			`
+			(define-syntax foo
+				(syntax-rules ()
+						((_ x (y (z ...) ...) ...)
+						 (list '(x (x y (x y ... z ...) ...) ...)))))
+			`,
+			"(foo 'a ('b) ('c ('d 'e) ('f)) (('h)))",
+			"(('a ('a 'b) ('a 'c ('a 'b 'c ('h) 'd 'e) ('a 'b 'c ('h) 'f)) ('a ('h))))",
+		},
 		{
 			`
 			(define-syntax foo

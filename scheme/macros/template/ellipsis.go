@@ -9,6 +9,7 @@ import (
 )
 
 var ErrEllipsisOutOfBounds = errors.New("ellipsis variable out of bounds")
+var ErrEmptyEllipsis = errors.New("empty ellipsis")
 
 var _ Ellipsis = (*EllipsisSymbol)(nil)
 var _ Ellipsis = (*EllipsisPair)(nil)
@@ -35,6 +36,9 @@ func (t EllipsisSymbol) Transform(m *MappingIterator) (*types.Pair, error) {
 
 	switch val := val.(type) {
 	case pattern.EllipsisVar:
+		if len(val) == 0 && !m.RootLevel() {
+			return nil, ErrEmptyEllipsis
+		}
 		return types.NewPair(val...), nil
 	default:
 		return types.NewPair(val), nil
@@ -49,21 +53,26 @@ func (t EllipsisPair) String() string {
 
 func (t EllipsisPair) Transform(m *MappingIterator) (*types.Pair, error) {
 	pair := types.Pair(t)
+	if pair.IsNull() {
+		return nil, fmt.Errorf("invalid template: %v", t)
+	}
+
 	ap := types.NewAppendablePair()
 	m2 := m.NextLevel()
 
 	for {
 		val, err := transformPair(&pair, m2)
 
-		if err == ErrEllipsisOutOfBounds {
+		switch {
+		case err == ErrEllipsisOutOfBounds:
 			return ap.ToPair(), nil
-		} else if err != nil {
+		case err == ErrEmptyEllipsis:
+			return &types.Pair{}, nil
+		case err != nil:
 			return nil, err
 		}
 
-		if !val.IsNull() {
-			ap.Append(val)
-		}
+		ap.Append(val)
 		m2.Next()
 	}
 }

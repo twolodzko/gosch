@@ -61,7 +61,9 @@ func (t EllipsisPair) Transform(m *MappingIterator) (*types.Pair, error) {
 			return nil, err
 		}
 
-		ap.Append(val)
+		if !val.IsNull() {
+			ap.Append(val)
+		}
 		m2.Next()
 	}
 }

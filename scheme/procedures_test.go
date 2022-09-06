@@ -728,17 +728,16 @@ func Test_LambdaLocalVsParentEnv(t *testing.T) {
 // 	}
 // }
 
-// FIXME
-// func Test_Error(t *testing.T) {
-// 	eval.Procedures = Procedures
-// 	env := envir.NewEnv()
-// 	expected := "this is an error"
+func Test_Error(t *testing.T) {
+	eval.Procedures = Procedures
+	env := envir.NewEnv()
+	expected := "this is an error"
 
-// 	_, _, err := eval.EvalString(fmt.Sprintf(`(error "%s")`, expected), env)
-// 	if err.Error() != expected {
-// 		t.Errorf("expected an error: %v, got %v", expected, err)
-// 	}
-// }
+	_, _, err := eval.EvalString(fmt.Sprintf(`(error "%s")`, expected), env)
+	if err.Error() != expected {
+		t.Errorf("expected an error: %v, got %v", expected, err)
+	}
+}
 
 func Test_LoadEvalComments(t *testing.T) {
 	eval.Procedures = Procedures

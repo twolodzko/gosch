@@ -74,10 +74,10 @@ func (p Pair) String() string {
 	case "unquote":
 		return fmt.Sprintf(",%v", p.Next.This)
 	}
-	return fmt.Sprintf("(%v)", p.ElemsToString())
+	return fmt.Sprintf("(%v)", p.ToString())
 }
 
-func (p Pair) ElemsToString() string {
+func (p Pair) ToString() string {
 	var elems []string
 	head := &p
 	for head != nil && !head.IsNull() {

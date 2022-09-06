@@ -2,7 +2,6 @@ package scheme
 
 import (
 	"github.com/twolodzko/gosch/eval"
-	"github.com/twolodzko/gosch/scheme/extended_types"
 	"github.com/twolodzko/gosch/scheme/macros"
 	"github.com/twolodzko/gosch/scheme/primitives"
 	"github.com/twolodzko/gosch/scheme/special_forms"
@@ -47,12 +46,13 @@ var Procedures = eval.ProceduresGetter{
 	"lambda":        special_forms.NewLambda,
 	"let":           special_forms.Let,
 	"let*":          special_forms.LetStar,
-	"list->vector":  extended_types.ListToVector,
+	"list->vector":  primitives.ListToVector,
 	"list":          primitives.List,
 	"load":          special_forms.Load,
 	"macro":         special_forms.NewLispMacro,
-	"make-vector":   extended_types.MakeVector,
+	"make-vector":   primitives.MakeVector,
 	"map":           primitives.Map,
+	"newline":       primitives.Newline,
 	"nil?":          primitives.IsNil,
 	"not":           special_forms.Not,
 	"null?":         primitives.IsNull,
@@ -63,18 +63,18 @@ var Procedures = eval.ProceduresGetter{
 	"quasiquote":    special_forms.Quasiquote,
 	"quote":         special_forms.Quote,
 	"set!":          special_forms.Set,
-	"string-length": extended_types.StringLength,
-	"string?":       extended_types.IsString,
-	"string":        extended_types.ToString,
-	"substring":     extended_types.Substring,
+	"string-length": primitives.StringLength,
+	"string?":       primitives.IsString,
+	"string":        primitives.ToString,
+	"substring":     primitives.Substring,
 	"symbol?":       primitives.IsSymbol,
 	"syntax-rules":  macros.NewSyntaxRules,
 	"timeit":        primitives.Timeit,
 	"unquote":       special_forms.Unquote,
-	"vector->list":  extended_types.VectorToList,
-	"vector-length": extended_types.VectorLength,
-	"vector-ref":    extended_types.VectorRef,
-	"vector-set!":   extended_types.VectorSet,
-	"vector?":       extended_types.IsVector,
-	"vector":        extended_types.Vector,
+	"vector->list":  primitives.VectorToList,
+	"vector-length": primitives.VectorLength,
+	"vector-ref":    primitives.VectorRef,
+	"vector-set!":   primitives.VectorSet,
+	"vector?":       primitives.IsVector,
+	"vector":        primitives.Vector,
 }

@@ -1,4 +1,4 @@
-package extended_types
+package primitives
 
 import (
 	"fmt"

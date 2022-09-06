@@ -1,7 +1,8 @@
-package extended_types
+package primitives
 
 import (
 	"fmt"
+	"strings"
 
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
@@ -69,24 +70,17 @@ func StringLength(args *types.Pair) (types.Sexpr, error) {
 }
 
 // Convert arguments to string, using space as a separator
-func joinToString(args *types.Pair, sep string) types.String {
-	if args == nil {
-		return ""
-	}
-	var out string
+func joinToString(args *types.Pair, sep string) string {
+	var s []string
 	head := args
 	for head != nil {
 		switch val := head.This.(type) {
 		case types.String:
-			out += fmt.Sprintf("%v", string(val))
+			s = append(s, fmt.Sprintf("%v", string(val)))
 		default:
-			out += fmt.Sprintf("%v", val)
-		}
-
-		if head.HasNext() {
-			out += sep
+			s = append(s, fmt.Sprintf("%v", val))
 		}
 		head = head.Next
 	}
-	return types.String(out)
+	return strings.Join(s, sep)
 }

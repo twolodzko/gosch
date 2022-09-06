@@ -9,18 +9,27 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
+// `display` procedure
 func Display(args *types.Pair) (types.Sexpr, error) {
 	if args == nil {
-		fmt.Println()
-		return nil, nil
+		return nil, eval.ErrBadArgNumber
 	}
-	fmt.Printf("%v\n", args.ElemsToString())
+	fmt.Printf("%v\n", joinToString(args, " "))
+	return nil, nil
+}
+
+// `newline` procedure
+func Newline(args *types.Pair) (types.Sexpr, error) {
+	if args != nil {
+		return nil, eval.ErrBadArgNumber
+	}
+	fmt.Println()
 	return nil, nil
 }
 
 // `error` procedure
 func Error(args *types.Pair) (types.Sexpr, error) {
-	return nil, fmt.Errorf("%v", args.ElemsToString())
+	return nil, fmt.Errorf("%v", joinToString(args, " "))
 }
 
 // `debug` procedure

@@ -49,6 +49,10 @@ repl: gosch
 fmt:
 	go fmt ./...
 
+.PHONY: lines
+lines:
+	@ find . -type f \( -name "*.go" -not -name "*_test.go" \) -exec cat {} \; | grep . | wc -l
+
 .PHONY: clean
 clean:
 	rm -rf *.out *.html ./gosch

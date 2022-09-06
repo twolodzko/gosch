@@ -92,11 +92,7 @@ func newLet(args *types.Pair) (LetTemplate, error) {
 	if args == nil || !args.HasNext() || !args.Next.HasNext() {
 		return LetTemplate{}, &ErrInvalidTemplate{args}
 	}
-	obj, err := parseAll(args)
-	if err != nil {
-		return LetTemplate{}, err
-	}
-	return LetTemplate(*obj), nil
+	return LetTemplate(*args), nil
 }
 
 func (t LetTemplate) String() string {
@@ -134,11 +130,7 @@ func newLetStar(args *types.Pair) (LetStarTemplate, error) {
 	if args == nil || !args.HasNext() || !args.Next.HasNext() {
 		return LetStarTemplate{}, &ErrInvalidTemplate{args}
 	}
-	obj, err := parseAll(args)
-	if err != nil {
-		return LetStarTemplate{}, err
-	}
-	return LetStarTemplate(*obj), nil
+	return LetStarTemplate(*args), nil
 }
 
 func (t LetStarTemplate) String() string {

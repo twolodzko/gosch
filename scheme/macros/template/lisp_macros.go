@@ -39,11 +39,7 @@ func newLispMacro(args *types.Pair) (LispMacroTemplate, error) {
 	if args == nil || !args.HasNext() || !args.Next.HasNext() {
 		return LispMacroTemplate{}, &ErrInvalidTemplate{args}
 	}
-	obj, err := parseAll(args)
-	if err != nil {
-		return LispMacroTemplate{}, err
-	}
-	return LispMacroTemplate(*obj), nil
+	return LispMacroTemplate(*args), nil
 }
 
 func (t LispMacroTemplate) String() string {

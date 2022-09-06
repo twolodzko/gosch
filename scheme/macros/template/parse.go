@@ -17,19 +17,24 @@ func Parse(sexpr types.Sexpr) (types.Sexpr, error) {
 }
 
 func parsePair(pair *types.Pair) (types.Sexpr, error) {
+	obj, err := parseAll(pair)
+	if err != nil {
+		return nil, err
+	}
+
 	switch pair.This {
 	case "lambda":
-		return newLambda(pair)
+		return newLambda(obj)
 	case "let":
-		return newLet(pair)
+		return newLet(obj)
 	case "let*":
-		return newLetStar(pair)
+		return newLetStar(obj)
 	case "macro":
-		return newLispMacro(pair)
+		return newLispMacro(obj)
 	case "do":
-		return newDo(pair)
+		return newDo(obj)
 	default:
-		return parseAll(pair)
+		return obj, nil
 	}
 }
 

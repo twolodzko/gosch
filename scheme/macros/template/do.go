@@ -87,11 +87,7 @@ func newDo(args *types.Pair) (DoTemplate, error) {
 	if args == nil || !args.HasNext() || !args.Next.HasNext() {
 		return DoTemplate{}, &ErrInvalidTemplate{args}
 	}
-	obj, err := parseAll(args)
-	if err != nil {
-		return DoTemplate{}, err
-	}
-	return DoTemplate(*obj), nil
+	return DoTemplate(*args), nil
 }
 
 func (t DoTemplate) String() string {

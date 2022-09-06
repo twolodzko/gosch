@@ -64,11 +64,7 @@ func newLambda(args *types.Pair) (LambdaTemplate, error) {
 	if args == nil || !args.HasNext() || !args.Next.HasNext() {
 		return LambdaTemplate{}, &ErrInvalidTemplate{args}
 	}
-	obj, err := parseAll(args)
-	if err != nil {
-		return LambdaTemplate{}, err
-	}
-	return LambdaTemplate(*obj), nil
+	return LambdaTemplate(*args), nil
 }
 
 func (t LambdaTemplate) String() string {

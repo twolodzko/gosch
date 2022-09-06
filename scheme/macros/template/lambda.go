@@ -60,7 +60,7 @@ func transformArgs(args *types.Pair, m *MappingIterator) (*types.Pair, error) {
 // (lambda (args ...) body ...)
 func parseLambda(args *types.Pair) (LambdaTemplate, error) {
 	if args == nil || !args.HasNext() {
-		return LambdaTemplate{}, eval.ErrBadArgNumber
+		return LambdaTemplate{}, &ErrInvalidTemplate{args}
 	}
 	switch obj := args.This.(type) {
 	case *types.Pair:
@@ -74,7 +74,7 @@ func parseLambda(args *types.Pair) (LambdaTemplate, error) {
 		}
 		return LambdaTemplate{params, body}, nil
 	default:
-		return LambdaTemplate{}, eval.NewErrNonList(args.This)
+		return LambdaTemplate{}, &ErrInvalidTemplate{args}
 	}
 }
 

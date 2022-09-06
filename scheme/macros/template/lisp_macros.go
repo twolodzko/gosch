@@ -3,7 +3,6 @@ package template
 import (
 	"fmt"
 
-	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -36,7 +35,7 @@ func (t LispMacroTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 // (macro (args ...) body ...)
 func parseLispMacro(args *types.Pair) (LispMacroTemplate, error) {
 	if args == nil || !args.HasNext() {
-		return LispMacroTemplate{}, eval.ErrBadArgNumber
+		return LispMacroTemplate{}, &ErrInvalidTemplate{args}
 	}
 	switch obj := args.This.(type) {
 	case *types.Pair:
@@ -50,7 +49,7 @@ func parseLispMacro(args *types.Pair) (LispMacroTemplate, error) {
 		}
 		return LispMacroTemplate{params, body}, nil
 	default:
-		return LispMacroTemplate{}, eval.NewErrNonList(args.This)
+		return LispMacroTemplate{}, &ErrInvalidTemplate{args}
 	}
 }
 

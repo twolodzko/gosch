@@ -1,15 +1,11 @@
 package template
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/twolodzko/gosch/scheme/macros/pattern"
 	"github.com/twolodzko/gosch/types"
 )
-
-var ErrEllipsisOutOfBounds = errors.New("ellipsis variable out of bounds")
-var ErrEmptyEllipsis = errors.New("empty ellipsis")
 
 var _ Ellipsis = (*EllipsisSymbol)(nil)
 var _ Ellipsis = (*EllipsisPair)(nil)
@@ -25,10 +21,11 @@ func (t EllipsisSymbol) String() string {
 }
 
 func (t EllipsisSymbol) Transform(m *MappingIterator) (*types.Pair, error) {
-	key := types.Symbol(t)
-	if !m.Has(key) {
-		return &types.Pair{}, nil
+	if !isValidEllipsis(t, m) {
+		return nil, &ErrInvalidTemplate{t}
 	}
+
+	key := types.Symbol(t)
 	val, err := m.GetEllipsis(key)
 	if err != nil {
 		return &types.Pair{}, err
@@ -49,27 +46,49 @@ func (t EllipsisPair) String() string {
 }
 
 func (t EllipsisPair) Transform(m *MappingIterator) (*types.Pair, error) {
-	pair := types.Pair(t)
-	if pair.IsNull() {
-		return nil, fmt.Errorf("invalid template: %v", t)
+	if !isValidEllipsis(t, m) {
+		return nil, &ErrInvalidTemplate{t}
 	}
 
-	ap := types.NewAppendablePair()
-	m2 := m.NextLevel()
-
+	var (
+		pair = types.Pair(t)
+		ap   = types.NewAppendablePair()
+		m2   = m.NextLevel()
+	)
 	for {
 		val, err := transformPair(&pair, m2)
 
 		switch {
-		case err == ErrEllipsisOutOfBounds:
+		case err == ErrEllipsisOutOfBounds || err == ErrEmptyEllipsis:
 			return ap.ToPair(), nil
-		case err == ErrEmptyEllipsis:
-			return &types.Pair{}, nil
 		case err != nil:
 			return nil, err
 		}
 
 		ap.Append(val)
 		m2.Next()
+	}
+}
+
+func isValidEllipsis(obj types.Sexpr, m *MappingIterator) bool {
+	switch obj := obj.(type) {
+	case EllipsisSymbol:
+		return m.HasEllipsisVar(types.Symbol(obj))
+	case EllipsisPair:
+		pair := types.Pair(obj)
+		return isValidEllipsis(&pair, m)
+	case types.Symbol:
+		return m.HasEllipsisVar(obj)
+	case *types.Pair:
+		head := obj
+		for head != nil {
+			if isValidEllipsis(head.This, m) {
+				return true
+			}
+			head = head.Next
+		}
+		return false
+	default:
+		return false
 	}
 }

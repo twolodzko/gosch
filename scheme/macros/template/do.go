@@ -3,7 +3,6 @@ package template
 import (
 	"fmt"
 
-	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/scheme/macros/gensym"
 	"github.com/twolodzko/gosch/types"
 )
@@ -84,7 +83,7 @@ func transformDoBinding(binding *types.Pair, m *MappingIterator) (types.Sexpr, e
 // (do ((var init update) ...) (test result ...) expr ...)
 func parseDo(args *types.Pair) (DoTemplate, error) {
 	if args == nil || !args.HasNext() {
-		return DoTemplate{}, eval.ErrBadArgNumber
+		return DoTemplate{}, &ErrInvalidTemplate{args}
 	}
 	switch obj := args.This.(type) {
 	case *types.Pair:
@@ -98,7 +97,7 @@ func parseDo(args *types.Pair) (DoTemplate, error) {
 		}
 		return DoTemplate{bindings, body}, nil
 	default:
-		return DoTemplate{}, eval.NewErrNonList(args.This)
+		return DoTemplate{}, &ErrInvalidTemplate{args}
 	}
 }
 

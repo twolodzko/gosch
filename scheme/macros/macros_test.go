@@ -389,6 +389,44 @@ func Test_ValidErrors(t *testing.T) {
 		"(define-syntax bar (syntax-rules () ((_ x ... y) (list x y ...))))",
 		"(define-syntax bar (syntax-rules () ((_ x (... z) y) (list x y ...))))",
 		"(define-syntax faz (syntax-rules () ((_ x (...) ...) (list x ...))))",
+		`
+		(define-syntax foo
+			(syntax-rules ()
+				((_) (list x y ...))))
+
+		(foo)
+		`,
+		`
+		(define-syntax foo
+			(syntax-rules ()
+				((_) (list x y ...))))
+
+		(foo 1 2 3)
+		`,
+		`
+		(define-syntax faz
+			(syntax-rules ()
+				((_ x y ...)
+				 (list x () ...))))
+
+		(faz 1 2 3)
+		`,
+		`
+		(define-syntax faz
+			(syntax-rules ()
+				((_ x y ...)
+				 (list x (1 2) ...))))
+
+		(faz 1 2 3)
+		`,
+		`
+		(define-syntax faz
+			(syntax-rules ()
+				((_ x y ...)
+				 (list x ...))))
+
+		(faz 1 2 3)
+		`,
 	}
 
 	for _, input := range testCases {

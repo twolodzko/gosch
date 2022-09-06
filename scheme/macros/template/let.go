@@ -88,7 +88,7 @@ func transformBinding(binding *types.Pair, parent, local *MappingIterator) (type
 // (let ((binding value) ...) ...) body ...)
 func parseLet(args *types.Pair) (LetTemplate, error) {
 	if args == nil || !args.HasNext() {
-		return LetTemplate{}, eval.ErrBadArgNumber
+		return LetTemplate{}, &ErrInvalidTemplate{args}
 	}
 	switch obj := args.This.(type) {
 	case *types.Pair:
@@ -102,7 +102,7 @@ func parseLet(args *types.Pair) (LetTemplate, error) {
 		}
 		return LetTemplate{bindings, body}, nil
 	default:
-		return LetTemplate{}, eval.NewErrNonList(args.This)
+		return LetTemplate{}, &ErrInvalidTemplate{args}
 	}
 }
 

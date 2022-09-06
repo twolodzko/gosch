@@ -93,3 +93,11 @@ func (m *MappingIterator) Next() {
 func (m MappingIterator) IsNestedQuery() bool {
 	return len(m.Index) > 0
 }
+
+func (m MappingIterator) HasEllipsisVar(sym types.Symbol) bool {
+	if val, exists := m.Mapping[sym]; exists {
+		_, ok := val.(pattern.EllipsisVar)
+		return ok
+	}
+	return false
+}

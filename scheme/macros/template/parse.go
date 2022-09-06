@@ -37,24 +37,24 @@ func parseAll(pair *types.Pair) (*types.Pair, error) {
 	var (
 		sexprs []types.Sexpr
 		head   = pair
+		val    types.Sexpr
+		err    error
 	)
 	for head != nil {
-		val, err := Parse(head.This)
+		val, err = Parse(head.This)
 		if err != nil {
 			return nil, err
 		}
 
 		if head.HasNext() && head.Next.This == pattern.Ellipsis {
-			val, err := toEllipsis(val)
+			val, err = toEllipsis(val)
 			if err != nil {
 				return nil, err
 			}
-			sexprs = append(sexprs, val)
 			head = head.Next
-		} else {
-			sexprs = append(sexprs, val)
 		}
 
+		sexprs = append(sexprs, val)
 		head = head.Next
 	}
 	return types.NewPair(sexprs...), nil

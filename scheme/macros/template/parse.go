@@ -23,14 +23,13 @@ func parsePair(pair *types.Pair) (types.Sexpr, error) {
 	}
 
 	switch pair.This {
-	case "lambda":
+	case "lambda", "macro":
+		// they have same structure, so same template can be re-used
 		return newLambda(obj)
 	case "let":
 		return newLet(obj)
 	case "let*":
 		return newLetStar(obj)
-	case "macro":
-		return newLispMacro(obj)
 	case "do":
 		return newDo(obj)
 	default:

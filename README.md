@@ -48,6 +48,7 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
   using the [syntactic closures]. `(define-macro (name arg1 arg2 ...) template)` can be used as a shorthand for
   `(define name (macro (arg1 arg2 ...) template))`. `(gensym)` generates unique placeholders for the names used in the
   macros.
+- `define-syntax` and `syntax-rules` procedures can be used for writing [more advanced], [pattern-based], [hygienic macros].
 - `(eq? obj1 obj2)` compares if two objects are equal, for pairs only checks if they point to the same memory location.
 - Logical `(not obj)`, `and`, and `or`, e.g. `(and obj1 obj2 ...)`.
 - Arithmetic operators `+`, `-`, `*`, `/`, e.g. `(+ x1 x2 ...)`, and `(% x1 x2)` for modulo.
@@ -190,3 +191,6 @@ That's it. Nothing more is needed to build a minimal Scheme.
  [dotted pair notation]: https://www.gnu.org/software/emacs/manual/html_node/elisp/Dotted-Pair-Notation.html
  [proper]: https://wiki.c2.com/?ProperList
  [vectors]: https://www.scheme.com/tspl4/objects.html#./objects:h9
+ [more advanced]: https://www.scheme.com/tspl4/syntax.html
+ [hygienic macros]: https://docs.scheme.org/guide/macros/
+ [pattern-based]: https://cs.brown.edu/courses/cs173/2008/Manual/guide/pattern-macros.html

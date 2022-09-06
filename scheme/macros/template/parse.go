@@ -24,7 +24,7 @@ func parsePair(pair *types.Pair) (types.Sexpr, error) {
 
 	switch pair.This {
 	case "lambda", "macro":
-		// they have the same structure, so same template can be re-used
+		// they have the same structure, so the same template can be re-used
 		return newLambda(obj)
 	case "let":
 		return newLet(obj)

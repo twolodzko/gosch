@@ -10,22 +10,24 @@ import (
 
 var _ Template = (*LambdaTemplate)(nil)
 
-type LambdaTemplate struct {
-	Args *types.Pair
-	Body *types.Pair
-}
+type LambdaTemplate types.Pair
 
 func (t LambdaTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
-	ap.Append("lambda")
+	ap.Append(t.This)
 
-	args, err := transformArgs(t.Args, m)
-	if err != nil {
-		return nil, err
+	switch obj := (t.Next.This).(type) {
+	case *types.Pair:
+		args, err := transformArgs(obj, m)
+		if err != nil {
+			return nil, err
+		}
+		ap.Append(args)
+	default:
+		return nil, &ErrInvalidTemplate{t}
 	}
-	ap.Append(args)
 
-	body, err := transformPair(t.Body, m)
+	body, err := transformPair(t.Next.Next, m)
 	if err != nil {
 		return nil, err
 	}
@@ -58,30 +60,17 @@ func transformArgs(args *types.Pair, m *MappingIterator) (*types.Pair, error) {
 }
 
 // (lambda (args ...) body ...)
-func parseLambda(args *types.Pair) (LambdaTemplate, error) {
-	if args == nil || !args.HasNext() {
+func newLambda(args *types.Pair) (LambdaTemplate, error) {
+	if args == nil || !args.HasNext() || !args.Next.HasNext() {
 		return LambdaTemplate{}, &ErrInvalidTemplate{args}
 	}
-	switch obj := args.This.(type) {
-	case *types.Pair:
-		params, err := parseAll(obj)
-		if err != nil {
-			return LambdaTemplate{}, err
-		}
-		body, err := parseAll(args.Next)
-		if err != nil {
-			return LambdaTemplate{}, err
-		}
-		return LambdaTemplate{params, body}, nil
-	default:
-		return LambdaTemplate{}, &ErrInvalidTemplate{args}
+	obj, err := parseAll(args)
+	if err != nil {
+		return LambdaTemplate{}, err
 	}
+	return LambdaTemplate(*obj), nil
 }
 
 func (t LambdaTemplate) String() string {
-	ap := types.NewAppendablePair()
-	ap.Append("lambda")
-	ap.Append(t.Args)
-	ap.Extend(t.Body)
-	return fmt.Sprintf("%v", ap.ToPair())
+	return fmt.Sprintf("%v", types.Pair(t))
 }

@@ -3,7 +3,6 @@ package template
 import (
 	"fmt"
 
-	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/scheme/macros/gensym"
 	"github.com/twolodzko/gosch/types"
 )
@@ -11,23 +10,26 @@ import (
 var _ Template = (*LetTemplate)(nil)
 var _ Template = (*LetStarTemplate)(nil)
 
-type LetTemplate struct {
-	Binings *types.Pair
-	Body    *types.Pair
-}
+type LetTemplate types.Pair
 
 func (t LetTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
-	ap.Append("let")
+	ap.Append(t.This)
 
 	local := m.Copy()
-	args, err := transformBindings(t.Binings, m, local)
-	if err != nil {
-		return nil, err
-	}
-	ap.Append(args)
 
-	body, err := transformPair(t.Body, local)
+	switch obj := (t.Next.This).(type) {
+	case *types.Pair:
+		args, err := transformBindings(obj, m, local)
+		if err != nil {
+			return nil, err
+		}
+		ap.Append(args)
+	default:
+		return nil, &ErrInvalidTemplate{t}
+	}
+
+	body, err := transformPair(t.Next.Next, local)
 	if err != nil {
 		return nil, err
 	}
@@ -86,50 +88,39 @@ func transformBinding(binding *types.Pair, parent, local *MappingIterator) (type
 }
 
 // (let ((binding value) ...) ...) body ...)
-func parseLet(args *types.Pair) (LetTemplate, error) {
-	if args == nil || !args.HasNext() {
+func newLet(args *types.Pair) (LetTemplate, error) {
+	if args == nil || !args.HasNext() || !args.Next.HasNext() {
 		return LetTemplate{}, &ErrInvalidTemplate{args}
 	}
-	switch obj := args.This.(type) {
-	case *types.Pair:
-		bindings, err := parseAll(obj)
-		if err != nil {
-			return LetTemplate{}, err
-		}
-		body, err := parseAll(args.Next)
-		if err != nil {
-			return LetTemplate{}, err
-		}
-		return LetTemplate{bindings, body}, nil
-	default:
-		return LetTemplate{}, &ErrInvalidTemplate{args}
+	obj, err := parseAll(args)
+	if err != nil {
+		return LetTemplate{}, err
 	}
+	return LetTemplate(*obj), nil
 }
 
 func (t LetTemplate) String() string {
-	ap := types.NewAppendablePair()
-	ap.Append("let")
-	ap.Append(t.Binings)
-	ap.Extend(t.Body)
-	return fmt.Sprintf("%v", ap.ToPair())
+	return fmt.Sprintf("%v", types.Pair(t))
 }
 
-type LetStarTemplate struct {
-	Binings *types.Pair
-	Body    *types.Pair
-}
+type LetStarTemplate types.Pair
 
 func (t LetStarTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
-	ap.Append("let*")
+	ap.Append(t.This)
 
-	args, err := transformBindings(t.Binings, m, m)
-	if err != nil {
-		return nil, err
+	switch obj := (t.Next.This).(type) {
+	case *types.Pair:
+		args, err := transformBindings(obj, m, m)
+		if err != nil {
+			return nil, err
+		}
+		ap.Append(args)
+	default:
+		return nil, &ErrInvalidTemplate{t}
 	}
-	ap.Append(args)
 
-	body, err := transformPair(t.Body, m)
+	body, err := transformPair(t.Next.Next, m)
 	if err != nil {
 		return nil, err
 	}
@@ -139,30 +130,17 @@ func (t LetStarTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 }
 
 // (let* ((binding value) ...) ...) body ...)
-func parseLetStar(args *types.Pair) (LetStarTemplate, error) {
-	if args == nil || !args.HasNext() {
-		return LetStarTemplate{}, eval.ErrBadArgNumber
+func newLetStar(args *types.Pair) (LetStarTemplate, error) {
+	if args == nil || !args.HasNext() || !args.Next.HasNext() {
+		return LetStarTemplate{}, &ErrInvalidTemplate{args}
 	}
-	switch obj := args.This.(type) {
-	case *types.Pair:
-		bindings, err := parseAll(obj)
-		if err != nil {
-			return LetStarTemplate{}, err
-		}
-		body, err := parseAll(args.Next)
-		if err != nil {
-			return LetStarTemplate{}, err
-		}
-		return LetStarTemplate{bindings, body}, nil
-	default:
-		return LetStarTemplate{}, eval.NewErrNonList(args.This)
+	obj, err := parseAll(args)
+	if err != nil {
+		return LetStarTemplate{}, err
 	}
+	return LetStarTemplate(*obj), nil
 }
 
 func (t LetStarTemplate) String() string {
-	ap := types.NewAppendablePair()
-	ap.Append("let*")
-	ap.Append(t.Binings)
-	ap.Extend(t.Body)
-	return fmt.Sprintf("%v", ap.ToPair())
+	return fmt.Sprintf("%v", types.Pair(t))
 }

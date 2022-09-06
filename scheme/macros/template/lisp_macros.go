@@ -8,22 +8,24 @@ import (
 
 var _ Template = (*LispMacroTemplate)(nil)
 
-type LispMacroTemplate struct {
-	Args *types.Pair
-	Body *types.Pair
-}
+type LispMacroTemplate types.Pair
 
 func (t LispMacroTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
-	ap.Append("macro")
+	ap.Append(t.This)
 
-	args, err := transformArgs(t.Args, m)
-	if err != nil {
-		return nil, err
+	switch obj := (t.Next.This).(type) {
+	case *types.Pair:
+		args, err := transformArgs(obj, m)
+		if err != nil {
+			return nil, err
+		}
+		ap.Append(args)
+	default:
+		return nil, &ErrInvalidTemplate{t}
 	}
-	ap.Append(args)
 
-	body, err := transformPair(t.Body, m)
+	body, err := transformPair(t.Next.Next, m)
 	if err != nil {
 		return nil, err
 	}
@@ -33,30 +35,17 @@ func (t LispMacroTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 }
 
 // (macro (args ...) body ...)
-func parseLispMacro(args *types.Pair) (LispMacroTemplate, error) {
-	if args == nil || !args.HasNext() {
+func newLispMacro(args *types.Pair) (LispMacroTemplate, error) {
+	if args == nil || !args.HasNext() || !args.Next.HasNext() {
 		return LispMacroTemplate{}, &ErrInvalidTemplate{args}
 	}
-	switch obj := args.This.(type) {
-	case *types.Pair:
-		params, err := parseAll(obj)
-		if err != nil {
-			return LispMacroTemplate{}, err
-		}
-		body, err := parseAll(args.Next)
-		if err != nil {
-			return LispMacroTemplate{}, err
-		}
-		return LispMacroTemplate{params, body}, nil
-	default:
-		return LispMacroTemplate{}, &ErrInvalidTemplate{args}
+	obj, err := parseAll(args)
+	if err != nil {
+		return LispMacroTemplate{}, err
 	}
+	return LispMacroTemplate(*obj), nil
 }
 
 func (t LispMacroTemplate) String() string {
-	ap := types.NewAppendablePair()
-	ap.Append("macro")
-	ap.Append(t.Args)
-	ap.Extend(t.Body)
-	return fmt.Sprintf("%v", ap.ToPair())
+	return fmt.Sprintf("%v", types.Pair(t))
 }

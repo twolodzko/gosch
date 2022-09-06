@@ -9,22 +9,24 @@ import (
 
 var _ Template = (*DoTemplate)(nil)
 
-type DoTemplate struct {
-	Bindings *types.Pair
-	Body     *types.Pair
-}
+type DoTemplate types.Pair
 
 func (t DoTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
-	ap.Append("do")
+	ap.Append(t.This)
 
-	args, err := transformDoBindings(t.Bindings, m)
-	if err != nil {
-		return nil, err
+	switch obj := (t.Next.This).(type) {
+	case *types.Pair:
+		args, err := transformDoBindings(obj, m)
+		if err != nil {
+			return nil, err
+		}
+		ap.Append(args)
+	default:
+		return nil, &ErrInvalidTemplate{t}
 	}
-	ap.Append(args)
 
-	body, err := transformPair(t.Body, m)
+	body, err := transformPair(t.Next.Next, m)
 	if err != nil {
 		return nil, err
 	}
@@ -81,30 +83,17 @@ func transformDoBinding(binding *types.Pair, m *MappingIterator) (types.Sexpr, e
 }
 
 // (do ((var init update) ...) (test result ...) expr ...)
-func parseDo(args *types.Pair) (DoTemplate, error) {
-	if args == nil || !args.HasNext() {
+func newDo(args *types.Pair) (DoTemplate, error) {
+	if args == nil || !args.HasNext() || !args.Next.HasNext() {
 		return DoTemplate{}, &ErrInvalidTemplate{args}
 	}
-	switch obj := args.This.(type) {
-	case *types.Pair:
-		bindings, err := parseAll(obj)
-		if err != nil {
-			return DoTemplate{}, err
-		}
-		body, err := parseAll(args.Next)
-		if err != nil {
-			return DoTemplate{}, err
-		}
-		return DoTemplate{bindings, body}, nil
-	default:
-		return DoTemplate{}, &ErrInvalidTemplate{args}
+	obj, err := parseAll(args)
+	if err != nil {
+		return DoTemplate{}, err
 	}
+	return DoTemplate(*obj), nil
 }
 
 func (t DoTemplate) String() string {
-	ap := types.NewAppendablePair()
-	ap.Append("do")
-	ap.Append(t.Bindings)
-	ap.Extend(t.Body)
-	return fmt.Sprintf("%v", ap.ToPair())
+	return fmt.Sprintf("%v", types.Pair(t))
 }

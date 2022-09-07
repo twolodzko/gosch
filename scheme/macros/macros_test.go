@@ -310,6 +310,20 @@ func Test_EvalMacros(t *testing.T) {
 			"(pairs-to-lists (1 'a) (2 'b) (3 'c))",
 			"((1 2 3) ('a 'b 'c))",
 		},
+		// named let
+		{
+			`
+			(define-syntax foo
+				(syntax-rules ()
+					((_ a b)
+					 (let bar ((x a) (y b))
+						(cond
+							((> x y) x)
+							(else (bar (+ x 1) (- y 1))))))))
+			`,
+			"(expand-macro foo 1 5)",
+			"(let g0001 ((g0002 1) (g0003 5)) (cond ((> g0002 g0003) g0002) (else (g0001 (+ g0002 1) (- g0003 1)))))",
+		},
 	}
 
 	for _, tt := range testCases {

@@ -22,19 +22,56 @@ func Let(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 		return nil, env, eval.ErrBadArgNumber
 	}
 
-	local := envir.NewEnvFrom(env)
-
-	// bind variables
-	bindings, ok := args.This.(*types.Pair)
-	if !ok {
-		return nil, local, eval.NewErrNonList(args.This)
+	switch first := args.This.(type) {
+	case *types.Pair:
+		return regularLet(first, args.Next, env)
+	case types.Symbol:
+		return namedLet(first, args.Next, env)
+	default:
+		return nil, env, eval.ErrInvalidSyntax
 	}
-	err := setBindings(bindings, local, env)
-	if err != nil {
+}
+
+func regularLet(bindings, body *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
+	local := envir.NewEnvFrom(env)
+	if err := setBindings(bindings, local, env); err != nil {
 		return nil, local, err
 	}
+	return eval.PartialEval(body, local)
+}
 
-	return eval.PartialEval(args.Next, local)
+func namedLet(name types.Symbol, rest *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
+	if !rest.HasNext() {
+		return nil, env, eval.ErrBadArgNumber
+	}
+	head, ok := rest.This.(*types.Pair)
+	if !ok {
+		return nil, env, eval.NewErrNonList(rest.This)
+	}
+	var (
+		vars []types.Symbol
+		args = types.NewAppendablePair()
+	)
+	for head != nil {
+		switch binding := head.This.(type) {
+		case *types.Pair:
+			name, arg, err := extractBinding(binding)
+			if err != nil {
+				return nil, env, err
+			}
+			vars = append(vars, name)
+			args.Append(arg)
+		default:
+			return nil, env, eval.NewErrNonList(binding)
+		}
+		head = head.Next
+	}
+
+	local := envir.NewEnvFrom(env)
+	lambda := Lambda{vars, rest.Next, local}
+	local.Set(name, lambda)
+
+	return lambda.Call(args.ToPair(), local)
 }
 
 // `let*` procedure
@@ -83,17 +120,27 @@ func setBindings(bindings *types.Pair, local, parent *envir.Env) error {
 }
 
 func bind(binding *types.Pair, local, parent *envir.Env) error {
-	if name, ok := binding.This.(types.Symbol); ok {
-		if !binding.HasNext() {
-			return fmt.Errorf("%v has not value to bind", binding)
-		}
-		// arguments are evaluated in env enclosing let
-		val, err := eval.Eval(binding.Next.This, parent)
-		if err != nil {
-			return err
-		}
-		local.Set(name, val)
-		return nil
+	name, sexpr, err := extractBinding(binding)
+	if err != nil {
+		return err
 	}
-	return fmt.Errorf("binding %v does not use proper name", binding)
+	// arguments are evaluated in env enclosing let
+	val, err := eval.Eval(sexpr, parent)
+	if err != nil {
+		return err
+	}
+	local.Set(name, val)
+	return nil
+}
+
+func extractBinding(arg *types.Pair) (types.Symbol, types.Sexpr, error) {
+	if !arg.HasNext() {
+		return "", nil, fmt.Errorf("%v has not value to bind", arg)
+	}
+	switch name := arg.This.(type) {
+	case types.Symbol:
+		return name, arg.Next.This, nil
+	default:
+		return "", nil, eval.NewErrBadName(arg.This)
+	}
 }

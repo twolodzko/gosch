@@ -3,6 +3,7 @@ package template
 import (
 	"fmt"
 
+	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/scheme/macros/gensym"
 	"github.com/twolodzko/gosch/types"
 )
@@ -13,29 +14,69 @@ var _ Template = (*LetStarTemplate)(nil)
 type LetTemplate types.Pair
 
 func (t LetTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
+	switch obj := (t.Next.This).(type) {
+	case *types.Pair:
+		return transformRegularLet(t, m)
+	case types.Symbol:
+		return transformNamedLet(obj, t, m)
+	default:
+		return nil, &ErrInvalidTemplate{t}
+	}
+}
+
+func transformRegularLet(t LetTemplate, m *MappingIterator) (types.Sexpr, error) {
+	ap := types.NewAppendablePair()
+	ap.Append(t.This)
+
+	local := m.Copy()
+	bindings, body, err := transformLet(t.Next, m, local)
+	if err != nil {
+		return nil, err
+	}
+	ap.Append(bindings)
+	ap.Extend(body)
+
+	return ap.ToPair(), nil
+}
+
+func transformNamedLet(sym types.Symbol, t LetTemplate, m *MappingIterator) (types.Sexpr, error) {
+	if !t.Next.HasNext() {
+		return nil, &ErrInvalidTemplate{t}
+	}
+
 	ap := types.NewAppendablePair()
 	ap.Append(t.This)
 
 	local := m.Copy()
 
-	switch obj := (t.Next.This).(type) {
-	case *types.Pair:
-		args, err := transformBindings(obj, m, local)
-		if err != nil {
-			return nil, err
-		}
-		ap.Append(args)
-	default:
-		return nil, &ErrInvalidTemplate{t}
-	}
+	name := gensym.Generator.New()
+	local.Set(sym, name)
+	ap.Append(name)
 
-	body, err := transformPair(t.Next.Next, local)
+	bindings, body, err := transformLet(t.Next.Next, m, local)
 	if err != nil {
 		return nil, err
 	}
+	ap.Append(bindings)
 	ap.Extend(body)
 
 	return ap.ToPair(), nil
+}
+
+func transformLet(sexpr *types.Pair, parent, local *MappingIterator) (*types.Pair, *types.Pair, error) {
+	pair, ok := sexpr.This.(*types.Pair)
+	if !ok {
+		return nil, nil, eval.NewErrNonList(sexpr.This)
+	}
+	bindings, err := transformBindings(pair, parent, local)
+	if err != nil {
+		return nil, nil, err
+	}
+	body, err := transformPair(sexpr.Next, local)
+	if err != nil {
+		return nil, nil, err
+	}
+	return bindings, body, nil
 }
 
 func transformBindings(pair *types.Pair, parent, local *MappingIterator) (*types.Pair, error) {

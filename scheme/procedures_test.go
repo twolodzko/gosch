@@ -442,6 +442,10 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(let* ((x 1) (y (* x 2))) (/ y x))", "2"},
 		{"(let ((x 0) (y 1)) (let* ((x y) (y x)) (list x y)))", "(1 1)"},
 		{"(let* ((x 2) (f (lambda (y) (+ x y)))) (f 5))", "7"},
+		{"(let* ((x 1) (y (+ x 1))) (list y x))", "(2 1)"},
+		{"(let fac ((n 0)) (if (= n 0) 1 (* n (fac (- n 1)))))", "1"},
+		{"(let fac ((n 10)) (if (= n 0) 1 (* n (fac (- n 1)))))", "3628800"},
+		{"(let fib ((i 10)) (cond ((= i 0) 0) ((= i 1) 1) (else (+ (fib (- i 1)) (fib (- i 2))))))", "55"},
 	}
 
 	for _, tt := range testCases {
@@ -695,38 +699,74 @@ func Test_LambdaLocalVsParentEnv(t *testing.T) {
 	}
 }
 
-// FIXME
-// func Test_Reverse(t *testing.T) {
-// 	eval.Procedures = Procedures
-// 	env := envir.NewEnv()
+func Test_Reverse(t *testing.T) {
+	eval.Procedures = Procedures
+	env := envir.NewEnv()
 
-// 	code := `
-// 	(define reverse
-// 		(lambda (ls)
-// 			(let rev ((ls ls) (new '()))
-// 				(if (null? ls)
-// 					new
-// 					(rev (cdr ls) (cons (car ls) new))))))
-// 	`
+	code := `
+	(define reverse
+		(lambda (ls)
+			(let rev ((ls ls) (new '()))
+				(if (null? ls)
+					new
+					(rev (cdr ls) (cons (car ls) new))))))
+	`
 
-// 	_, _, err := eval.EvalString(code, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 		return
-// 	}
+	_, _, err := eval.EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
 
-// 	input := "(reverse '())"
-// 	expected := "()"
+	input := "(reverse '())"
+	expected := "()"
 
-// 	result, _, err := eval.EvalString(input, env)
-// 	if err != nil {
-// 		t.Errorf("unexpected error: %v", err)
-// 		return
-// 	}
-// 	if fmt.Sprintf("%v", result[0]) != expected {
-// 		t.Errorf("expected %v, got %v", expected, result[2])
-// 	}
-// }
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+	if fmt.Sprintf("%v", result[0]) != expected {
+		t.Errorf("expected %v, got %v", expected, result[2])
+	}
+}
+
+func Test_LetRec(t *testing.T) {
+	// let* works in Gosch (unlike Scheme) like letrec
+	eval.Procedures = Procedures
+	env := envir.NewEnv()
+
+	code := `
+	(define (zero? x) (= x 0))
+	(define (sub1 x) (- x 1))
+	`
+
+	_, _, err := eval.EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+
+	input := `
+	(let* ((is-even? (lambda (n)
+						(or (zero? n)
+							(is-odd? (sub1 n)))))
+			(is-odd? (lambda (n)
+						(and (not (zero? n))
+							(is-even? (sub1 n))))))
+		(is-odd? 11))
+	`
+
+	result, _, err := eval.EvalString(input, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+		return
+	}
+	expected := types.TRUE
+	if result[0] != expected {
+		t.Errorf("expected %v, got %v", expected, result[2])
+	}
+}
 
 func Test_Error(t *testing.T) {
 	eval.Procedures = Procedures

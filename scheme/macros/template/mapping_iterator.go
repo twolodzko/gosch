@@ -16,9 +16,6 @@ func NewMappingIterator(m mapping.Mapping) *MappingIterator {
 
 func (m MappingIterator) Get(key types.Symbol) (types.Sexpr, error) {
 	val := m.Mapping[key]
-	if !m.IsNestedQuery() {
-		return val, nil
-	}
 	switch val := val.(type) {
 	case mapping.Ellipsis:
 		for _, i := range m.Index {
@@ -32,21 +29,18 @@ func (m MappingIterator) Get(key types.Symbol) (types.Sexpr, error) {
 				return obj, nil
 			}
 		}
-		return val, nil
+		return val, ErrInvalidEllipsis
 	default:
 		return val, nil
 	}
 }
 
-func (m MappingIterator) GetEllipsis(key types.Symbol) (types.Sexpr, error) {
+func (m MappingIterator) GetEllipsis(key types.Symbol) (mapping.Ellipsis, error) {
 	val := m.Mapping[key]
-	if !m.IsNestedQuery() {
-		return val, nil
-	}
 	switch val := val.(type) {
 	case mapping.Ellipsis:
 		for _, i := range m.Index {
-			if !val.IsNested() {
+			if !val.ContainsEllipses() {
 				break
 			}
 			if i >= len(val) {
@@ -55,12 +49,21 @@ func (m MappingIterator) GetEllipsis(key types.Symbol) (types.Sexpr, error) {
 			val = val[i].(mapping.Ellipsis)
 		}
 
-		if len(val) == 0 {
+		if m.IsNestedQuery() && len(val) == 0 {
 			return nil, ErrEmptyEllipsis
 		}
 		return val, nil
 	default:
+		return maybeEllipsis(val)
+	}
+}
+
+func maybeEllipsis(obj types.Sexpr) (mapping.Ellipsis, error) {
+	switch val := obj.(type) {
+	case mapping.Ellipsis:
 		return val, nil
+	default:
+		return nil, ErrInvalidEllipsis
 	}
 }
 
@@ -93,7 +96,7 @@ func (m MappingIterator) IsNestedQuery() bool {
 	return len(m.Index) > 0
 }
 
-func (m MappingIterator) HasEllipsisVar(sym types.Symbol) bool {
+func (m MappingIterator) ContainsEllipsis(sym types.Symbol) bool {
 	if val, exists := m.Mapping[sym]; exists {
 		_, ok := val.(mapping.Ellipsis)
 		return ok

@@ -39,10 +39,10 @@ func parsePair(pair *types.Pair) (types.Sexpr, error) {
 
 func parseAll(pair *types.Pair) (*types.Pair, error) {
 	var (
-		sexprs []types.Sexpr
-		head   = pair
-		val    types.Sexpr
-		err    error
+		template = types.NewAppendablePair()
+		head     = pair
+		val      types.Sexpr
+		err      error
 	)
 	for head != nil {
 		val, err = Parse(head.This)
@@ -58,10 +58,10 @@ func parseAll(pair *types.Pair) (*types.Pair, error) {
 			head = head.Next
 		}
 
-		sexprs = append(sexprs, val)
+		template.Append(val)
 		head = head.Next
 	}
-	return types.NewPair(sexprs...), nil
+	return template.ToPair(), nil
 }
 
 func toEllipsis(sexpr types.Sexpr) (Ellipsis, error) {

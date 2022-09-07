@@ -3,7 +3,6 @@ package template
 import (
 	"fmt"
 
-	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -24,19 +23,9 @@ func (t EllipsisSymbol) Transform(m *MappingIterator) (*types.Pair, error) {
 	if !isValidEllipsis(t, m) {
 		return nil, &ErrInvalidTemplate{t}
 	}
-
 	key := types.Symbol(t)
 	val, err := m.GetEllipsis(key)
-	if err != nil {
-		return &types.Pair{}, err
-	}
-
-	switch val := val.(type) {
-	case mapping.Ellipsis:
-		return types.NewPair(val...), nil
-	default:
-		return types.NewPair(val), nil
-	}
+	return val.ToPair(), err
 }
 
 type EllipsisPair types.Pair
@@ -73,12 +62,12 @@ func (t EllipsisPair) Transform(m *MappingIterator) (*types.Pair, error) {
 func isValidEllipsis(obj types.Sexpr, m *MappingIterator) bool {
 	switch obj := obj.(type) {
 	case EllipsisSymbol:
-		return m.HasEllipsisVar(types.Symbol(obj))
+		return m.ContainsEllipsis(types.Symbol(obj))
 	case EllipsisPair:
 		pair := types.Pair(obj)
 		return isValidEllipsis(&pair, m)
 	case types.Symbol:
-		return m.HasEllipsisVar(obj)
+		return m.ContainsEllipsis(obj)
 	case *types.Pair:
 		head := obj
 		for head != nil {

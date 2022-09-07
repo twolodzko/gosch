@@ -10,7 +10,7 @@ func (e Ellipsis) ToPair() *types.Pair {
 	return types.NewPair(e...)
 }
 
-func (e Ellipsis) IsNested() bool {
+func (e Ellipsis) ContainsEllipses() bool {
 	if len(e) == 0 {
 		return false
 	}

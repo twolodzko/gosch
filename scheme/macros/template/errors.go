@@ -9,6 +9,7 @@ import (
 
 var ErrEllipsisOutOfBounds = errors.New("ellipsis out of bounds")
 var ErrEmptyEllipsis = errors.New("empty ellipsis")
+var ErrInvalidEllipsis = errors.New("invalid ellipsis expansion")
 
 type ErrInvalidTemplate struct {
 	template types.Sexpr

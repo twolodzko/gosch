@@ -50,18 +50,10 @@ func (m LispMacro) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.E
 	return sexpr, env, err
 }
 
-func (m LispMacro) String() string {
-	vars := strings.Join(m.Vars, " ")
-	template := ""
-	head := m.Template
-	for head != nil {
-		template += fmt.Sprintf("%v", head.This)
-		if head.HasNext() {
-			template += " "
-		}
-		head = head.Next
-	}
-	return fmt.Sprintf("(macro (%v) (%v))", vars, template)
+func (l LispMacro) String() string {
+	vars := strings.Join(l.Vars, " ")
+	template := l.Template.ToString()
+	return fmt.Sprintf("(macro (%v) %v)", vars, template)
 }
 
 // Create `macro` function

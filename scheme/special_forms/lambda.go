@@ -76,20 +76,6 @@ func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env,
 	return eval.PartialEval(l.Body, local)
 }
 
-func (l Lambda) String() string {
-	vars := strings.Join(l.Vars, " ")
-	body := ""
-	head := l.Body
-	for head != nil {
-		body += fmt.Sprintf("%v", head.This)
-		if head.HasNext() {
-			body += " "
-		}
-		head = head.Next
-	}
-	return fmt.Sprintf("(lambda (%v) %v)", vars, body)
-}
-
 func closureFromArgs(args *types.Pair, parentEnv, callEnv *envir.Env, names []types.Symbol) (*envir.Env, error) {
 	// local env inherits from the env where the lambda was defined
 	local := envir.NewEnvFrom(parentEnv)
@@ -114,4 +100,10 @@ func closureFromArgs(args *types.Pair, parentEnv, callEnv *envir.Env, names []ty
 	}
 
 	return local, nil
+}
+
+func (l Lambda) String() string {
+	vars := strings.Join(l.Vars, " ")
+	body := l.Body.ToString()
+	return fmt.Sprintf("(lambda (%v) %v)", vars, body)
 }

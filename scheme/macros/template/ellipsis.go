@@ -3,7 +3,7 @@ package template
 import (
 	"fmt"
 
-	"github.com/twolodzko/gosch/scheme/macros/pattern"
+	"github.com/twolodzko/gosch/scheme/macros/mapping"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -32,7 +32,7 @@ func (t EllipsisSymbol) Transform(m *MappingIterator) (*types.Pair, error) {
 	}
 
 	switch val := val.(type) {
-	case pattern.EllipsisVar:
+	case mapping.Ellipsis:
 		return types.NewPair(val...), nil
 	default:
 		return types.NewPair(val), nil

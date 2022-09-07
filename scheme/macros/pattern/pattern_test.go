@@ -160,42 +160,42 @@ func Test_MatchPattern(t *testing.T) {
 			&Pair{[]Subpattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
 			types.NewPair(types.Symbol("a"), types.Symbol("b")),
 			true,
-			mapping.Mapping{"x": "a", "y": EllipsisVar{"b"}},
+			mapping.Mapping{"x": "a", "y": mapping.Ellipsis{"b"}},
 		},
 		{
 			// (x y ...)
 			&Pair{[]Subpattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
 			types.NewPair(types.Symbol("a"), types.Symbol("b"), types.Symbol("c"), types.Symbol("d")),
 			true,
-			mapping.Mapping{"x": "a", "y": EllipsisVar{"b", "c", "d"}},
+			mapping.Mapping{"x": "a", "y": mapping.Ellipsis{"b", "c", "d"}},
 		},
 		{
 			// (x y ...)
 			&Pair{[]Subpattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
 			types.NewPair(types.Symbol("a"), types.Symbol("b"), &types.Pair{}, types.Bool(false)),
 			true,
-			mapping.Mapping{"x": "a", "y": EllipsisVar{"b", &types.Pair{}, types.Bool(false)}},
+			mapping.Mapping{"x": "a", "y": mapping.Ellipsis{"b", &types.Pair{}, types.Bool(false)}},
 		},
 		{
 			// (x y ...)
 			&Pair{[]Subpattern{&Identifier{"x", false}, &Identifier{"y", true}}, false},
 			types.NewPair(types.Symbol("a")),
 			true,
-			mapping.Mapping{"x": "a", "y": EllipsisVar{}},
+			mapping.Mapping{"x": "a", "y": mapping.Ellipsis{}},
 		},
 		{
 			// (x (y ...) z)
 			&Pair{[]Subpattern{&Identifier{"x", false}, &Pair{[]Subpattern{&Identifier{"y", true}}, false}, &Identifier{"z", false}}, false},
 			types.NewPair(types.Symbol("a"), types.NewPair(types.Symbol("b"), types.Symbol("c")), types.Symbol("d")),
 			true,
-			mapping.Mapping{"x": "a", "y": EllipsisVar{types.Symbol("b"), types.Symbol("c")}, "z": "d"},
+			mapping.Mapping{"x": "a", "y": mapping.Ellipsis{types.Symbol("b"), types.Symbol("c")}, "z": "d"},
 		},
 		{
 			// (x (y ...) z)
 			&Pair{[]Subpattern{&Identifier{"x", false}, &Pair{[]Subpattern{&Identifier{"y", true}}, false}, &Identifier{"z", false}}, false},
 			types.NewPair(types.Symbol("a"), &types.Pair{}, types.Symbol("d")),
 			true,
-			mapping.Mapping{"x": "a", "y": EllipsisVar{}, "z": "d"},
+			mapping.Mapping{"x": "a", "y": mapping.Ellipsis{}, "z": "d"},
 		},
 		{
 			// (x (() (y ...) z) v)
@@ -216,7 +216,7 @@ func Test_MatchPattern(t *testing.T) {
 					types.Symbol("d")),
 				types.Symbol("e")),
 			true,
-			mapping.Mapping{"x": "a", "y": EllipsisVar{"b", "c"}, "z": "d", "v": "e"},
+			mapping.Mapping{"x": "a", "y": mapping.Ellipsis{"b", "c"}, "z": "d", "v": "e"},
 		},
 		{
 			// (x (() (y ...) z) v)
@@ -253,7 +253,11 @@ func Test_MatchPattern(t *testing.T) {
 			}, false},
 			types.NewPair("a"),
 			true,
-			mapping.Mapping{"x": "a", "y": EllipsisVar{EllipsisVar{}}, "z": EllipsisVar{EllipsisVar{EllipsisVar{}}}},
+			mapping.Mapping{
+				"x": "a",
+				"y": mapping.Ellipsis{mapping.Ellipsis{}},
+				"z": mapping.Ellipsis{mapping.Ellipsis{mapping.Ellipsis{}}},
+			},
 		},
 		{
 			// (x (y (z ...) ...) ...)
@@ -276,11 +280,11 @@ func Test_MatchPattern(t *testing.T) {
 			true,
 			mapping.Mapping{
 				"x": "a",
-				"y": EllipsisVar{"b", "c", "g"},
-				"z": EllipsisVar{
-					EllipsisVar{EllipsisVar{}},
-					EllipsisVar{EllipsisVar{"d", "e"}, EllipsisVar{"f"}},
-					EllipsisVar{EllipsisVar{"h"}},
+				"y": mapping.Ellipsis{"b", "c", "g"},
+				"z": mapping.Ellipsis{
+					mapping.Ellipsis{mapping.Ellipsis{}},
+					mapping.Ellipsis{mapping.Ellipsis{"d", "e"}, mapping.Ellipsis{"f"}},
+					mapping.Ellipsis{mapping.Ellipsis{"h"}},
 				},
 			},
 		},

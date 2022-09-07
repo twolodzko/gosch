@@ -1,29 +1,29 @@
-package pattern
+package mapping
 
 import (
 	"github.com/twolodzko/gosch/types"
 )
 
-type EllipsisVar []types.Sexpr
+type Ellipsis []types.Sexpr
 
-func (e EllipsisVar) ToPair() *types.Pair {
+func (e Ellipsis) ToPair() *types.Pair {
 	return types.NewPair(e...)
 }
 
-func (e EllipsisVar) IsNested() bool {
+func (e Ellipsis) IsNested() bool {
 	if len(e) == 0 {
 		return false
 	}
-	_, ok := e[0].(EllipsisVar)
+	_, ok := e[0].(Ellipsis)
 	return ok
 }
 
-func ellipsisVarFromPair(pair *types.Pair) EllipsisVar {
+func EllipsisFromPair(pair *types.Pair) Ellipsis {
 	if pair == nil || pair.IsNull() {
-		return EllipsisVar{}
+		return Ellipsis{}
 	}
 
-	var e EllipsisVar
+	var e Ellipsis
 	head := pair
 	for head != nil && !head.IsNull() {
 		e = append(e, head.This)

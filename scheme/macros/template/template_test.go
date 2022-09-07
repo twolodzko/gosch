@@ -83,37 +83,37 @@ func Test_Transform(t *testing.T) {
 		{
 			// (x ...)
 			types.NewPair(EllipsisSymbol("x")),
-			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}},
+			mapping.Mapping{"x": mapping.Ellipsis{1, 2, 3}},
 			types.NewPair(1, 2, 3),
 		},
 		{
 			// ('x ...)
 			types.NewPair(EllipsisPair(*(parser.Quote(types.Symbol("x")).(*types.Pair)))),
-			mapping.Mapping{"x": pattern.EllipsisVar{"a", "b", "c"}},
+			mapping.Mapping{"x": mapping.Ellipsis{"a", "b", "c"}},
 			types.NewPair(parser.Quote("a"), parser.Quote("b"), parser.Quote("c")),
 		},
 		{
 			// (x ... y)
 			types.NewPair(EllipsisSymbol("x"), types.Symbol("y")),
-			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}},
+			mapping.Mapping{"x": mapping.Ellipsis{1, 2, 3}},
 			types.NewPair(1, 2, 3, types.Symbol("y")),
 		},
 		{
 			// ((x y) ...)
 			types.NewPair(EllipsisPair(*types.NewPair(types.Symbol("x"), types.Symbol("y")))),
-			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}, "y": pattern.EllipsisVar{4, 5, 6}},
+			mapping.Mapping{"x": mapping.Ellipsis{1, 2, 3}, "y": mapping.Ellipsis{4, 5, 6}},
 			types.NewPair(types.NewPair(1, 4), types.NewPair(2, 5), types.NewPair(3, 6)),
 		},
 		{
 			// ('(x y) ...)
 			types.NewPair(EllipsisPair(*(parser.Quote(types.NewPair(types.Symbol("x"), types.Symbol("y"))).(*types.Pair)))),
-			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}, "y": pattern.EllipsisVar{4, 5, 6}},
+			mapping.Mapping{"x": mapping.Ellipsis{1, 2, 3}, "y": mapping.Ellipsis{4, 5, 6}},
 			types.NewPair(parser.Quote(types.NewPair(1, 4)), parser.Quote(types.NewPair(2, 5)), parser.Quote(types.NewPair(3, 6))),
 		},
 		{
 			// ((x y) ...) with y != EllipsisVar
 			types.NewPair(EllipsisPair(*types.NewPair(types.Symbol("x"), types.Symbol("y")))),
-			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}, "y": types.TRUE},
+			mapping.Mapping{"x": mapping.Ellipsis{1, 2, 3}, "y": types.TRUE},
 			types.NewPair(types.NewPair(1, types.TRUE), types.NewPair(2, types.TRUE), types.NewPair(3, types.TRUE)),
 		},
 		{
@@ -127,7 +127,7 @@ func Test_Transform(t *testing.T) {
 					),
 				),
 			),
-			mapping.Mapping{"x": pattern.EllipsisVar{1, 2, 3}, "y": pattern.EllipsisVar{"a", "b"}},
+			mapping.Mapping{"x": mapping.Ellipsis{1, 2, 3}, "y": mapping.Ellipsis{"a", "b"}},
 			types.NewPair(
 				types.NewPair("list", 1, "a", "b"),
 				types.NewPair("list", 2, "a", "b"),

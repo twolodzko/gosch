@@ -2,7 +2,6 @@ package template
 
 import (
 	"github.com/twolodzko/gosch/scheme/macros/mapping"
-	"github.com/twolodzko/gosch/scheme/macros/pattern"
 	"github.com/twolodzko/gosch/types"
 )
 
@@ -21,13 +20,13 @@ func (m MappingIterator) Get(key types.Symbol) (types.Sexpr, error) {
 		return val, nil
 	}
 	switch val := val.(type) {
-	case pattern.EllipsisVar:
+	case mapping.Ellipsis:
 		for _, i := range m.Index {
 			if i >= len(val) {
 				return nil, ErrEllipsisOutOfBounds
 			}
 			switch obj := val[i].(type) {
-			case pattern.EllipsisVar:
+			case mapping.Ellipsis:
 				val = obj
 			default:
 				return obj, nil
@@ -45,7 +44,7 @@ func (m MappingIterator) GetEllipsis(key types.Symbol) (types.Sexpr, error) {
 		return val, nil
 	}
 	switch val := val.(type) {
-	case pattern.EllipsisVar:
+	case mapping.Ellipsis:
 		for _, i := range m.Index {
 			if !val.IsNested() {
 				break
@@ -53,7 +52,7 @@ func (m MappingIterator) GetEllipsis(key types.Symbol) (types.Sexpr, error) {
 			if i >= len(val) {
 				return nil, ErrEllipsisOutOfBounds
 			}
-			val = val[i].(pattern.EllipsisVar)
+			val = val[i].(mapping.Ellipsis)
 		}
 
 		if len(val) == 0 {
@@ -96,7 +95,7 @@ func (m MappingIterator) IsNestedQuery() bool {
 
 func (m MappingIterator) HasEllipsisVar(sym types.Symbol) bool {
 	if val, exists := m.Mapping[sym]; exists {
-		_, ok := val.(pattern.EllipsisVar)
+		_, ok := val.(mapping.Ellipsis)
 		return ok
 	}
 	return false

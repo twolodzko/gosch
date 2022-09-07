@@ -23,3 +23,19 @@ func (m Mapping) Copy() Mapping {
 	}
 	return m2
 }
+
+func (x Mapping) Extend(y Mapping) {
+	for key, yval := range y {
+		if xval, ok := x[key]; ok {
+			switch xval := xval.(type) {
+			case Ellipsis:
+				x[key] = append(xval, yval)
+			default:
+				e := Ellipsis{xval}
+				x[key] = append(e, yval)
+			}
+		} else {
+			x[key] = Ellipsis{yval}
+		}
+	}
+}

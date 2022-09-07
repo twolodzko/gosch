@@ -39,7 +39,7 @@ func (p Identifier) IsEllipsis() bool {
 }
 
 func (p Identifier) MatchEllipsis(pair *types.Pair, m mapping.Mapping) (mapping.Mapping, bool) {
-	m[p.Name] = ellipsisVarFromPair(pair)
+	m[p.Name] = mapping.EllipsisFromPair(pair)
 	return m, true
 }
 

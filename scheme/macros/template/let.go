@@ -16,15 +16,15 @@ type LetTemplate types.Pair
 func (t LetTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 	switch obj := (t.Next.This).(type) {
 	case *types.Pair:
-		return transformRegularLet(t, m)
+		return regularLet(t, m)
 	case types.Symbol:
-		return transformNamedLet(obj, t, m)
+		return namedLet(obj, t, m)
 	default:
 		return nil, &ErrInvalidTemplate{t}
 	}
 }
 
-func transformRegularLet(t LetTemplate, m *MappingIterator) (types.Sexpr, error) {
+func regularLet(t LetTemplate, m *MappingIterator) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
 	ap.Append(t.This)
 
@@ -39,7 +39,7 @@ func transformRegularLet(t LetTemplate, m *MappingIterator) (types.Sexpr, error)
 	return ap.ToPair(), nil
 }
 
-func transformNamedLet(sym types.Symbol, t LetTemplate, m *MappingIterator) (types.Sexpr, error) {
+func namedLet(sym types.Symbol, t LetTemplate, m *MappingIterator) (types.Sexpr, error) {
 	if !t.Next.HasNext() {
 		return nil, &ErrInvalidTemplate{t}
 	}
@@ -81,9 +81,9 @@ func transformLet(sexpr *types.Pair, parent, local *MappingIterator) (*types.Pai
 
 func transformBindings(pair *types.Pair, parent, local *MappingIterator) (*types.Pair, error) {
 	var (
-		val      types.Sexpr
 		bindings = types.NewAppendablePair()
 		head     = pair
+		val      types.Sexpr
 		err      error
 	)
 	for head != nil {
@@ -146,21 +146,11 @@ func (t LetStarTemplate) Transform(m *MappingIterator) (types.Sexpr, error) {
 	ap := types.NewAppendablePair()
 	ap.Append(t.This)
 
-	switch obj := (t.Next.This).(type) {
-	case *types.Pair:
-		args, err := transformBindings(obj, m, m)
-		if err != nil {
-			return nil, err
-		}
-		ap.Append(args)
-	default:
-		return nil, &ErrInvalidTemplate{t}
-	}
-
-	body, err := transformPair(t.Next.Next, m)
+	bindings, body, err := transformLet(t.Next, m, m)
 	if err != nil {
 		return nil, err
 	}
+	ap.Append(bindings)
 	ap.Extend(body)
 
 	return ap.ToPair(), nil

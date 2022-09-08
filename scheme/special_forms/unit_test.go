@@ -7,7 +7,7 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func Test_symbolsPairToSlice(t *testing.T) {
+func Test_extractSymbols(t *testing.T) {
 
 	var testCases = []struct {
 		input    *types.Pair
@@ -32,7 +32,7 @@ func Test_symbolsPairToSlice(t *testing.T) {
 	}
 
 	for _, tt := range testCases {
-		result, err := symbolsPairToSlice(tt.input)
+		result, err := extractSymbols(tt.input)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}

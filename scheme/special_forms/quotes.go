@@ -23,7 +23,7 @@ func Quasiquote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	if !ok || pair == nil || !bool(pair.HasNext()) {
 		return args.This, nil
 	}
-	return traverseToUnquote(pair, 1, env)
+	return unquoteRecursively(pair, 1, env)
 }
 
 // `unquote` procedure
@@ -34,7 +34,7 @@ func Unquote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	return eval.Eval(args.This, env)
 }
 
-func traverseToUnquote(pair *types.Pair, numQuotes int, env *envir.Env) (types.Sexpr, error) {
+func unquoteRecursively(pair *types.Pair, numQuotes int, env *envir.Env) (types.Sexpr, error) {
 	if pair == nil {
 		return pair, nil
 	}
@@ -57,7 +57,7 @@ func traverseToUnquote(pair *types.Pair, numQuotes int, env *envir.Env) (types.S
 		switch obj := head.This.(type) {
 		case *types.Pair:
 			// check nested lists recursively
-			val, err := traverseToUnquote(obj, numQuotes, env)
+			val, err := unquoteRecursively(obj, numQuotes, env)
 			if err != nil {
 				return nil, err
 			}

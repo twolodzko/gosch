@@ -35,11 +35,11 @@ func Do(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 			return nil, err
 		}
 		if stop {
-			return evalAll(job.clause.Next, job.env)
+			return eval.EvalAll(job.clause.Next, job.env)
 		}
 
 		// eval body
-		_, err = evalAll(job.body, job.env)
+		_, err = eval.EvalAll(job.body, job.env)
 		if err != nil {
 			return nil, err
 		}
@@ -146,21 +146,4 @@ func setSteps(args *types.Pair, parent, local *envir.Env) (map[types.Symbol]type
 		head = head.Next
 	}
 	return steps, nil
-}
-
-// Evaluate all expressions, return the last result
-func evalAll(exprs *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	var (
-		result types.Sexpr
-		err    error
-	)
-	head := exprs
-	for head != nil {
-		result, err = eval.Eval(head.This, env)
-		if err != nil {
-			return nil, err
-		}
-		head = head.Next
-	}
-	return result, nil
 }

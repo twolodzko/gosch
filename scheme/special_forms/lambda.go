@@ -26,7 +26,7 @@ func NewLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	}
 	switch pair := args.This.(type) {
 	case *types.Pair:
-		vars, err := symbolsPairToSlice(pair)
+		vars, err := extractSymbols(pair)
 		return Lambda{vars, args.Next, env}, err
 	default:
 		return Lambda{}, eval.NewErrNonList(args.This)
@@ -34,7 +34,7 @@ func NewLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 }
 
 // Transform pair to slice
-func symbolsPairToSlice(args *types.Pair) ([]types.Symbol, error) {
+func extractSymbols(args *types.Pair) ([]types.Symbol, error) {
 	var vars []types.Symbol
 	if args == nil || args.IsNull() {
 		return vars, nil
@@ -67,7 +67,7 @@ func symbolsPairToSlice(args *types.Pair) ([]types.Symbol, error) {
 //	  parent  local  calling env
 func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 
-	local, err := closureFromArgs(args, l.ParentEnv, env, l.Vars)
+	local, err := l.createClosure(args, env)
 	if err != nil {
 		return nil, local, err
 	}
@@ -76,18 +76,18 @@ func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env,
 	return eval.PartialEval(l.Body, local)
 }
 
-func closureFromArgs(args *types.Pair, parentEnv, callEnv *envir.Env, names []types.Symbol) (*envir.Env, error) {
+func (l Lambda) createClosure(args *types.Pair, env *envir.Env) (*envir.Env, error) {
 	// local env inherits from the env where the lambda was defined
-	local := envir.NewEnvFrom(parentEnv)
+	local := envir.NewEnvFrom(l.ParentEnv)
 
 	// setup local env
 	head := args
-	for _, name := range names {
+	for _, name := range l.Vars {
 		if head == nil {
 			return local, eval.ErrBadArgNumber
 		}
 		// arguments are evaluated in the env enclosing the lambda call
-		val, err := eval.Eval(head.This, callEnv)
+		val, err := eval.Eval(head.This, env)
 		if err != nil {
 			return local, err
 		}

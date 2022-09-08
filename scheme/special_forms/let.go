@@ -16,7 +16,8 @@ var _ eval.TailCallOptimized = LetStar
 
 // `let` procedure
 //
-//	(let ((name1 value1) (name2 value2) ...) expr1 expr2 ...)
+//	(let ((key1 value1) (key2 value2) ...) expr1 expr2 ...)
+//	(let name ((key1 value1) (key2 value2) ...) expr1 expr2 ...)
 func Let(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil || !args.HasNext() {
 		return nil, env, eval.ErrBadArgNumber
@@ -97,7 +98,7 @@ func LetStar(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) 
 	return eval.PartialEval(args.Next, local)
 }
 
-// Iterate through the bindings ((name1 value1) (name2 value2) ...) and set them to an environment
+// Iterate through the bindings ((key1 value1) (key2 value2) ...) and set them to an environment
 func setBindings(bindings *types.Pair, local, parent *envir.Env) error {
 	if bindings.IsNull() {
 		return nil
@@ -119,6 +120,7 @@ func setBindings(bindings *types.Pair, local, parent *envir.Env) error {
 	return nil
 }
 
+// Bind value to the name in the local env
 func bind(binding *types.Pair, local, parent *envir.Env) error {
 	name, sexpr, err := extractBinding(binding)
 	if err != nil {
@@ -133,6 +135,7 @@ func bind(binding *types.Pair, local, parent *envir.Env) error {
 	return nil
 }
 
+// Extract name and value for the binding
 func extractBinding(arg *types.Pair) (types.Symbol, types.Sexpr, error) {
 	if !arg.HasNext() {
 		return "", nil, fmt.Errorf("%v has not value to bind", arg)

@@ -33,3 +33,22 @@ func NewErrBadName(val types.Sexpr) *ErrBadName {
 func (e *ErrBadName) Error() string {
 	return fmt.Sprintf("%v is not a valid name", e.Val)
 }
+
+type Traceback struct {
+	caller  types.Sexpr
+	message error
+}
+
+func NewTraceback(name types.Sexpr, err error) error {
+	if err != nil {
+		if name == "error" {
+			return err
+		}
+		return Traceback{name, err}
+	}
+	return nil
+}
+
+func (e Traceback) Error() string {
+	return fmt.Sprintf("%v : %v", e.caller, e.message)
+}

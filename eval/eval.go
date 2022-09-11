@@ -22,7 +22,9 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 				return &types.Pair{}, nil
 			}
 
-			callable, err := Eval(val.This, env)
+			name := val.This
+
+			callable, err := Eval(name, env)
 			if err != nil {
 				return nil, err
 			}
@@ -33,18 +35,20 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 				if err != nil {
 					return nil, err
 				}
-				return fn(args)
+				sexpr, err := fn(args)
+				return sexpr, NewTraceback(name, err)
 			case Procedure:
-				return fn(val.Next, env)
+				sexpr, err := fn(val.Next, env)
+				return sexpr, NewTraceback(name, err)
 			case TailCallOptimized:
 				sexpr, env, err = fn(val.Next, env)
 				if err != nil {
-					return nil, err
+					return nil, NewTraceback(name, err)
 				}
 			case Callable:
 				sexpr, env, err = fn.Call(val.Next, env)
 				if err != nil {
-					return nil, err
+					return nil, NewTraceback(name, err)
 				}
 			default:
 				return nil, fmt.Errorf("%v is not callable", fn)

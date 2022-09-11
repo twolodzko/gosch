@@ -23,6 +23,7 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 			}
 
 			name := val.This
+			args := val.Next
 
 			callable, err := Eval(name, env)
 			if err != nil {
@@ -31,22 +32,22 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 
 			switch fn := callable.(type) {
 			case Primitive:
-				args, err := evalArgs(val.Next, env)
+				args, err := evalArgs(args, env)
 				if err != nil {
 					return nil, err
 				}
 				sexpr, err := fn(args)
 				return sexpr, NewTraceback(name, err)
 			case Procedure:
-				sexpr, err := fn(val.Next, env)
+				sexpr, err := fn(args, env)
 				return sexpr, NewTraceback(name, err)
 			case TailCallOptimized:
-				sexpr, env, err = fn(val.Next, env)
+				sexpr, env, err = fn(args, env)
 				if err != nil {
 					return nil, NewTraceback(name, err)
 				}
 			case Callable:
-				sexpr, env, err = fn.Call(val.Next, env)
+				sexpr, env, err = fn.Call(args, env)
 				if err != nil {
 					return nil, NewTraceback(name, err)
 				}

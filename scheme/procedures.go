@@ -2,7 +2,6 @@ package scheme
 
 import (
 	"github.com/twolodzko/gosch/eval"
-	"github.com/twolodzko/gosch/scheme/macros"
 	"github.com/twolodzko/gosch/scheme/primitives"
 	"github.com/twolodzko/gosch/scheme/special_forms"
 	"github.com/twolodzko/gosch/types"
@@ -28,8 +27,6 @@ var Procedures = eval.ProceduresGetter{
 	"cond":          special_forms.Cond,
 	"cons":          primitives.Cons,
 	"debug":         primitives.Debug,
-	"define-macro":  special_forms.DefineMacro,
-	"define-syntax": macros.DefineSyntax,
 	"define":        special_forms.Define,
 	"display":       primitives.Display,
 	"do":            special_forms.Do,
@@ -37,21 +34,14 @@ var Procedures = eval.ProceduresGetter{
 	"eq?":           primitives.Eq,
 	"error":         primitives.Error,
 	"eval":          special_forms.Eval,
-	"expand-macro":  macros.ExpandMacro,
 	"float?":        primitives.IsFloat,
-	"gensym":        macros.Gensym,
-	"go":            primitives.Go,
 	"if":            special_forms.If,
 	"integer?":      primitives.IsInteger,
 	"lambda":        special_forms.NewLambda,
 	"let":           special_forms.Let,
 	"let*":          special_forms.LetStar,
-	"list->vector":  primitives.ListToVector,
 	"list":          primitives.List,
 	"load":          special_forms.Load,
-	"macro":         special_forms.NewLispMacro,
-	"make-vector":   primitives.MakeVector,
-	"map":           primitives.Map,
 	"newline":       primitives.Newline,
 	"nil?":          primitives.IsNil,
 	"not":           special_forms.Not,
@@ -68,13 +58,6 @@ var Procedures = eval.ProceduresGetter{
 	"string":        primitives.ToString,
 	"substring":     primitives.Substring,
 	"symbol?":       primitives.IsSymbol,
-	"syntax-rules":  macros.NewSyntaxRules,
 	"timeit":        primitives.Timeit,
 	"unquote":       special_forms.Unquote,
-	"vector->list":  primitives.VectorToList,
-	"vector-length": primitives.VectorLength,
-	"vector-ref":    primitives.VectorRef,
-	"vector-set!":   primitives.VectorSet,
-	"vector?":       primitives.IsVector,
-	"vector":        primitives.Vector,
 }

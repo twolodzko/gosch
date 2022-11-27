@@ -79,12 +79,6 @@ func (p *Parser) readSexpr() (types.Sexpr, error) {
 			return p.readString()
 		case ';':
 			p.skipLine()
-		case '#':
-			if p.HasNext() && p.Following() == '(' {
-				p.pos++
-				return p.readVector()
-			}
-			fallthrough
 		default:
 			return p.readAtom()
 		}
@@ -159,27 +153,6 @@ func (p *Parser) readPair() (*types.Pair, error) {
 		}
 	}
 	return nil, fmt.Errorf("list was not closed with closing bracket")
-}
-
-func (p *Parser) readVector() (*types.Vector, error) {
-	p.pos++
-	vec := types.Vector{}
-	for p.HasNext() {
-		switch {
-		case unicode.IsSpace(p.Head()):
-			p.pos++
-		case p.Head() == ')':
-			p.pos++
-			return &vec, nil
-		default:
-			elem, err := p.readSexpr()
-			if err != nil {
-				return nil, err
-			}
-			vec = append(vec, elem)
-		}
-	}
-	return nil, fmt.Errorf("vector was not closed with closing bracket")
 }
 
 func (p *Parser) readString() (types.String, error) {

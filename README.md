@@ -13,8 +13,8 @@
 
 As in classic Lisps, **gosch** recognizes the two main data structures *atoms* and *[pairs]* (*aka* [linked lists]).
 The variety of available data types is limited to *atoms* like *numbers* (*integers* and *floats*) and
-*booleans* (`#t` and `#f`). There is also limited support for *strings* and *vectors* `#(x1 x2 ...)` understood
-as zero-indexed, fixed-size arrays. The implementation is [properly tail-recursive] as [required by Scheme].
+*booleans* (`#t` and `#f`). There is also a limited support for *strings*. The implementation is [properly tail-recursive]
+as [required by Scheme].
 Unlike the classic Scheme, there is null type `nil` and procedures return it instead of undefined results,
 for example `(if #f 'ok)` returns `<nil>`. There is no distinction between round and square brackets, so they can be
 used interchangeably. Unlike in some Lisps, all the lists are guaranteed to be [proper] and there are no dotted pairs.
@@ -43,35 +43,18 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
   be evaluated using `(unquote expr)` or `,expr`, for example `` `(2 + 2 = ,(+ 2 2))`` will evaluate to `(2 + 2 = 4)`.
 - `(eval expr)` does the opposite to `quote` by evaluating *expr*, e.g. `(eval '(+ 2 2))` returns `4` rather than the
 `(+ 2 2)` list.
-- `(macro (arg1 arg2 ...) template)` generates [Lisp-style macros]. It works similarly to `lambda` and evaluates the
-  *template* defined in terms of the `quasiquote` and `unquote` expressions, with the *arg1*, *arg2*, ... arguments
-  using the [syntactic closures]. `(define-macro (name arg1 arg2 ...) template)` can be used as a shorthand for
-  `(define name (macro (arg1 arg2 ...) template))`. `(gensym)` generates unique placeholders for the names used in the
-  macros.
-- `define-syntax` and `syntax-rules` procedures can be used for writing [more advanced], [pattern-based], [hygienic macros].
 - `(eq? obj1 obj2)` compares if two objects are equal, for pairs only checks if they point to the same memory location.
 - Logical `(not obj)`, `and`, and `or`, e.g. `(and obj1 obj2 ...)`.
 - Arithmetic operators `+`, `-`, `*`, `/`, e.g. `(+ x1 x2 ...)`, and `(% x1 x2)` for modulo.
   Those procedures promote integers to floats if any of the arguments is a float. Division `/` always promotes arguments
   to floats, for integer division use `//`.
 - Numerical comparison operators `<`, `=`, `>`, e.g. `(< x1 x2 ...)`.
-- Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `string?`, `symbol?`, `procedure?`, `vector?` and
+- Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `string?`, `symbol?`, `procedure?`, and
   other checkers: `integer?`, `float?`, `null?` (empty list) and `nil?` (null value).
 - `->int` and `->float` transformations from any numeric types to integers and floats.
 - `(string expr ...)` converts *expr*s to string, `(display expr ...)` prints them, `(newline)` prints new line,
   and `(error expr ...)` raises exceptions with *expr*s as a message. `(substring str start end)` cuts the *start:end*
   slice of the *str* string. `(string-length str)` returns the length of a string.
-- [Vectors] can be created using `(vector x1 x2 ...)` or the `#(x1 x2 ...)` shorthand. `(make-vector size default)`
-  creates a vector of length *size* filled with optional *default* values. `vector->list` and `list->vector` can be
-  used for transformations between the two data types. `vector-length` returns the size of the vector.
-  `(vector-ref vec pos)` returns element from the *pos* position of the vector *vec*.
-  `(vector-set! vec pos val)` sets the element at the *pos* position of the vector *vec* to the value *val*.
-- `(load path)` reads and executes the code from *path* and returns the result of the last expression in the file.
-- There are two map procedures `map` and `go` that apply the function to each element of the list. `(go func list)`
-  is a parallel map function that runs `(func x)` for each element of the *list*. `go` procedure ignores the upstream
-  errors: when `(func x)` errors, the result for the evaluation would be `<nil>`. It assumes pure functions
-  and is not thread-safe when it comes to writing operations, so it can panic when using procedures like `set!`.
-  `map` works sequentially and doesn't have those limitations.
 - You can run `(debug #t/#f)` to turn the debug mode on and off. In debug mode, all the evaluated expressions and
   their enclosing environments are printed. `(timeit expr)` measures and prints evaluation time of the *expr*.
 
@@ -185,12 +168,5 @@ That's it. Nothing more is needed to build a minimal Scheme.
  [S-expression]: https://en.wikipedia.org/wiki/S-expression
  [*lexical scoping* or *closures*]: https://en.wikipedia.org/wiki/Closure_(computer_programming)
  [tail-call optimized]: https://stackoverflow.com/questions/310974/what-is-tail-call-optimization
- [loop iterator]: https://www.schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-7.html#%_sec_4.2.4
- [syntactic closures]: https://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.18.3867
- [Lisp-style macros]: https://www.cs.utexas.edu/ftp/garbage/cs345/schintro-v14/schintro_130.html#SEC190
- [dotted pair notation]: https://www.gnu.org/software/emacs/manual/html_node/elisp/Dotted-Pair-Notation.html
+  [loop iterator]: https://www.schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-7.html#%_sec_4.2.4
  [proper]: https://wiki.c2.com/?ProperList
- [vectors]: https://www.scheme.com/tspl4/objects.html#./objects:h9
- [more advanced]: https://www.scheme.com/tspl4/syntax.html
- [hygienic macros]: https://docs.scheme.org/guide/macros/
- [pattern-based]: https://cs.brown.edu/courses/cs173/2008/Manual/guide/pattern-macros.html

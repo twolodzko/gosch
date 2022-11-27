@@ -2,8 +2,6 @@ package main
 
 import (
 	"fmt"
-	"regexp"
-	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -47,73 +45,12 @@ func Test_EnvAndVariables(t *testing.T) {
 	}
 }
 
-func Test_JustRunGo(t *testing.T) {
-	env := envir.NewEnv()
-
-	code := `
-	(define (add100 x) (+ x 100))
-	(go
-		(lambda (f)
-			(go f (list 1 (+ 1 1) 3)))
-		(list
-			(lambda (x) (* x 10))
-			(lambda (x) (- 0 x))
-			add100))
-	`
-
-	result, _, err := eval.EvalString(code, env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-	}
-	if len(result) == 0 {
-		t.Errorf("got empty result")
-	}
-
-	re := regexp.MustCompile(`([()]|-?\d+)`)
-
-	fields := re.FindAllString(fmt.Sprintf("%v", result[len(result)-1]), -1)
-	sort.Strings(fields)
-
-	expected := re.FindAllString("((30 10 20) (-3 -2 -1) (103 101 102))", -1)
-	sort.Strings(expected)
-
-	if !cmp.Equal(fields, expected) {
-		t.Errorf("expected %v got %v", expected, fields)
-	}
-}
-
 func Test_Load(t *testing.T) {
 	env := envir.NewEnv()
 
 	_, _, err := eval.EvalString(`(load "examples/hello.scm")`, env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
-	}
-}
-
-func Test_MapFunction(t *testing.T) {
-	env := envir.NewEnv()
-
-	code := `
-	(define add1 (lambda (x) (+ 1 x)))
-	(define map (lambda (f items)
-		(if (null? items)
-			'()
-			(cons (f (car items))
-				(map f (cdr items))))))
-	(map add1 '(1 2 3))
-	`
-	expected := types.NewPair(types.Integer(2), types.Integer(3), types.Integer(4))
-
-	result, _, err := eval.EvalString(code, env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-	}
-	if len(result) == 0 {
-		t.Errorf("empty result")
-	}
-	if !cmp.Equal(result[len(result)-1], expected) {
-		t.Errorf("for %v expected %v, got %v", code, expected, result[len(result)-1])
 	}
 }
 

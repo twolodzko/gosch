@@ -3,8 +3,6 @@ package scheme
 import (
 	"fmt"
 	"math"
-	"regexp"
-	"sort"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
@@ -401,44 +399,6 @@ func Test_ParseEvalPrint(t *testing.T) {
 		{"(eval ''(+ 3 4))", "(+ 3 4)"},
 		{"(eval (list + 3 4))", "7"},
 		{"(eval (cons + '(3 4)))", "7"},
-		{"(map (lambda (x) x) '(1 2 3))", "(1 2 3)"},
-		{"(map (lambda (f) (eval '(f 1 2 3))) '(+ -))", "(6 -4)"},
-		{"(vector)", "#()"},
-		{"(vector 'a 'b 'c)", "#(a b c)"},
-		{"(vector-length (vector))", "0"},
-		{"(vector-length (vector 'a 'b 'c))", "3"},
-		{"(vector-length '#())", "0"},
-		{"(vector-length '#(a b c))", "3"},
-		{"(vector-length (vector 1 '(2) 3 '#(4 5)))", "4"},
-		{"(make-vector 0)", "#()"},
-		{"(make-vector 0 #t)", "#()"},
-		{"(make-vector 3 #t)", "#(#t #t #t)"},
-		{"(make-vector 0 '#(a))", "#()"},
-		{"(make-vector 5 '#(a))", "#(#(a) #(a) #(a) #(a) #(a))"},
-		{"(vector-ref (vector 1 2 3) 0)", "1"},
-		{"(vector-ref (vector 1 2 3) 2)", "3"},
-		{"(vector-ref '#(a b c) 0)", "a"},
-		{"(vector-ref '#(a b c) 1)", "b"},
-		{"(vector-ref '#(x y z w) 3)", "w"},
-		{"(let ((v (vector 'a 'b 'c 'd 'e))) (vector-set! v 2 'x) v)", "#(a b x d e)"},
-		{"(vector->list (vector))", "()"},
-		{"(vector->list (vector 'a 'b 'c))", "(a b c)"},
-		{"(list->vector '())", "#()"},
-		{"(list->vector '(a b c))", "#(a b c)"},
-		{"(vector? (vector))", "#t"},
-		{"(vector? #())", "#t"},
-		{"(vector? (vector 'a 'b))", "#t"},
-		{"(vector? '#(a b))", "#t"},
-		{"(vector? '())", "#f"},
-		{"(vector? '(1 2 3))", "#f"},
-		{"(vector? #t)", "#f"},
-		{"(eq? #() #())", "#t"},
-		{"(eq? #(1 2 3) #(1 2 3))", "#t"},
-		{"(eq? #(#()) #(#()))", "#t"},
-		{"(eq? #(1 2 3) #(1 2))", "#f"},
-		{"(eq? #(1 2) #(1 2 3))", "#f"},
-		{"(eq? #(#()) #(#() #()))", "#f"},
-		{"((macro (x y z) `(list ,x ,y ,z)) 1 (+ 1 1) (/ 6 2))", "(1 2 3)"},
 		{"(let* ((x 1) (y (* x 2))) (/ y x))", "2"},
 		{"(let ((x 0) (y 1)) (let* ((x y) (y x)) (list x y)))", "(1 1)"},
 		{"(let* ((x 2) (f (lambda (y) (+ x y)))) (f 5))", "7"},
@@ -811,32 +771,5 @@ func Test_DoFactorial(t *testing.T) {
 	}
 	if !cmp.Equal(result[0], expected) {
 		t.Errorf("expected: %v, got %v", expected, result[0])
-	}
-}
-
-func Test_goFn(t *testing.T) {
-	eval.Procedures = Procedures
-	env := envir.NewEnv()
-
-	code := "(go (lambda (x) (+ x 10)) (list 1 (+ 1 1) 3))"
-
-	result, _, err := eval.EvalString(code, env)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-	}
-	if len(result) == 0 {
-		t.Errorf("got empty result")
-	}
-
-	re := regexp.MustCompile(`([()]|-?\d+)`)
-
-	fields := re.FindAllString(fmt.Sprintf("%v", result[0]), -1)
-	sort.Strings(fields)
-
-	expected := re.FindAllString("(11 12 13)", -1)
-	sort.Strings(expected)
-
-	if !cmp.Equal(fields, expected) {
-		t.Errorf("expected %v got %v", expected, fields)
 	}
 }

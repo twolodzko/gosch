@@ -84,66 +84,36 @@ func Test_Cons(t *testing.T) {
 }
 
 func Test_AppendablePair(t *testing.T) {
-	var result, expected *Pair
-
-	ap := NewAppendablePair()
-
-	if !ap.ToPair().IsNull() {
-		t.Errorf("expected null pair got %v", ap.ToPair())
-	}
-
-	ap.Append(1)
-	result = ap.ToPair()
-	expected = &Pair{1, nil}
-	if !cmp.Equal(result, expected) {
-		t.Errorf("expected %v got %v", expected, result)
-	}
-
-	ap.Append(2)
-	result = ap.ToPair()
-	expected = &Pair{1, &Pair{2, nil}}
-	if !cmp.Equal(result, expected) {
-		t.Errorf("expected %v got %v", expected, result)
-	}
-
-	ap.Append(&Pair{3, nil})
-	result = ap.ToPair()
-	expected = &Pair{1, &Pair{2, &Pair{&Pair{3, nil}, nil}}}
-	if !cmp.Equal(result, expected) {
-		t.Errorf("expected %v got %v", expected, result)
-	}
-}
-
-func Test_ExtendAppendablePair(t *testing.T) {
 	var testCases = []struct {
-		init     []Sexpr
-		extend   *Pair
-		append   Sexpr
+		input    []Sexpr
 		expected *Pair
 	}{
-		{nil, &Pair{}, nil, &Pair{}},
-		{nil, &Pair{1, nil}, nil, &Pair{1, nil}},
-		{nil, NewPair(1, 2), nil, NewPair(1, 2)},
-		{nil, &Pair{&Pair{}, nil}, nil, &Pair{&Pair{}, nil}},
-		{[]Sexpr{1, 2, 3}, &Pair{}, nil, NewPair(1, 2, 3)},
-		{[]Sexpr{1, 2, 3}, &Pair{4, nil}, nil, NewPair(1, 2, 3, 4)},
-		{[]Sexpr{1, 2, 3}, NewPair(4, 5), nil, NewPair(1, 2, 3, 4, 5)},
-		{[]Sexpr{1, 2, 3}, &Pair{4, nil}, 5, NewPair(1, 2, 3, 4, 5)},
-		{[]Sexpr{1, 2, &Pair{}}, &Pair{&Pair{}, nil}, 3, NewPair(1, 2, &Pair{}, &Pair{}, 3)},
+		{
+			[]Sexpr{},
+			&Pair{},
+		},
+		{
+			[]Sexpr{1},
+			&Pair{1, nil},
+		},
+		{
+			[]Sexpr{1, 2, 3},
+			&Pair{1, &Pair{2, &Pair{3, nil}}},
+		},
+		{
+			[]Sexpr{1, 2, &Pair{3, nil}},
+			&Pair{1, &Pair{2, &Pair{&Pair{3, nil}, nil}}},
+		},
 	}
 
 	for _, tt := range testCases {
 		ap := NewAppendablePair()
-		for _, val := range tt.init {
-			ap.Append(val)
-		}
-		ap.Extend(tt.extend)
-		if tt.append != nil {
-			ap.Append(tt.append)
+		for _, v := range tt.input {
+			ap.Append(v)
 		}
 		result := ap.ToPair()
 		if !cmp.Equal(result, tt.expected) {
-			t.Errorf("for %v, %q, %v expected %v, got: %v", tt.init, tt.extend, tt.append, tt.expected, result)
+			t.Errorf("expected %v got %v", tt.expected, result)
 		}
 	}
 }

@@ -48,7 +48,7 @@ func Debug(args *types.Pair) (types.Sexpr, error) {
 // `timeit` procedure
 func Timeit(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	start := time.Now()
-	result, err := eval.EvalAll(args, env)
+	_, result, err := eval.EvalEach(args, env)
 	if err != nil {
 		return nil, err
 	}

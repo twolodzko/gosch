@@ -35,11 +35,12 @@ func Do(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 			return nil, err
 		}
 		if stop {
-			return eval.EvalAll(job.clause.Next, job.env)
+			_, result, err := eval.EvalEach(job.clause.Next, job.env)
+			return result, err
 		}
 
 		// eval body
-		_, err = eval.EvalAll(job.body, job.env)
+		_, _, err = eval.EvalEach(job.body, job.env)
 		if err != nil {
 			return nil, err
 		}

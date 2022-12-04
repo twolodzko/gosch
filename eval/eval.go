@@ -32,7 +32,7 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 
 			switch fn := callable.(type) {
 			case Primitive:
-				args, err := evalArgs(args, env)
+				args, _, err := EvalEach(args, env)
 				if err != nil {
 					return nil, err
 				}
@@ -75,24 +75,6 @@ func getSymbol(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 	}
 }
 
-func evalArgs(pair *types.Pair, env *envir.Env) (*types.Pair, error) {
-	if pair == nil {
-		return nil, nil
-	}
-	var head *types.Pair
-	args := types.NewAppendablePair()
-	head = pair
-	for head != nil {
-		sexpr, err := Eval(head.This, env)
-		if err != nil {
-			return nil, err
-		}
-		args.Append(sexpr)
-		head = head.Next
-	}
-	return args.ToPair(), nil
-}
-
 // Evaluate all args but last, return the last arg and the enclosing environment
 func PartialEval(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
 	if args == nil {
@@ -109,9 +91,13 @@ func PartialEval(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, err
 	return current.This, env, nil
 }
 
-// Evaluate all expressions, return the last result
-func EvalAll(exprs *types.Pair, env *envir.Env) (types.Sexpr, error) {
+// Evaluate all expressions, return all the results and the last result
+func EvalEach(exprs *types.Pair, env *envir.Env) (*types.Pair, types.Sexpr, error) {
+	if exprs == nil {
+		return nil, nil, nil
+	}
 	var (
+		vals   = types.NewAppendablePair()
 		result types.Sexpr
 		err    error
 	)
@@ -119,9 +105,10 @@ func EvalAll(exprs *types.Pair, env *envir.Env) (types.Sexpr, error) {
 	for head != nil {
 		result, err = Eval(head.This, env)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
+		vals.Append(result)
 		head = head.Next
 	}
-	return result, nil
+	return vals.ToPair(), result, err
 }

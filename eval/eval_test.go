@@ -9,7 +9,7 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func Test_EvalArgs(t *testing.T) {
+func Test_EvalEach(t *testing.T) {
 	input := types.NewPair(parser.Quote("a"), parser.Quote("b"))
 	expected := types.NewPair("a", "b")
 
@@ -23,7 +23,7 @@ func Test_EvalArgs(t *testing.T) {
 	}
 	env := envir.NewEnv()
 
-	result, err := evalArgs(input, env)
+	result, _, err := EvalEach(input, env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
 	}

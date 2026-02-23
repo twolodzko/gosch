@@ -276,10 +276,10 @@
       (else (cons (car lat)
                   (rempick (sub1 n) (cdr lat)))))))
 
-;; (Primitive)
-;; Predicate for determining if a value is a numeric atom, i.e. a non-negative integer, or not
-(define number? (lambda (x)
-  (exact-nonnegative-integer? x)))
+;; ;; (Primitive)
+;; ;; Predicate for determining if a value is a numeric atom, i.e. a non-negative integer, or not
+;; (define number? (lambda (x)
+;;   (exact-nonnegative-integer? x)))
 
 ;; Removes all numbers from lat, a list of atoms
 (define no-nums

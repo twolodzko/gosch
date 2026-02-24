@@ -46,7 +46,7 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
   to floats, for integer division use `//`.
 - Numerical comparison operators `<`, `=`, `>`, e.g. `(< x1 x2 ...)`.
 - Checkers for the [disjoint types]: `pair?`, `number?`, `boolean?`, `string?`, `symbol?`, `procedure?`, and
-  other checkers: `integer?`, `float?`, `null?` (empty list) and `nil?` (null value).
+  other checkers: `integer?`, `float?`, and `null?` (empty list).
 - `->int` and `->float` transformations from any numeric types to integers and floats.
 - `(string expr ...)` converts *expr*s to string, `(display expr ...)` prints them, `(newline)` prints new line,
   and `(error expr ...)` raises exceptions with *expr*s as a message. `(substring str start end)` cuts the *start:end*
@@ -74,14 +74,15 @@ Comments begin with `;` and everything that follows, from the semicolon until th
    As in every Lisp, they are written as `(this next)`. The pair has a head and tail,
    that can be accessed using the `car` and `cdr` procedures.
 
-   ```
+   ```text
      ( elem1 ( elem2 ( elem3 ( ... ))))
    1    car  └───────── cdr ─────────┘
    2            car  └───── cdr ────┘
    3                    car  └ cdr ┘
    ```
 
-   Pairs can be empty `()`, we call them the *null* lists.
+   Pairs can be empty `()`, we call them the *null* lists. A [proper] list is the one
+   that has an empty list as the last element.
 
    Accessing the first element of the linked list, removing it, or prepending pair
    with a new value have O(1) complexity, so those operations would happen the
@@ -131,7 +132,7 @@ Comments begin with `;` and everything that follows, from the semicolon until th
     calls into a for-loop. The simplified code below illustrates this:
 
     ```go
-    func Eval(sexpr any, env *Env) Any {
+    func Eval(sexpr any, env *Env) any {
         for {
             switch val := sexpr.(type) {
             case Symbol:
@@ -139,9 +140,9 @@ Comments begin with `;` and everything that follows, from the semicolon until th
             case Pair:
                 fn := Eval(val.This, env)
                 switch fn := fn.(type) {
-                case Primitive:
+                case Procedure:
                     return fn(val.Next, env)
-                case TailCallOptimized:
+                case TailCallOpt:
                     sexpr, env = fn(val.Next, env)
                 }
             default:
@@ -153,16 +154,15 @@ Comments begin with `;` and everything that follows, from the semicolon until th
 
 That's it. Nothing more is needed to build a minimal Scheme.
 
-
- [pairs]: https://web.mit.edu/scheme_v9.2/doc/mit-scheme-ref/Lists.html#Lists
- [linked lists]: https://en.wikipedia.org/wiki/Linked_list
- [disjoint types]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_5.html#SEC23
- [lambda expression]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_6.html#SEC30
- [properly tail-recursive]: https://github.com/kanaka/mal/blob/master/process/guide.md#step-5-tail-call-optimization
- [required by Scheme]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_3.html#SEC6
- [it is not the same]: https://stackoverflow.com/questions/34984552/what-is-the-difference-between-quote-and-list
- [S-expression]: https://en.wikipedia.org/wiki/S-expression
- [*lexical scoping* or *closures*]: https://en.wikipedia.org/wiki/Closure_(computer_programming)
- [tail-call optimized]: https://stackoverflow.com/questions/310974/what-is-tail-call-optimization
-  [loop iterator]: https://www.schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-7.html#%_sec_4.2.4
- [proper]: https://wiki.c2.com/?ProperList
+[pairs]: https://web.mit.edu/scheme_v9.2/doc/mit-scheme-ref/Lists.html#Lists
+[linked lists]: https://en.wikipedia.org/wiki/Linked_list
+[disjoint types]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_5.html#SEC23
+[lambda expression]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_6.html#SEC30
+[properly tail-recursive]: https://github.com/kanaka/mal/blob/master/process/guide.md#step-5-tail-call-optimization
+[required by Scheme]: https://www.cs.cmu.edu/Groups/AI/html/r4rs/r4rs_3.html#SEC6
+[it is not the same]: https://stackoverflow.com/questions/34984552/what-is-the-difference-between-quote-and-list
+[S-expression]: https://en.wikipedia.org/wiki/S-expression
+[*lexical scoping* or *closures*]: https://en.wikipedia.org/wiki/Closure_(computer_programming)
+[tail-call optimized]: https://stackoverflow.com/questions/310974/what-is-tail-call-optimization
+[loop iterator]: https://www.schemers.org/Documents/Standards/R5RS/HTML/r5rs-Z-H-7.html#%_sec_4.2.4
+[proper]: https://wiki.c2.com/?ProperList

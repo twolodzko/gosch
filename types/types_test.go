@@ -1,151 +1,77 @@
 package types
 
 import (
-	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 )
 
-func Test_NewPairMulti(t *testing.T) {
-	var testCases = []struct {
-		input    []Sexpr
-		expected *Pair
-	}{
-		{[]Sexpr{}, &Pair{}},
-		{[]Sexpr{Integer(1)}, &Pair{Integer(1), nil}},
-		{[]Sexpr{Integer(1), Integer(2)}, &Pair{Integer(1), &Pair{Integer(2), nil}}},
-		{[]Sexpr{Integer(1), Integer(2), Integer(3)}, &Pair{Integer(1), &Pair{Integer(2), &Pair{Integer(3), nil}}}},
-	}
-
-	for _, tt := range testCases {
-		result := NewPair(tt.input...)
-		if !cmp.Equal(result, tt.expected) {
-			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
-		}
-	}
-}
-
-func Test_MakePair(t *testing.T) {
-	var testCases = []struct {
-		x, y     Sexpr
-		expected *Pair
-	}{
-		{nil, nil, &Pair{}},
-		{1, nil, &Pair{1, nil}},
-		{1, 2, &Pair{1, &Pair{2, nil}}},
-		{1, &Pair{2, nil}, &Pair{1, &Pair{2, nil}}},
-		{1, &Pair{&Pair{2, nil}, nil}, &Pair{1, &Pair{&Pair{2, nil}, nil}}},
-	}
-
-	for _, tt := range testCases {
-		result := MakePair(tt.x, tt.y)
-		if !cmp.Equal(result, tt.expected) {
-			t.Errorf("for %q and %q expected %v, got: %v", tt.x, tt.y, tt.expected, result)
-		}
-	}
-}
-
-func Test_PairString(t *testing.T) {
+func TestString(t *testing.T) {
 	var testCases = []struct {
 		input    Pair
 		expected string
 	}{
-		{Pair{}, "()"},
-		{Pair{Integer(1), nil}, "(1)"},
-		{Pair{Integer(1), &Pair{Integer(2), nil}}, "(1 2)"},
+		{
+			Cons(1, 2),
+			"(1 . 2)",
+		},
+		{
+			Cons(1, Cons(2, 3)),
+			"(1 2 . 3)",
+		},
+		{
+			Cons(1, 2, 3, 4),
+			"(1 2 3 . 4)",
+		},
+		{
+			Cons(1, 2, 3, nil),
+			"(1 2 3)",
+		},
+		{
+			List(1, 2, 3).(Pair),
+			"(1 2 3)",
+		},
+		{
+			List(1, 2, 3, nil).(Pair),
+			"(1 2 3 ())",
+		},
+		{
+			List(true).(Pair),
+			"(#t)",
+		},
 	}
-
 	for _, tt := range testCases {
 		result := tt.input.String()
 		if result != tt.expected {
-			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
+			t.Errorf("expected '%s', got '%s'", tt.expected, result)
 		}
 	}
 }
 
-func Test_Cons(t *testing.T) {
-	var testCases = []struct {
-		value    Sexpr
-		pair     *Pair
-		expected *Pair
-	}{
-		{"a", &Pair{}, &Pair{"a", nil}},
-		{&Pair{}, &Pair{}, &Pair{&Pair{}, nil}},
-		{"a", &Pair{"b", &Pair{"c", nil}}, &Pair{"a", &Pair{"b", &Pair{"c", nil}}}},
+func TestRepack(t *testing.T) {
+	input := List(1, 2, 3).(Pair)
+
+	result := Cons(input.Map(func(val any) any { return val })...)
+	if !reflect.DeepEqual(input, result) {
+		t.Errorf("cons after map failed: %v", result)
 	}
 
-	for _, tt := range testCases {
-		result := tt.pair.Cons(tt.value)
-		if !cmp.Equal(result, tt.expected) {
-			t.Errorf("for %q and %q expected %v, got: %v", tt.pair, tt.value, tt.expected, result)
-		}
+	cons := Cons(1, 2, 3, nil)
+	if !reflect.DeepEqual(cons, result) {
+		t.Errorf("cons does not return same result as list: %v", cons)
 	}
 }
 
-func Test_AppendablePair(t *testing.T) {
+func TestIsTrue(t *testing.T) {
 	var testCases = []struct {
-		input    []Sexpr
-		expected *Pair
-	}{
-		{
-			[]Sexpr{},
-			&Pair{},
-		},
-		{
-			[]Sexpr{1},
-			&Pair{1, nil},
-		},
-		{
-			[]Sexpr{1, 2, 3},
-			&Pair{1, &Pair{2, &Pair{3, nil}}},
-		},
-		{
-			[]Sexpr{1, 2, &Pair{3, nil}},
-			&Pair{1, &Pair{2, &Pair{&Pair{3, nil}, nil}}},
-		},
-	}
-
-	for _, tt := range testCases {
-		ap := NewAppendablePair()
-		for _, v := range tt.input {
-			ap.Append(v)
-		}
-		result := ap.ToPair()
-		if !cmp.Equal(result, tt.expected) {
-			t.Errorf("expected %v got %v", tt.expected, result)
-		}
-	}
-}
-
-func Test_String(t *testing.T) {
-	var testCases = []struct {
-		input    Sexpr
-		expected string
-	}{
-		{Pair{"a", nil}, "(a)"},
-		{Bool(true), "#t"},
-		{Bool(false), "#f"},
-	}
-
-	for _, tt := range testCases {
-		result := fmt.Sprintf("%v", tt.input)
-		if result != tt.expected {
-			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
-		}
-	}
-}
-
-func Test_IsTrue(t *testing.T) {
-	var testCases = []struct {
-		input    Sexpr
-		expected Bool
+		input    any
+		expected bool
 	}{
 		{nil, true},
-		{Bool(true), true},
-		{Bool(false), false},
 		{&Pair{}, true},
-		{NewPair(1, 2), true},
+		{List(1, 2), true},
+		{Cons(1, 2), true},
 		{Integer(0), true},
 		{Integer(1), true},
 	}
@@ -158,14 +84,14 @@ func Test_IsTrue(t *testing.T) {
 	}
 }
 
-func Test_PairLen(t *testing.T) {
+func TestPairLen(t *testing.T) {
 	var testCases = []struct {
-		example  *Pair
+		example  Pair
 		expected int
 	}{
-		{&Pair{}, 0},
-		{&Pair{1, nil}, 1},
-		{&Pair{1, &Pair{2, &Pair{3, nil}}}, 3},
+		{Pair{}, 1},
+		{Pair{1, nil}, 1},
+		{Pair{1, Pair{2, Pair{3, nil}}}, 3},
 	}
 
 	for _, tt := range testCases {

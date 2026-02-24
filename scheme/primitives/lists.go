@@ -1,57 +1,62 @@
 package primitives
 
 import (
+	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
 
-func Car(args *types.Pair) (types.Sexpr, error) {
-	if args == nil {
-		return nil, eval.ErrBadArgNumber
+var _ eval.Procedure = Car
+var _ eval.Procedure = Cdr
+var _ eval.Procedure = Cons
+
+func Car(args any, env *envir.Env) (any, error) {
+	p, ok := args.(types.Pair)
+	if !ok {
+		return nil, eval.SyntaxError
 	}
-	switch val := args.This.(type) {
-	case *types.Pair:
-		return val.This, nil
+	v, err := eval.Eval(p.This, env)
+	if err != nil {
+		return nil, err
+	}
+
+	switch p := v.(type) {
+	case types.Pair:
+		return p.This, nil
 	default:
-		return nil, eval.NewErrNonList(args.This)
+		return nil, eval.NonList{Val: v}
 	}
 }
 
-func Cdr(args *types.Pair) (types.Sexpr, error) {
-	if args == nil {
-		return nil, eval.ErrBadArgNumber
+func Cdr(args any, env *envir.Env) (any, error) {
+	p, ok := args.(types.Pair)
+	if !ok {
+		return nil, eval.SyntaxError
 	}
-	switch val := args.This.(type) {
-	case *types.Pair:
-		if val.IsNull() {
-			return nil, nil
-		}
-		switch {
-		case val.Next == nil:
-			return &types.Pair{}, nil
-		default:
-			return val.Next, nil
-		}
+	v, err := eval.Eval(p.This, env)
+	if err != nil {
+		return nil, err
+	}
+	switch p := v.(type) {
+	case types.Pair:
+		return p.Next, nil
 	default:
-		return nil, eval.NewErrNonList(args.This)
+		return nil, eval.NonList{Val: v}
 	}
 }
 
-func Cons(args *types.Pair) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return nil, eval.ErrBadArgNumber
+func Cons(args any, env *envir.Env) (any, error) {
+	a, b, err := eval.EvalTwo(args, env)
+	if err != nil {
+		return nil, err
 	}
-	switch val := args.Next.This.(type) {
-	case *types.Pair:
-		return val.Cons(args.This), nil
-	default:
-		return List(args)
-	}
+	return types.Cons(a, b), nil
 }
 
-func List(args *types.Pair) (types.Sexpr, error) {
+func List(args any, env *envir.Env) (any, error) {
 	if args == nil {
-		return &types.Pair{}, nil
+		return nil, nil
 	}
-	return args, nil
+	vals, err := eval.ListMapEval(args, env)
+	return types.List(vals...), err
 }

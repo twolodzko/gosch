@@ -7,21 +7,17 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
+func Eval(sexpr any, env *envir.Env) (any, error) {
 	for {
-		if DEBUG {
-			fmt.Printf(" ↪ Step: %v\n", sexpr)
-			fmt.Printf("   Env:  %v\n", env)
+		if Debug {
+			fmt.Printf(" ↪ eval:  %v\n", types.ToString(sexpr))
+			fmt.Printf("   env:   %v\n", env)
 		}
 
 		switch val := sexpr.(type) {
 		case types.Symbol:
 			return getSymbol(val, env)
-		case *types.Pair:
-			if val.IsNull() {
-				return &types.Pair{}, nil
-			}
-
+		case types.Pair:
 			name := val.This
 			args := val.Next
 
@@ -31,17 +27,10 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 			}
 
 			switch fn := callable.(type) {
-			case Primitive:
-				args, _, err := EvalEach(args, env)
-				if err != nil {
-					return nil, err
-				}
-				sexpr, err := fn(args)
-				return sexpr, NewTraceback(name, err)
 			case Procedure:
-				sexpr, err := fn(args, env)
-				return sexpr, NewTraceback(name, err)
-			case TailCallOptimized:
+				val, err := fn(args, env)
+				return val, NewTraceback(name, err)
+			case TailCallOpt:
 				sexpr, env, err = fn(args, env)
 				if err != nil {
 					return nil, NewTraceback(name, err)
@@ -52,7 +41,7 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 					return nil, NewTraceback(name, err)
 				}
 			default:
-				return nil, fmt.Errorf("%v is not callable", fn)
+				return nil, fmt.Errorf("%v is not callable", types.ToString(fn))
 			}
 		default:
 			return sexpr, nil
@@ -60,12 +49,9 @@ func Eval(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 	}
 }
 
-func getSymbol(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
+func getSymbol(sexpr any, env *envir.Env) (any, error) {
 	switch val := sexpr.(type) {
 	case types.Symbol:
-		if fn, ok := Procedures[val]; ok {
-			return fn, nil
-		}
 		if val, ok := env.Get(val); ok {
 			return val, nil
 		}
@@ -76,39 +62,69 @@ func getSymbol(sexpr types.Sexpr, env *envir.Env) (types.Sexpr, error) {
 }
 
 // Evaluate all args but last, return the last arg and the enclosing environment
-func PartialEval(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
-	if args == nil {
-		return nil, env, nil
-	}
-	current := args
-	for current.HasNext() {
-		_, err := Eval(current.This, env)
-		if err != nil {
-			return nil, nil, err
+func PartialEval(args any, env *envir.Env) (any, *envir.Env, error) {
+	head := args
+	for {
+		switch p := head.(type) {
+		case types.Pair:
+			if p.Next == nil {
+				return p.This, env, nil
+			}
+			if _, err := Eval(p.This, env); err != nil {
+				return nil, nil, err
+			}
+			head = p.Next
+		default:
+			return head, env, nil
 		}
-		current = current.Next
 	}
-	return current.This, env, nil
 }
 
-// Evaluate all expressions, return all the results and the last result
-func EvalEach(exprs *types.Pair, env *envir.Env) (*types.Pair, types.Sexpr, error) {
-	if exprs == nil {
-		return nil, nil, nil
+func EvalOne(args any, env *envir.Env) (any, error) {
+	p, ok := args.(types.Pair)
+	if !ok {
+		return nil, SyntaxError
 	}
+	if p.Next != nil {
+		return nil, ArityError
+	}
+	return Eval(p.This, env)
+}
+
+// Evaluate two expressions
+func EvalTwo(args any, env *envir.Env) (any, any, error) {
+	p, ok := args.(types.Pair)
+	if !ok {
+		return nil, nil, SyntaxError
+	}
+	a, err := Eval(p.This, env)
+	if err != nil {
+		return nil, nil, err
+	}
+	p, ok = p.Next.(types.Pair)
+	if !ok || p.Next != nil {
+		return nil, nil, ArityError
+	}
+	b, err := Eval(p.This, env)
+	return a, b, err
+}
+
+func ListMapEval(list any, env *envir.Env) ([]any, error) {
 	var (
-		vals   = types.NewAppendablePair()
-		result types.Sexpr
-		err    error
+		head any = list
+		acc  []any
 	)
-	head := exprs
 	for head != nil {
-		result, err = Eval(head.This, env)
-		if err != nil {
-			return nil, nil, err
+		p, ok := head.(types.Pair)
+		if !ok {
+			return nil, NonList{list}
 		}
-		vals.Append(result)
-		head = head.Next
+		res, err := Eval(p.This, env)
+		if err != nil {
+			return nil, err
+		}
+		acc = append(acc, res)
+		head = p.Next
 	}
-	return vals.ToPair(), result, err
+	return acc, nil
 }

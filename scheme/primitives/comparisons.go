@@ -3,11 +3,85 @@ package primitives
 import (
 	"reflect"
 
+	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
 
-func sameCallables(obj1, obj2 types.Sexpr) bool {
+func Eq(args any, env *envir.Env) (any, error) {
+	lhs, rhs, err := eval.EvalTwo(args, env)
+	if err != nil {
+		return nil, err
+	}
+	// TODO: validate it again
+	// you can't compare functions and structs directly in Go
+	if isCallable(lhs) {
+		return sameCallables(lhs, rhs), nil
+	}
+	return reflect.DeepEqual(lhs, rhs), nil
+}
+
+func Equal(args any, env *envir.Env) (any, error) {
+	if args == nil {
+		return true, nil
+	}
+	vals, err := eval.ListMapEval(args, env)
+	if err != nil {
+		return nil, err
+	}
+	var last = vals[0]
+	for i := 1; i < len(vals); i++ {
+		if last != vals[i] {
+			return false, nil
+		}
+		last = vals[i]
+	}
+	return true, nil
+}
+
+func Lower(args any, env *envir.Env) (any, error) {
+	if args == nil {
+		return nil, eval.ArityError
+	}
+	vals, err := eval.ListMapEval(args, env)
+	if err != nil {
+		return nil, err
+	}
+	last, ok := vals[0].(types.Comparable)
+	if !ok {
+		return nil, eval.NaN{Val: vals[0]}
+	}
+	for i := 1; i < len(vals); i++ {
+		if ok, err := last.Lower(vals[i]); !ok || err != nil {
+			return false, err
+		}
+		last = vals[i].(types.Comparable)
+	}
+	return true, nil
+}
+
+func Greater(args any, env *envir.Env) (any, error) {
+	if args == nil {
+		return nil, eval.ArityError
+	}
+	vals, err := eval.ListMapEval(args, env)
+	if err != nil {
+		return nil, err
+	}
+	last, ok := vals[0].(types.Comparable)
+	if !ok {
+		return nil, eval.NaN{Val: vals[0]}
+	}
+	for i := 1; i < len(vals); i++ {
+		if ok, err := last.Greater(vals[i]); !ok || err != nil {
+			return false, err
+		}
+		last = vals[i].(types.Comparable)
+	}
+	return true, nil
+}
+
+func sameCallables(obj1, obj2 any) bool {
 	v1 := reflect.ValueOf(obj1)
 	v2 := reflect.ValueOf(obj2)
 	if v1.Kind() == reflect.Func {
@@ -21,90 +95,4 @@ func sameCallables(obj1, obj2 types.Sexpr) bool {
 		}
 	}
 	return false
-}
-
-func Eq(args *types.Pair) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return nil, eval.ErrBadArgNumber
-	}
-	// you can't compare functions and structs directly in Go
-	if isCallable(args.This) {
-		return types.Bool(sameCallables(args.This, args.Next.This)), nil
-	}
-	return types.Bool(reflect.DeepEqual(args.This, args.Next.This)), nil
-}
-
-func Equal(args *types.Pair) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return types.TRUE, nil
-	}
-	prev := args.This
-	head := args
-	for head.HasNext() {
-		head = head.Next
-		switch x := prev.(type) {
-		case types.Comparable:
-			test, err := x.Equal(head.This)
-			if err != nil {
-				return nil, err
-			}
-			if !test {
-				return types.FALSE, nil
-			}
-		default:
-			return nil, &types.ErrNaN{Val: head.This}
-		}
-		prev = head.This
-	}
-	return types.TRUE, nil
-}
-
-func Lower(args *types.Pair) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return types.TRUE, nil
-	}
-	prev := args.This
-	head := args
-	for head.HasNext() {
-		head = head.Next
-		switch x := prev.(type) {
-		case types.Comparable:
-			test, err := x.Lower(head.This)
-			if err != nil {
-				return nil, err
-			}
-			if !test {
-				return types.FALSE, nil
-			}
-		default:
-			return nil, &types.ErrNaN{Val: head.This}
-		}
-		prev = head.This
-	}
-	return types.TRUE, nil
-}
-
-func Greater(args *types.Pair) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return types.TRUE, nil
-	}
-	prev := args.This
-	head := args
-	for head.HasNext() {
-		head = head.Next
-		switch x := prev.(type) {
-		case types.Comparable:
-			test, err := x.Greater(head.This)
-			if err != nil {
-				return nil, err
-			}
-			if !test {
-				return types.FALSE, nil
-			}
-		default:
-			return nil, &types.ErrNaN{Val: head.This}
-		}
-		prev = head.This
-	}
-	return types.TRUE, nil
 }

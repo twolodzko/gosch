@@ -7,10 +7,10 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func Test_EnvGet(t *testing.T) {
+func TestEnvGet(t *testing.T) {
 	var testCases = []struct {
 		name  types.Symbol
-		value types.Sexpr
+		value any
 	}{
 		{"a", types.Symbol("xxx")},
 		{"b", 42},
@@ -32,10 +32,10 @@ func Test_EnvGet(t *testing.T) {
 	}
 }
 
-func Test_EnvGetUnbound(t *testing.T) {
+func TestEnvGetUnbound(t *testing.T) {
 	var values = []struct {
 		name  types.Symbol
-		value types.Sexpr
+		value any
 	}{
 		{"a", types.Symbol("xxx")},
 		{"b", 42},
@@ -52,7 +52,7 @@ func Test_EnvGetUnbound(t *testing.T) {
 	}
 }
 
-func Test_NestedEnvGet(t *testing.T) {
+func TestNestedEnvGet(t *testing.T) {
 	parent := NewEnv()
 	parent.Set(types.Symbol("x"), 1)
 	sybling := NewEnv()
@@ -61,7 +61,7 @@ func Test_NestedEnvGet(t *testing.T) {
 
 	var testCases = []struct {
 		name     types.Symbol
-		expected types.Sexpr
+		expected any
 	}{
 		{"x", 1},
 		{"y", 2},

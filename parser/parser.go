@@ -32,13 +32,13 @@ func (p *Parser) Following() rune {
 	return p.str[p.pos+1]
 }
 
-func (p *Parser) Read() ([]types.Sexpr, error) {
-	var sexprs []types.Sexpr
+func (p *Parser) Read() ([]any, error) {
+	var sexprs []any
 	for p.HasNext() {
 		if unicode.IsSpace(p.Head()) {
 			p.pos++
 		} else {
-			sexpr, err := p.readSexpr()
+			sexpr, err := p.Sexpr()
 			if err != nil && err != io.EOF {
 				return nil, err
 			}
@@ -51,7 +51,7 @@ func (p *Parser) Read() ([]types.Sexpr, error) {
 	return sexprs, nil
 }
 
-func (p *Parser) readSexpr() (types.Sexpr, error) {
+func (p *Parser) Sexpr() (any, error) {
 	for p.HasNext() {
 		if unicode.IsSpace(p.Head()) {
 			p.pos++
@@ -61,19 +61,19 @@ func (p *Parser) readSexpr() (types.Sexpr, error) {
 		switch p.Head() {
 		case '\'':
 			p.pos++
-			val, err := p.readSexpr()
+			val, err := p.Sexpr()
 			return Quote(val), err
 		case '`':
 			p.pos++
-			val, err := p.readSexpr()
-			return Quasiquote(val), err
+			val, err := p.Sexpr()
+			return quasiQuote(val), err
 		case ',':
 			p.pos++
-			val, err := p.readSexpr()
-			return Unquote(val), err
-		case '(', '[':
+			val, err := p.Sexpr()
+			return unquote(val), err
+		case '(':
 			return p.readPair()
-		case ')', ']':
+		case ')':
 			return nil, fmt.Errorf("unexpected closing bracket")
 		case '"':
 			return p.readString()
@@ -86,7 +86,7 @@ func (p *Parser) readSexpr() (types.Sexpr, error) {
 	return nil, io.EOF
 }
 
-func (p *Parser) readAtom() (types.Sexpr, error) {
+func (p *Parser) readAtom() (any, error) {
 	var runes []rune
 	for p.HasNext() {
 		if isWordBoundary(p.Head()) {
@@ -102,14 +102,12 @@ func (p *Parser) readAtom() (types.Sexpr, error) {
 	}
 }
 
-func parseAtom(str string) (types.Sexpr, error) {
+func parseAtom(str string) (any, error) {
 	switch {
 	case str == "#t":
-		return types.TRUE, nil
+		return true, nil
 	case str == "#f":
-		return types.FALSE, nil
-	case str == "nil":
-		return nil, nil
+		return false, nil
 	case isInt(str):
 		val, err := strconv.Atoi(str)
 		return types.Integer(val), err
@@ -130,32 +128,41 @@ func isFloat(str string) bool {
 	matched, _ := regexp.MatchString(`^[+-]?\d*\.?(?:\d+[eE]?[+-]?)?\d+$`, str)
 	return matched
 }
-
-func (p *Parser) readPair() (*types.Pair, error) {
+func (p *Parser) readPair() (any, error) {
 	p.pos++
-	ap := types.NewAppendablePair()
+	var acc []any
 	for p.HasNext() {
 		switch {
 		case unicode.IsSpace(p.Head()):
 			p.pos++
 		case isClosingBracket(p.Head()):
 			p.pos++
-			return ap.ToPair(), nil
-		default:
-			elem, err := p.readSexpr()
+			return types.List(acc...), nil
+		case p.Head() == '.':
+			p.pos++
+			tail, err := p.Sexpr()
 			if err != nil {
 				return nil, err
 			}
-			// ignore the dotted pair syntax
-			if elem != "." {
-				ap.Append(elem)
+			pair := types.Cons(append(acc, tail)...)
+			p.skipSpace()
+			if !isClosingBracket(p.Head()) {
+				return nil, fmt.Errorf("list was not closed with closing bracket")
 			}
+			p.pos++
+			return pair, nil
+		default:
+			elem, err := p.Sexpr()
+			if err != nil {
+				return nil, err
+			}
+			acc = append(acc, elem)
 		}
 	}
 	return nil, fmt.Errorf("list was not closed with closing bracket")
 }
 
-func (p *Parser) readString() (types.String, error) {
+func (p *Parser) readString() (string, error) {
 	p.pos++
 	var runes []rune
 	for p.HasNext() {
@@ -166,7 +173,7 @@ func (p *Parser) readString() (types.String, error) {
 		}
 		if p.Head() == '"' {
 			p.pos++
-			return types.String(runes), nil
+			return string(runes), nil
 		}
 		runes = append(runes, p.Head())
 		p.pos++
@@ -184,26 +191,35 @@ func (p *Parser) skipLine() {
 	}
 }
 
-func Quote(s types.Sexpr) types.Sexpr {
-	return types.NewPair("quote", s)
+func (p *Parser) skipSpace() {
+	for p.HasNext() {
+		if !unicode.IsSpace(p.Head()) {
+			break
+		}
+		p.pos++
+	}
 }
 
-func Quasiquote(s types.Sexpr) types.Sexpr {
-	return types.NewPair("quasiquote", s)
+func Quote(s any) any {
+	return types.List(types.Symbol("quote"), s)
 }
 
-func Unquote(s types.Sexpr) types.Sexpr {
-	return types.NewPair("unquote", s)
+func quasiQuote(s any) any {
+	return types.List(types.Symbol("quasiquote"), s)
+}
+
+func unquote(s any) any {
+	return types.List(types.Symbol("unquote"), s)
 }
 
 func isWordBoundary(r rune) bool {
-	return unicode.IsSpace(r) || isOpeningBracket(r) || isClosingBracket(r)
+	return unicode.IsSpace(r) || isOpeningBracket(r) || isClosingBracket(r) || r == '\''
 }
 
 func isOpeningBracket(r rune) bool {
-	return r == '(' || r == '['
+	return r == '('
 }
 
 func isClosingBracket(r rune) bool {
-	return r == ')' || r == ']'
+	return r == ')'
 }

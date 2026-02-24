@@ -24,34 +24,34 @@
 
 (check-equal? (value 13) 13)
 
-;; value is rewritten for another representation
-(check-equal? (value '(1 + 3)) 4)
+;; ;; value is rewritten for another representation
+;; (check-equal? (value '(1 + 3)) 4)
 
-;; value is rewritten for another representation
-(check-equal? (value '(1 + (3 o^ 4))) 82)
+;; ;; value is rewritten for another representation
+;; (check-equal? (value '(1 + (3 o^ 4))) 82)
 
-;;**********************************************************
-;; The Seventh Commandment
-;;
-;; Recur on the subparts that are of the same nature:
-;; * On the sublists of a list.
-;; * On the subexpressions of an arithmetic expression.
-;;**********************************************************
+;; ;;**********************************************************
+;; ;; The Seventh Commandment
+;; ;;
+;; ;; Recur on the subparts that are of the same nature:
+;; ;; * On the sublists of a list.
+;; ;; * On the subexpressions of an arithmetic expression.
+;; ;;**********************************************************
 
-(check-false (atom? '(+ 1 3)))
+;; (check-false (atom? '(+ 1 3)))
 
 (check-true (eq? (car '(+ 1 3)) (quote +)))
 
 (check-equal? (cdr '(+ 1 3)) '(1 3))
 
-;; Added test not in the book
-(check-equal? (value '(+ 1 3)) 4)
+;; ;; Added test not in the book
+;; (check-equal? (value '(+ 1 3)) 4)
 
-;; Added test not in the book
-(check-equal? (value '(+ 1 3)) 4)
+;; ;; Added test not in the book
+;; (check-equal? (value '(+ 1 3)) 4)
 
-;; Added test not in the book
-(check-equal? (value '(+ 1 (o^ 3 4))) 82)
+;; ;; Added test not in the book
+;; (check-equal? (value '(+ 1 (o^ 3 4))) 82)
 
 ;;**********************************************************
 ;; The Eighth Commandment

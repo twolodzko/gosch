@@ -6,105 +6,157 @@ import (
 )
 
 type Pair struct {
-	This Sexpr
-	Next *Pair
+	This any
+	Next any
 }
 
-func NewPair(elems ...Sexpr) *Pair {
-	switch len(elems) {
-	case 0:
-		return &Pair{}
-	case 1:
-		return &Pair{elems[0], nil}
-	default:
-		this := elems[0]
-		next := NewPair(elems[1:]...)
-		return &Pair{this, next}
+func List(elems ...any) any {
+	var tail any = nil
+	for i := len(elems) - 1; i >= 0; i-- {
+		tail = Pair{elems[i], tail}
 	}
+	return tail
 }
 
-func MakePair(this Sexpr, next Sexpr) *Pair {
-	switch next := next.(type) {
-	case *Pair:
-		return &Pair{this, next}
-	default:
-		if next == nil {
-			// explicitly created proper list with one element
-			return &Pair{this, nil}
-		}
-		return NewPair(this, next)
+func Cons(elems ...any) Pair {
+	last := len(elems) - 1
+	prev := elems[last]
+	var pair Pair
+	for i := last - 1; i >= 0; i-- {
+		pair = Pair{elems[i], prev}
+		prev = pair
 	}
+	return pair
 }
 
-func (p Pair) HasNext() Bool {
-	return p.Next != nil
-}
-
-func (p Pair) IsNull() Bool {
-	return p == (Pair{})
-}
-
-func (p *Pair) Cons(sexpr Sexpr) *Pair {
-	if p.IsNull() {
-		return &Pair{sexpr, nil}
-	}
-	return &Pair{sexpr, p}
-}
-
-func (p *Pair) Len() int {
-	if p.IsNull() {
-		return 0
-	}
-
+func (p Pair) Len() int {
 	var len int
-	head := p
-	for head != nil {
+	var head any = p
+	for {
+		switch p := head.(type) {
+		case Pair:
+			head = p.Next
+		case nil:
+			return len
+		default:
+			return len + 1
+		}
 		len++
-		head = head.Next
 	}
-	return len
 }
 
 func (p Pair) String() string {
-	switch p.This {
-	case "quote":
-		return fmt.Sprintf("'%v", p.Next.This)
-	case "quasiquote":
-		return fmt.Sprintf("`%v", p.Next.This)
-	case "unquote":
-		return fmt.Sprintf(",%v", p.Next.This)
+	if s, ok := p.This.(Symbol); ok {
+		switch s {
+		case "quote":
+			s := ToString(p.Next.(Pair).This)
+			return fmt.Sprintf("'%s", s)
+		case "quasiquote":
+			s := ToString(p.Next.(Pair).This)
+			return fmt.Sprintf("`%s", s)
+		case "unquote":
+			s := ToString(p.Next.(Pair).This)
+			return fmt.Sprintf(",%s", s)
+		}
 	}
 	return fmt.Sprintf("(%v)", p.ToString())
 }
 
 func (p Pair) ToString() string {
-	var elems []string
-	head := &p
-	for head != nil && !head.IsNull() {
-		elems = append(elems, fmt.Sprintf("%v", head.This))
-		head = head.Next
+	var (
+		acc  []string
+		head any = p
+	)
+	for head != nil {
+		switch p := head.(type) {
+		case Pair:
+			acc = append(acc, ToString(p.This))
+			head = p.Next
+		default:
+			return fmt.Sprintf("%v . %v", strings.Join(acc, " "), head)
+		}
 	}
-	return strings.Join(elems, " ")
+	return strings.Join(acc, " ")
 }
 
-type AppendablePair struct {
-	pair *Pair
-	Last *Pair
-}
-
-func NewAppendablePair() *AppendablePair {
-	head := &Pair{}
-	return &AppendablePair{head, head}
-}
-
-func (p *AppendablePair) Append(sexpr Sexpr) {
-	p.Last.Next = NewPair(sexpr)
-	p.Last = p.Last.Next
-}
-
-func (p AppendablePair) ToPair() *Pair {
-	if p.pair.IsNull() {
-		return &Pair{}
+// For at least one value in the Pair, the function is true
+func (p Pair) Any(fn func(val any) bool) bool {
+	var head any = p
+	for head != nil {
+		switch p := head.(type) {
+		case Pair:
+			if fn(p.This) {
+				return true
+			}
+			head = p.Next
+		default:
+			return fn(head)
+		}
 	}
-	return p.pair.Next
+	return false
+}
+
+// Map the function to all the elements of the Pair, return modified Pair
+func (p Pair) Map(fn func(val any) any) []any {
+	var (
+		acc  []any
+		head any = p
+	)
+	for {
+		switch p := head.(type) {
+		case Pair:
+			acc = append(acc, fn(p.This))
+			head = p.Next
+		case nil:
+			acc = append(acc, nil)
+			return acc
+		default:
+			acc = append(acc, fn(head))
+			return acc
+		}
+	}
+}
+
+// Map the function to all the elements of the Pair, return modified Pair
+func (p Pair) TryMap(fn func(val any) (any, error)) ([]any, error) {
+	var (
+		acc  []any
+		head any = p
+	)
+	for {
+		switch p := head.(type) {
+		case Pair:
+			v, err := fn(p.This)
+			if err != nil {
+				return nil, err
+			}
+			acc = append(acc, v)
+			head = p.Next
+		case nil:
+			acc = append(acc, nil)
+			return acc, nil
+		default:
+			v, err := fn(head)
+			acc = append(acc, v)
+			return acc, err
+		}
+	}
+}
+
+// Map the function to all the elements of the Pair, return modified Pair
+func (p Pair) TryForEach(fn func(val any) error) error {
+	var head any = p
+	for head != nil {
+		switch p := head.(type) {
+		case Pair:
+			err := fn(p.This)
+			if err != nil {
+				return err
+			}
+			head = p.Next
+		default:
+			return fn(head)
+		}
+	}
+	return nil
 }

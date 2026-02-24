@@ -5,15 +5,13 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/scheme"
 	"github.com/twolodzko/gosch/types"
 )
 
-func Test_EnvAndVariables(t *testing.T) {
-	eval.Procedures = scheme.Procedures
-	env := envir.NewEnv()
+func TestEnvAndVariables(t *testing.T) {
+	env := scheme.DefaultEnv()
 
 	code := `
 	(define x 3)
@@ -38,6 +36,7 @@ func Test_EnvAndVariables(t *testing.T) {
 	result, _, err := eval.EvalString(code, env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
+		return
 	}
 
 	if fmt.Sprintf("%v", result) != fmt.Sprintf("%v", expected) {
@@ -45,8 +44,8 @@ func Test_EnvAndVariables(t *testing.T) {
 	}
 }
 
-func Test_Load(t *testing.T) {
-	env := envir.NewEnv()
+func TestLoad(t *testing.T) {
+	env := scheme.DefaultEnv()
 
 	_, _, err := eval.EvalString(`(load "examples/hello.scm")`, env)
 	if err != nil {
@@ -54,8 +53,8 @@ func Test_Load(t *testing.T) {
 	}
 }
 
-func Test_IsAtom(t *testing.T) {
-	env := envir.NewEnv()
+func TestIsAtom(t *testing.T) {
+	env := scheme.DefaultEnv()
 
 	code := `
 	(define atom?
@@ -63,7 +62,7 @@ func Test_IsAtom(t *testing.T) {
 			(and (not (pair? x)) (not (null? x)))))
 	(atom? 'a)
 	`
-	expected := types.TRUE
+	expected := true
 
 	result, _, err := eval.EvalString(code, env)
 	if err != nil {
@@ -78,8 +77,36 @@ func Test_IsAtom(t *testing.T) {
 	}
 }
 
-func Test_FibonacciRecursive(t *testing.T) {
-	env := envir.NewEnv()
+func TestStatefulLet(t *testing.T) {
+	env := scheme.DefaultEnv()
+
+	// source: https://docs.scheme.org/schintro/schintro_122.html
+	code := `
+	(define my-counter
+		(let ((count 0))
+			(lambda ()
+				(set! count (+ count 1))
+				count)))
+	`
+
+	_, _, err := eval.EvalString(code, env)
+	if err != nil {
+		t.Errorf("unexpected error: %v", err)
+	}
+
+	for i := 1; i < 10; i++ {
+		result, _, err := eval.EvalString("(my-counter)", env)
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+		if !cmp.Equal(result[0], types.Integer(i)) {
+			t.Errorf("expected %v, got %s", i, result[0])
+		}
+	}
+}
+
+func TestFibonacciRecursive(t *testing.T) {
+	env := scheme.DefaultEnv()
 
 	code := `
 	(define fibo (lambda (n)
@@ -120,8 +147,8 @@ func Test_FibonacciRecursive(t *testing.T) {
 	}
 }
 
-func Test_FibonacciTailRecursive(t *testing.T) {
-	env := envir.NewEnv()
+func TestFibonacciTailRecursive(t *testing.T) {
+	env := scheme.DefaultEnv()
 
 	code := `
 	(define impl (lambda (it second first)
@@ -162,8 +189,8 @@ func Test_FibonacciTailRecursive(t *testing.T) {
 	}
 }
 
-func Test_FibonacciLoop(t *testing.T) {
-	env := envir.NewEnv()
+func TestFibonacciLoop(t *testing.T) {
+	env := scheme.DefaultEnv()
 
 	code := `
 	(define fibo
@@ -177,6 +204,7 @@ func Test_FibonacciLoop(t *testing.T) {
 	_, _, err := eval.EvalString(code, env)
 	if err != nil {
 		t.Errorf("unexpected error: %v", err)
+		return
 	}
 
 	var testCases = []struct {
@@ -197,6 +225,7 @@ func Test_FibonacciLoop(t *testing.T) {
 		result, _, err := eval.EvalString(tt.input, env)
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
+			return
 		}
 
 		if !cmp.Equal(result[0], tt.expected) {
@@ -205,9 +234,9 @@ func Test_FibonacciLoop(t *testing.T) {
 	}
 }
 
-func Benchmark_FibonacciRecursive(b *testing.B) {
+func BenchmarkFibonacciRecursive(b *testing.B) {
 	var err error
-	env := envir.NewEnv()
+	env := scheme.DefaultEnv()
 
 	code := `
 	(define fibo (lambda (n)
@@ -220,29 +249,33 @@ func Benchmark_FibonacciRecursive(b *testing.B) {
 	_, _, err = eval.EvalString(code, env)
 	if err != nil {
 		b.Errorf("unexpected error: %v", err)
+		return
 	}
 
 	for i := 0; i < b.N; i++ {
 		_, _, err = eval.EvalString("(fibo 5)", env)
 		if err != nil {
 			b.Errorf("unexpected error: %v", err)
+			return
 		}
 
 		_, _, err = eval.EvalString("(fibo 10)", env)
 		if err != nil {
 			b.Errorf("unexpected error: %v", err)
+			return
 		}
 
 		_, _, err = eval.EvalString("(fibo 20)", env)
 		if err != nil {
 			b.Errorf("unexpected error: %v", err)
+			return
 		}
 	}
 }
 
-func Benchmark_FibonacciTailRecursive(b *testing.B) {
+func BenchmarkFibonacciTailRecursive(b *testing.B) {
 	var err error
-	env := envir.NewEnv()
+	env := scheme.DefaultEnv()
 
 	code := `
 	(define impl (lambda (it second first)
@@ -255,29 +288,33 @@ func Benchmark_FibonacciTailRecursive(b *testing.B) {
 	_, _, err = eval.EvalString(code, env)
 	if err != nil {
 		b.Errorf("unexpected error: %v", err)
+		return
 	}
 
 	for i := 0; i < b.N; i++ {
 		_, _, err = eval.EvalString("(fibo 5)", env)
 		if err != nil {
 			b.Errorf("unexpected error: %v", err)
+			return
 		}
 
 		_, _, err = eval.EvalString("(fibo 10)", env)
 		if err != nil {
 			b.Errorf("unexpected error: %v", err)
+			return
 		}
 
 		_, _, err = eval.EvalString("(fibo 20)", env)
 		if err != nil {
 			b.Errorf("unexpected error: %v", err)
+			return
 		}
 	}
 }
 
-func Benchmark_FibonacciLoop(b *testing.B) {
+func BenchmarkFibonacciLoop(b *testing.B) {
 	var err error
-	env := envir.NewEnv()
+	env := scheme.DefaultEnv()
 
 	code := `
 	(define fibo
@@ -291,22 +328,26 @@ func Benchmark_FibonacciLoop(b *testing.B) {
 	_, _, err = eval.EvalString(code, env)
 	if err != nil {
 		b.Errorf("unexpected error: %v", err)
+		return
 	}
 
 	for i := 0; i < b.N; i++ {
 		_, _, err = eval.EvalString("(fibo 5)", env)
 		if err != nil {
 			b.Errorf("unexpected error: %v", err)
+			return
 		}
 
 		_, _, err = eval.EvalString("(fibo 10)", env)
 		if err != nil {
 			b.Errorf("unexpected error: %v", err)
+			return
 		}
 
 		_, _, err = eval.EvalString("(fibo 20)", env)
 		if err != nil {
 			b.Errorf("unexpected error: %v", err)
+			return
 		}
 	}
 }

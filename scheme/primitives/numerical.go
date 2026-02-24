@@ -3,255 +3,227 @@ package primitives
 import (
 	"fmt"
 
+	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
 
 // `number?` procedure
-func IsNumber(args *types.Pair) (types.Sexpr, error) {
-	if args == nil {
-		return nil, eval.ErrBadArgNumber
+func IsNumber(args any, env *envir.Env) (any, error) {
+	v, err := eval.EvalOne(args, env)
+	if err != nil {
+		return nil, err
 	}
-	switch args.This.(type) {
+	switch v.(type) {
 	case types.Integer, types.Float:
-		return types.TRUE, nil
+		return true, nil
 	default:
-		return types.FALSE, nil
+		return false, nil
 	}
 }
 
 // `integer?` procedure
-func IsInteger(args *types.Pair) (types.Sexpr, error) {
-	if args == nil {
-		return nil, eval.ErrBadArgNumber
+func IsInteger(args any, env *envir.Env) (any, error) {
+	v, err := eval.EvalOne(args, env)
+	if err != nil {
+		return nil, err
 	}
-	switch args.This.(type) {
+	switch v.(type) {
 	case types.Integer:
-		return types.TRUE, nil
+		return true, nil
 	default:
-		return types.FALSE, nil
+		return false, nil
 	}
 }
 
 // `float?` procedure
-func IsFloat(args *types.Pair) (types.Sexpr, error) {
-	if args == nil {
-		return nil, eval.ErrBadArgNumber
+func IsFloat(args any, env *envir.Env) (any, error) {
+	v, err := eval.EvalOne(args, env)
+	if err != nil {
+		return nil, err
 	}
-	switch args.This.(type) {
+	switch v.(type) {
 	case types.Float:
-		return types.TRUE, nil
+		return true, nil
 	default:
-		return types.FALSE, nil
+		return false, nil
 	}
 }
 
 // `->int` procedure
-func ToInt(args *types.Pair) (types.Sexpr, error) {
-	if args == nil || args.HasNext() {
-		return nil, eval.ErrBadArgNumber
+func ToInt(args any, env *envir.Env) (any, error) {
+	v, err := eval.EvalOne(args, env)
+	if err != nil {
+		return nil, err
 	}
-	switch num := args.This.(type) {
+	switch num := v.(type) {
 	case types.Integer:
 		return num, nil
 	case types.Float:
 		return types.Integer(num), nil
 	default:
-		return nil, &types.ErrNaN{Val: num}
+		return nil, &types.NaN{Val: num}
 	}
 }
 
 // `->float` procedure
-func ToFloat(args *types.Pair) (types.Sexpr, error) {
-	if args == nil || args.HasNext() {
-		return nil, eval.ErrBadArgNumber
+func ToFloat(args any, env *envir.Env) (any, error) {
+	v, err := eval.EvalOne(args, env)
+	if err != nil {
+		return nil, err
 	}
-	switch num := args.This.(type) {
+	switch num := v.(type) {
 	case types.Integer:
 		return types.Float(num), nil
 	case types.Float:
 		return num, nil
 	default:
-		return nil, &types.ErrNaN{Val: num}
+		return nil, &types.NaN{Val: num}
 	}
 }
 
 // `+` procedure
-func Sum(args *types.Pair) (types.Sexpr, error) {
-	var (
-		result types.Sexpr
-		err    error
-	)
-	if args == nil {
+func Sum(args any, env *envir.Env) (any, error) {
+	vals, err := eval.ListMapEval(args, env)
+	if err != nil {
+		return nil, err
+	}
+	if len(vals) == 0 {
 		return types.Integer(0), nil
 	}
-	if !args.HasNext() {
-		switch val := args.This.(type) {
-		case types.Arithmetic:
-			return val, nil
-		default:
-			return nil, &types.ErrNaN{Val: val}
-		}
+	result, ok := vals[0].(types.Arith)
+	if !ok {
+		return nil, eval.NaN{Val: vals[0]}
 	}
-	result = args.This
-	head := args.Next
-	for head != nil {
-		switch prev := result.(type) {
-		case types.Arithmetic:
-			result, err = prev.Add(head.This)
-			if err != nil {
-				return nil, err
-			}
-		default:
-			return nil, &types.ErrNaN{Val: prev}
+	for i := 1; i < len(vals); i++ {
+		result, err = result.Add(vals[i])
+		if err != nil {
+			return nil, err
 		}
-		head = head.Next
 	}
 	return result, nil
 }
 
 // `-` procedure
-func Dif(args *types.Pair) (types.Sexpr, error) {
-	var (
-		result types.Sexpr
-		err    error
-	)
-	if args == nil {
+func Sub(args any, env *envir.Env) (any, error) {
+	vals, err := eval.ListMapEval(args, env)
+	if err != nil {
+		return nil, err
+	}
+	if len(vals) == 0 {
 		return types.Integer(0), nil
 	}
-	if !args.HasNext() {
-		switch prev := args.This.(type) {
+	result, ok := vals[0].(types.Arith)
+	if !ok {
+		return nil, eval.NaN{Val: vals[0]}
+	}
+	if len(vals) == 1 {
+		switch num := result.(type) {
 		case types.Integer:
-			return -prev, nil
+			return -num, nil
 		case types.Float:
-			return -prev, nil
-		default:
-			return nil, &types.ErrNaN{Val: args.This}
+			return -num, nil
 		}
 	}
-	result = args.This
-	head := args.Next
-	for head != nil {
-		switch prev := result.(type) {
-		case types.Arithmetic:
-			result, err = prev.Sub(head.This)
-			if err != nil {
-				return nil, err
-			}
-		default:
-			return nil, &types.ErrNaN{Val: prev}
+	for i := 1; i < len(vals); i++ {
+		result, err = result.Sub(vals[i])
+		if err != nil {
+			return nil, err
 		}
-		head = head.Next
 	}
 	return result, nil
 }
 
 // `*` procedure
-func Mul(args *types.Pair) (types.Sexpr, error) {
-	var (
-		result types.Sexpr
-		err    error
-	)
-	if args == nil {
+func Mul(args any, env *envir.Env) (any, error) {
+	vals, err := eval.ListMapEval(args, env)
+	if err != nil {
+		return nil, err
+	}
+	if len(vals) == 0 {
 		return types.Integer(1), nil
 	}
-	if !args.HasNext() {
-		switch val := args.This.(type) {
-		case types.Arithmetic:
-			return val, nil
-		default:
-			return nil, &types.ErrNaN{Val: val}
-		}
+	result, ok := vals[0].(types.Arith)
+	if !ok {
+		return nil, eval.NaN{Val: vals[0]}
 	}
-	result = args.This
-	head := args.Next
-	for head != nil {
-		switch prev := result.(type) {
-		case types.Arithmetic:
-			result, err = prev.Mul(head.This)
-			if err != nil {
-				return nil, err
-			}
-		default:
-			return nil, &types.ErrNaN{Val: prev}
+	for i := 1; i < len(vals); i++ {
+		result, err = result.Mul(vals[i])
+		if err != nil {
+			return nil, err
 		}
-		head = head.Next
 	}
 	return result, nil
 }
 
 // `/` procedure
-func Div(args *types.Pair) (types.Sexpr, error) {
-	var (
-		result types.Sexpr
-		err    error
-	)
-	if args == nil {
+func Div(args any, env *envir.Env) (any, error) {
+	vals, err := eval.ListMapEval(args, env)
+	if err != nil {
+		return nil, err
+	}
+	if len(vals) == 0 {
 		return types.Integer(1), nil
 	}
-	if !args.HasNext() {
-		return types.Integer(1).Div(args.This)
+	result, ok := vals[0].(types.Arith)
+	if !ok {
+		return nil, eval.NaN{Val: vals[0]}
 	}
-	result = args.This
-	head := args.Next
-	for head != nil {
-		switch prev := result.(type) {
-		case types.Arithmetic:
-			result, err = prev.Div(head.This)
-			if err != nil {
-				return nil, err
-			}
-		default:
-			return nil, &types.ErrNaN{Val: prev}
+	if len(vals) == 1 {
+		return types.Float(1.0).Div(result)
+	}
+	for i := 1; i < len(vals); i++ {
+		result, err = result.Div(vals[i])
+		if err != nil {
+			return nil, err
 		}
-		head = head.Next
 	}
 	return result, nil
 }
 
 // `%` procedure
-func Mod(args *types.Pair) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return nil, eval.ErrBadArgNumber
+func Mod(args any, env *envir.Env) (any, error) {
+	vals, err := eval.ListMapEval(args, env)
+	if err != nil {
+		return nil, err
 	}
-	switch prev := args.This.(type) {
-	case types.Arithmetic:
-		return prev.Mod(args.Next.This)
-	default:
-		return nil, &types.ErrNaN{Val: prev}
+	if len(vals) == 0 {
+		return types.Integer(1), nil
 	}
+	result, ok := vals[0].(types.Arith)
+	if !ok {
+		return nil, eval.NaN{Val: vals[0]}
+	}
+	for i := 1; i < len(vals); i++ {
+		result, err = result.Mod(vals[i])
+		if err != nil {
+			return nil, err
+		}
+	}
+	return result, nil
 }
 
 // `//` procedure
-func IntDiv(args *types.Pair) (types.Sexpr, error) {
-	var (
-		result types.Sexpr
-		err    error
-	)
-	if args == nil {
+func IntDiv(args any, env *envir.Env) (any, error) {
+	vals, err := eval.ListMapEval(args, env)
+	if err != nil {
+		return nil, err
+	}
+	if len(vals) == 0 {
 		return types.Integer(1), nil
 	}
-	if !args.HasNext() {
-		switch val := args.This.(type) {
-		case types.Integer:
-			return 1 / val, nil
-		default:
-			return nil, &types.ErrNaN{Val: val}
-		}
+	result, ok := vals[0].(types.Integer)
+	if !ok {
+		return types.Integer(1), fmt.Errorf("%v is not an integer", vals[0])
 	}
-	result = args.This
-	head := args.Next
-	for head != nil {
-		switch prev := result.(type) {
-		case types.Integer:
-			result, err = prev.IntDiv(head.This)
-			if err != nil {
-				return nil, err
-			}
-		default:
-			return nil, fmt.Errorf("%v is not an integer", prev)
+	if len(vals) == 1 {
+		return types.Integer(1).IntDiv(result)
+	}
+	for i := 1; i < len(vals); i++ {
+		result, err = result.IntDiv(vals[i])
+		if err != nil {
+			return types.Integer(1), err
 		}
-		head = head.Next
 	}
 	return result, nil
 }

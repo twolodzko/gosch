@@ -7,7 +7,6 @@ import (
 	"log"
 	"os"
 
-	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/repl"
 	"github.com/twolodzko/gosch/scheme"
@@ -25,9 +24,7 @@ func main() {
 		printHelp()
 		return
 	}
-
-	eval.Procedures = scheme.Procedures
-
+	// TODO: use default env
 	if flag.NArg() > 0 {
 		evalFiles()
 	} else {
@@ -36,7 +33,7 @@ func main() {
 }
 
 func evalFiles() {
-	env := envir.NewEnv()
+	env := scheme.DefaultEnv()
 	for _, filename := range flag.Args() {
 		sexprs, err := eval.LoadEval(filename, env)
 		if err != nil {
@@ -51,7 +48,7 @@ func evalFiles() {
 }
 
 func startRepl() {
-	env := envir.NewEnv()
+	env := scheme.DefaultEnv()
 	repl := repl.NewRepl(os.Stdin, env)
 
 	fmt.Println("Press ^C to exit.")

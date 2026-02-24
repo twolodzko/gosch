@@ -6,7 +6,6 @@ import (
 
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
-	"github.com/twolodzko/gosch/types"
 )
 
 type Repl struct {
@@ -18,7 +17,7 @@ func NewRepl(in io.Reader, env *envir.Env) *Repl {
 	return &Repl{bufio.NewReader(in), env}
 }
 
-func (repl *Repl) Repl() ([]types.Sexpr, error) {
+func (repl *Repl) Repl() ([]any, error) {
 	cmd, err := repl.read()
 	if err != nil {
 		return nil, err

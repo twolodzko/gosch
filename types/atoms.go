@@ -2,34 +2,30 @@ package types
 
 import "fmt"
 
-type (
-	Sexpr  = interface{}
-	Bool   bool
-	Symbol = string
-	String string
-)
+type Symbol string
 
-const (
-	TRUE  = Bool(true)
-	FALSE = Bool(false)
-)
-
-func (b Bool) String() string {
-	if b {
-		return "#t"
-	}
-	return "#f"
-}
-
-func IsTrue(s Sexpr) Bool {
+func IsTrue(s any) bool {
 	switch val := s.(type) {
-	case Bool:
+	case bool:
 		return val
 	default:
 		return true
 	}
 }
 
-func (s String) String() string {
-	return fmt.Sprintf(`"%v"`, string(s))
+func ToString(val any) string {
+	switch val := val.(type) {
+	case nil:
+		return "()"
+	case bool:
+		if val {
+			return "#t"
+		} else {
+			return "#f"
+		}
+	case string:
+		return fmt.Sprintf("\"%s\"", val)
+	default:
+		return fmt.Sprintf("%v", val)
+	}
 }

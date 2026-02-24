@@ -2,7 +2,7 @@
 
 **gosch** is pronounced the same as *gosh*, as in *"oh gosh, why would anyone implement Scheme again?!"*.
 
-> *Do It, Do It Again, and Again, and Again ...*  
+> *Do It, Do It Again, and Again, and Again ...*
 > &emsp; — *The Little Schemer* by Friedmann and Felleisen
 
 ![Lisp cycles XKCD #297: "Those are your father's parentheses. Elegant weapons for a more... civilized age."](https://imgs.xkcd.com/comics/lisp_cycles.png)
@@ -15,10 +15,6 @@ As in classic Lisps, **gosch** recognizes the two main data structures *atoms* a
 The variety of available data types is limited to *atoms* like *numbers* (*integers* and *floats*) and
 *booleans* (`#t` and `#f`). There is also a limited support for *strings*. The implementation is [properly tail-recursive]
 as [required by Scheme].
-Unlike the classic Scheme, there is null type `nil` and procedures return it instead of undefined results,
-for example `(if #f 'ok)` returns `<nil>`. There is no distinction between round and square brackets, so they can be
-used interchangeably. Unlike in some Lisps, all the lists are guaranteed to be [proper] and there are no dotted pairs.
-Dots within lists are ignored, so using [dotted pair notation] would not raise errors.
 
 **gosch** implements the following procedures:
 
@@ -66,15 +62,15 @@ Comments begin with `;` and everything that follows, from the semicolon until th
 1. Everything is an *[S-expression]*.
 2. There are two kinds of S-expressions: *atom* and *pair* of S-expressions.
 3. Atoms are the basic data types like booleans, numbers, strings, etc.
-4. Pairs (lists) are implemented as [linked lists]:
+4. Pairs (building blocks for [linked lists]) are implemented as:
 
    ```go
    type Pair struct {
-       This Sexpr
-       Next *Pair
+       This any
+       Next any
    }
    ```
-   
+
    As in every Lisp, they are written as `(this next)`. The pair has a head and tail,
    that can be accessed using the `car` and `cdr` procedures.
 
@@ -95,7 +91,7 @@ Comments begin with `;` and everything that follows, from the semicolon until th
    For example, `(+ 1 2 3)` is a function that calculates the sum of the three numbers.
 6. There is a special kind of atom, a *symbol* that can be used by itself or
    as a placeholder.
-7. When evaluating an S-expression, the following rules apply:  
+7. When evaluating an S-expression, the following rules apply:
    1. a *symbol* is evaluated by looking up the value it points to in the
       surrounding environment (see below).
    2. other *atoms* are evaluated to themselves.
@@ -135,12 +131,12 @@ Comments begin with `;` and everything that follows, from the semicolon until th
     calls into a for-loop. The simplified code below illustrates this:
 
     ```go
-    func Eval(sexpr Sexpr, env *Env) Any {
+    func Eval(sexpr any, env *Env) Any {
         for {
             switch val := sexpr.(type) {
             case Symbol:
                 return getSymbol(val, env)
-            case *Pair:
+            case Pair:
                 fn := Eval(val.This, env)
                 switch fn := fn.(type) {
                 case Primitive:

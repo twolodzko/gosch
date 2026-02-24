@@ -5,44 +5,17 @@ import (
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
-	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/parser"
 	"github.com/twolodzko/gosch/scheme"
-	"github.com/twolodzko/gosch/scheme/special_forms"
 	"github.com/twolodzko/gosch/types"
 )
 
-func Test_NewLambda(t *testing.T) {
-	eval.Procedures = scheme.Procedures
-	env := envir.NewEnv()
-	expected := special_forms.Lambda{
-		[]types.Symbol{"x", "y"},
-		types.MakePair(types.Symbol("+"), types.MakePair(types.MakePair(types.Symbol("x"), types.MakePair(types.Symbol("y"), nil)), nil)),
-		env,
-	}
-	result, err := special_forms.NewLambda(
-		types.MakePair(
-			types.MakePair(types.Symbol("x"), types.MakePair(types.Symbol("y"), nil)),
-			types.MakePair(types.Symbol("+"), types.MakePair(types.MakePair(types.Symbol("x"), types.MakePair(types.Symbol("y"), nil)), nil)),
-		),
-		env,
-	)
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-	}
-	if !cmp.Equal(result, expected) {
-		t.Errorf("expected: %v, got %v", expected, result)
-	}
-}
-
-func Test_SimpleLambdas(t *testing.T) {
-	eval.Procedures = scheme.Procedures
+func TestSimpleLambdas(t *testing.T) {
 	var testCases = []struct {
 		input    string
 		expected string
 	}{
-		{"()", "()"},
 		{"((lambda () 42))", "42"},
 		{"(lambda (x) x)", "(lambda (x) x)"},
 		{"((lambda (x) x) 3)", "3"},
@@ -70,22 +43,21 @@ func Test_SimpleLambdas(t *testing.T) {
 		}
 
 		for _, sexpr := range sexprs {
-			env := envir.NewEnv()
+			env := scheme.DefaultEnv()
 			result, err := eval.Eval(sexpr, env)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 				return
 			}
-			if !cmp.Equal(fmt.Sprintf("%v", result), tt.expected) {
-				t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
+			if !cmp.Equal(types.ToString(result), tt.expected) {
+				t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, types.ToString(result))
 			}
 		}
 	}
 }
 
-func Test_LambdaCalculus(t *testing.T) {
+func TestLambdaCalculus(t *testing.T) {
 	// See: https://brilliant.org/wiki/lambda-calculus/
-	eval.Procedures = scheme.Procedures
 
 	var testCases = []struct {
 		input    string
@@ -126,22 +98,21 @@ func Test_LambdaCalculus(t *testing.T) {
 		}
 
 		for _, sexpr := range sexprs {
-			env := envir.NewEnv()
+			env := scheme.DefaultEnv()
 			result, err := eval.Eval(sexpr, env)
 			if err != nil {
 				t.Errorf("unexpected error: %v", err)
 				return
 			}
-			if !cmp.Equal(fmt.Sprintf("%v", result), tt.expected) {
+			if !cmp.Equal(types.ToString(result), tt.expected) {
 				t.Errorf("for %v expected %v, got %v", tt.input, tt.expected, result)
 			}
 		}
 	}
 }
 
-func Test_DoFactorial(t *testing.T) {
-	eval.Procedures = scheme.Procedures
-	env := envir.NewEnv()
+func TestDoFactorial(t *testing.T) {
+	env := scheme.DefaultEnv()
 
 	code := `
 	(define factorial
@@ -173,9 +144,8 @@ func Test_DoFactorial(t *testing.T) {
 	}
 }
 
-func Test_DoFibonacci(t *testing.T) {
-	eval.Procedures = scheme.Procedures
-	env := envir.NewEnv()
+func TestDoFibonacci(t *testing.T) {
+	env := scheme.DefaultEnv()
 
 	code := `
 	(define fibonacci

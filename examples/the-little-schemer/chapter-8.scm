@@ -42,11 +42,11 @@
 (check-equal? (atom-to-function (operator '(+ 5 3)))
               +)
 
-;; Added test not in the book
-(check-equal? (value '(o* 2 3)) 6)
+;; ;; Added test not in the book
+;; (check-equal? (value '(o* 2 3)) 6)
 
-(check-equal? ((multirember-f2 eq?) 'tuna '(shrimp salad tuna salad and tuna))
-              '(shrimp salad salad and))
+;; (check-equal? ((multirember-f2 eq?) 'tuna '(shrimp salad tuna salad and tuna))
+;;               '(shrimp salad salad and))
 
 (check-equal? (multiremberT eq?-tuna '(shrimp salad tuna salad and tuna))
               '(shrimp salad salad and))

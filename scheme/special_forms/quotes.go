@@ -6,66 +6,68 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-// `quote` procedure
-func Quote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || args.HasNext() {
-		return nil, eval.ErrBadArgNumber
-	}
-	return args.This, nil
-}
+var _ eval.Procedure = Quote
+var _ eval.Procedure = QuasiQuote
+var _ eval.Procedure = Unquote
 
-// `quasiquote` procedure
-func Quasiquote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || args.HasNext() {
-		return nil, eval.ErrBadArgNumber
+func Quote(args any, env *envir.Env) (any, error) {
+	p, ok := args.(types.Pair)
+	if !ok {
+		return nil, eval.SyntaxError
 	}
-	pair, ok := args.This.(*types.Pair)
-	if !ok || pair == nil || !bool(pair.HasNext()) {
-		return args.This, nil
+	if p.Next != nil {
+		return nil, eval.ArityError
 	}
-	return unquoteRecursively(pair, 1, env)
+	return p.This, nil
 }
 
 // `unquote` procedure
-func Unquote(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || args.HasNext() {
-		return nil, eval.ErrBadArgNumber
+func Unquote(args any, env *envir.Env) (any, error) {
+	p, ok := args.(types.Pair)
+	if !ok {
+		return nil, eval.SyntaxError
 	}
-	return eval.Eval(args.This, env)
+	if p.Next != nil {
+		return nil, eval.ArityError
+	}
+	return eval.Eval(p.This, env)
 }
 
-func unquoteRecursively(pair *types.Pair, numQuotes int, env *envir.Env) (types.Sexpr, error) {
-	if pair == nil {
-		return pair, nil
+// `quasiQuote` procedure
+func QuasiQuote(args any, env *envir.Env) (any, error) {
+	p, ok := args.(types.Pair)
+	if !ok {
+		return nil, eval.SyntaxError
 	}
-	if sym, ok := pair.This.(types.Symbol); ok {
+	if p.Next != nil {
+		return nil, eval.ArityError
+	}
+	return unquoteRecursively(p.This, 1, env)
+}
+
+func unquoteRecursively(val any, numQuotes int, env *envir.Env) (any, error) {
+	p, ok := val.(types.Pair)
+	if !ok {
+		return val, nil
+	}
+	if sym, ok := p.This.(types.Symbol); ok {
 		switch sym {
 		case "quasiquote":
 			numQuotes++
 		case "unquote":
 			numQuotes--
 			if numQuotes == 0 {
-				return Unquote(pair.Next, env)
+				return Unquote(p.Next, env)
 			}
 		}
 	}
-
-	// iterate through all the elements of the list
-	ap := types.NewAppendablePair()
-	head := pair
-	for head != nil {
-		switch obj := head.This.(type) {
-		case *types.Pair:
-			// check nested lists recursively
-			val, err := unquoteRecursively(obj, numQuotes, env)
-			if err != nil {
-				return nil, err
-			}
-			ap.Append(val)
-		default:
-			ap.Append(head.This)
-		}
-		head = head.Next
+	head, err := unquoteRecursively(p.This, numQuotes, env)
+	if err != nil {
+		return nil, err
 	}
-	return ap.ToPair(), nil
+	tail, err := unquoteRecursively(p.Next, numQuotes, env)
+	if err != nil {
+		return nil, err
+	}
+	return types.Cons(head, tail), err
 }

@@ -1,8 +1,6 @@
 package special_forms
 
 import (
-	"fmt"
-
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
@@ -17,9 +15,9 @@ import (
 //	  a. check test, if true eval & return result
 //	  b. eval exps
 //	  c. update bindings with update steps
-func Do(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
+func Do(args any, env *envir.Env) (any, error) {
 	var (
-		stop types.Bool
+		stop bool
 		err  error
 	)
 
@@ -35,14 +33,31 @@ func Do(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 			return nil, err
 		}
 		if stop {
-			_, result, err := eval.EvalEach(job.clause.Next, job.env)
+			var (
+				head       = job.clause.Next
+				result any = nil
+				err    error
+			)
+			for head != nil {
+				p, ok := head.(types.Pair)
+				if !ok {
+					return nil, eval.SyntaxError
+				}
+				result, err = eval.Eval(p.This, job.env)
+				head = p.Next
+			}
 			return result, err
 		}
 
 		// eval body
-		_, _, err = eval.EvalEach(job.body, job.env)
-		if err != nil {
-			return nil, err
+		if job.body != nil {
+			err := job.body.TryForEach(func(val any) error {
+				_, err := eval.Eval(val, job.env)
+				return err
+			})
+			if err != nil {
+				return nil, err
+			}
 		}
 
 		// update bindings
@@ -54,14 +69,14 @@ func Do(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 }
 
 type doJob struct {
-	steps  map[types.Symbol]types.Sexpr
-	clause *types.Pair
+	steps  map[types.Symbol]any
+	clause types.Pair
 	body   *types.Pair
 	env    *envir.Env
 }
 
 // Evaluate the stopping condition
-func (job *doJob) shouldStop() (types.Bool, error) {
+func (job *doJob) shouldStop() (bool, error) {
 	test, err := eval.Eval(job.clause.This, job.env)
 	return types.IsTrue(test), err
 }
@@ -69,7 +84,6 @@ func (job *doJob) shouldStop() (types.Bool, error) {
 // Update the variable bindings
 func (job *doJob) updateBindings() error {
 	newEnv := envir.NewEnvFrom(job.env.Parent)
-
 	for name, step := range job.steps {
 		val, err := eval.Eval(step, job.env)
 		if err != nil {
@@ -77,74 +91,97 @@ func (job *doJob) updateBindings() error {
 		}
 		newEnv.Set(name, val)
 	}
-
 	job.env = newEnv
 	return nil
 }
 
 // Initialize the `do` job
-func newDoJob(args *types.Pair, env *envir.Env) (doJob, error) {
-	if args == nil || !args.HasNext() {
-		return doJob{}, eval.ErrBadArgNumber
-	}
-
+func newDoJob(args any, env *envir.Env) (doJob, error) {
 	local := envir.NewEnvFrom(env)
 
-	bindings, ok := args.This.(*types.Pair)
+	//	(do ((var init update) ...) (test result ...) expr ...)
+
+	this, next, ok := unpack(args)
 	if !ok {
-		return doJob{}, eval.NewErrNonList(args.This)
+		return doJob{}, eval.SyntaxError
 	}
-	steps, err := setSteps(bindings, env, local)
+	// ((var init update) ...) ...
+	steps, err := setSteps(this, env, local)
 	if err != nil {
 		return doJob{}, err
 	}
-	clause := args.Next.This.(*types.Pair)
+
+	// ... (test result ...) ...
+	this, next, ok = unpack(next)
 	if !ok {
-		return doJob{}, fmt.Errorf("not a valid clause: %v", args.Next.This)
+		return doJob{}, eval.SyntaxError
 	}
-	body := args.Next.Next
+	clause, ok := this.(types.Pair)
+	if !ok {
+		return doJob{}, eval.SyntaxError
+	}
+
+	// ... expr ...)
+	var body *types.Pair
+	if next != nil {
+		this, ok := next.(types.Pair)
+		if !ok {
+			return doJob{}, eval.SyntaxError
+		}
+		body = &this
+	}
 
 	return doJob{steps, clause, body, local}, nil
 }
 
 // Initialize the variable bindings and the update steps
-func setSteps(args *types.Pair, parent, local *envir.Env) (map[types.Symbol]types.Sexpr, error) {
-	if args.IsNull() {
-		return nil, nil
-	}
-
-	steps := make(map[types.Symbol]types.Sexpr)
-	head := args
+func setSteps(args any, parent, local *envir.Env) (map[types.Symbol]any, error) {
+	steps := make(map[types.Symbol]any)
+	var (
+		ok   bool
+		step any
+		head = args
+	)
 	for head != nil {
-		switch pair := head.This.(type) {
-		case *types.Pair:
-			if pair.IsNull() || !pair.HasNext() {
-				return nil, eval.ErrBadArgNumber
-			}
-
-			// variable name
-			name, ok := pair.This.(types.Symbol)
-			if !ok {
-				return nil, eval.NewErrBadName(pair.This)
-			}
-
-			// init variable
-			val, err := eval.Eval(pair.Next.This, parent)
-			if err != nil {
-				return nil, err
-			}
-			local.Set(name, val)
-
-			// set update step
-			if pair.Next.HasNext() {
-				steps[name] = pair.Next.Next.This
-			} else {
-				steps[name] = name
-			}
-		default:
-			return nil, eval.NewErrNonList(head.This)
+		step, head, ok = unpack(head)
+		if !ok {
+			return nil, eval.SyntaxError
 		}
-		head = head.Next
+
+		// variable name
+		this, step, ok := unpack(step)
+		if !ok {
+			return nil, eval.SyntaxError
+		}
+		name, ok := this.(types.Symbol)
+		if !ok {
+			return nil, eval.InvalidName{Val: this}
+		}
+
+		// init variable
+		expr, step, ok := unpack(step)
+		val, err := eval.Eval(expr, parent)
+		if err != nil {
+			return nil, err
+		}
+		local.Set(name, val)
+
+		// set update step
+		if step != nil {
+			this, step, ok = unpack(step)
+			if !ok || step != nil {
+				return nil, eval.SyntaxError
+			}
+			steps[name] = this
+		} else {
+			steps[name] = name
+		}
 	}
 	return steps, nil
+}
+
+// If the value is a Pair, extract head and tail, and return success status.
+func unpack(val any) (any, any, bool) {
+	p, ok := val.(types.Pair)
+	return p.This, p.Next, ok
 }

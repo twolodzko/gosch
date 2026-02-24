@@ -4,29 +4,25 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
 
 // `string` procedure
-func ToString(args *types.Pair) (types.Sexpr, error) {
-	return types.String(joinToString(args, "")), nil
+func ToString(args any, env *envir.Env) (any, error) {
+	vals, err := eval.ListMapEval(args, env)
+	return joinToString(vals, ""), err
 }
 
 // `string?` procedure
-func IsString(args *types.Pair) (types.Sexpr, error) {
-	if args == nil {
-		return nil, eval.ErrBadArgNumber
-	}
-	switch args.This.(type) {
-	case types.String:
-		return types.TRUE, nil
-	default:
-		return types.FALSE, nil
-	}
+func IsString(args any, env *envir.Env) (any, error) {
+	v, err := eval.EvalOne(args, env)
+	_, ok := v.(string)
+	return ok, err
 }
 
-func asInt(s types.Sexpr) (int, error) {
+func asInt(s any) (int, error) {
 	switch x := s.(type) {
 	case types.Integer:
 		return int(x), nil
@@ -35,19 +31,23 @@ func asInt(s types.Sexpr) (int, error) {
 	}
 }
 
-func Substring(args *types.Pair) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() || !args.Next.HasNext() {
-		return nil, eval.ErrBadArgNumber
-	}
-	str, ok := args.This.(types.String)
-	if !ok {
-		return nil, fmt.Errorf("%v is not a string", args.This)
-	}
-	start, err := asInt(args.Next.This)
+func Substring(args any, env *envir.Env) (any, error) {
+	vals, err := eval.ListMapEval(args, env)
 	if err != nil {
 		return nil, err
 	}
-	end, err := asInt(args.Next.Next.This)
+	if len(vals) != 3 {
+		return nil, eval.ArityError
+	}
+	str, ok := vals[0].(string)
+	if !ok {
+		return nil, fmt.Errorf("%v is not a string", vals[0])
+	}
+	start, err := asInt(vals[1])
+	if err != nil {
+		return nil, err
+	}
+	end, err := asInt(vals[2])
 	if err != nil {
 		return nil, err
 	}
@@ -58,29 +58,28 @@ func Substring(args *types.Pair) (types.Sexpr, error) {
 }
 
 // `string-length` procedure
-func StringLength(args *types.Pair) (types.Sexpr, error) {
-	if args == nil || args.HasNext() {
-		return nil, eval.ErrBadArgNumber
+func StringLength(args any, env *envir.Env) (any, error) {
+	v, err := eval.EvalOne(args, env)
+	if err != nil {
+		return nil, err
 	}
-	str, ok := args.This.(types.String)
+	s, ok := v.(string)
 	if !ok {
-		return nil, fmt.Errorf("%v is not a string", args.This)
+		return nil, fmt.Errorf("%v is not a string", v)
 	}
-	return len(str), nil
+	return types.Integer(len(s)), nil
 }
 
 // Convert arguments to string, using space as a separator
-func joinToString(args *types.Pair, sep string) string {
+func joinToString(args []any, sep string) string {
 	var s []string
-	head := args
-	for head != nil {
-		switch val := head.This.(type) {
-		case types.String:
+	for _, a := range args {
+		switch val := a.(type) {
+		case string:
 			s = append(s, fmt.Sprintf("%v", string(val)))
 		default:
 			s = append(s, fmt.Sprintf("%v", val))
 		}
-		head = head.Next
 	}
 	return strings.Join(s, sep)
 }

@@ -10,68 +10,68 @@ type (
 	Float   float64
 )
 
-type Arithmetic interface {
-	Add(Sexpr) (Sexpr, error)
-	Sub(Sexpr) (Sexpr, error)
-	Mul(Sexpr) (Sexpr, error)
-	Div(Sexpr) (Sexpr, error)
-	Mod(Sexpr) (Sexpr, error)
+type Arith interface {
+	Add(any) (Arith, error)
+	Sub(any) (Arith, error)
+	Mul(any) (Arith, error)
+	Div(any) (Arith, error)
+	Mod(any) (Arith, error)
 }
 
-func (x Integer) Add(y Sexpr) (Sexpr, error) {
+func (x Integer) Add(y any) (Arith, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x + y, nil
 	case Float:
 		return Float(x) + y, nil
 	default:
-		return nil, &ErrNaN{y}
+		return nil, NaN{y}
 	}
 }
 
-func (x Integer) Sub(y Sexpr) (Sexpr, error) {
+func (x Integer) Sub(y any) (Arith, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x - y, nil
 	case Float:
 		return Float(x) - y, nil
 	default:
-		return nil, &ErrNaN{y}
+		return nil, NaN{y}
 	}
 }
 
-func (x Integer) Mul(y Sexpr) (Sexpr, error) {
+func (x Integer) Mul(y any) (Arith, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x * y, nil
 	case Float:
 		return Float(x) * y, nil
 	default:
-		return nil, &ErrNaN{y}
+		return nil, NaN{y}
 	}
 }
 
-func (x Integer) Div(y Sexpr) (Sexpr, error) {
+func (x Integer) Div(y any) (Arith, error) {
 	switch y := y.(type) {
 	case Integer:
 		return Float(x) / Float(y), nil
 	case Float:
 		return Float(x) / y, nil
 	default:
-		return nil, &ErrNaN{y}
+		return nil, NaN{y}
 	}
 }
 
-func (x Integer) IntDiv(y Sexpr) (Sexpr, error) {
+func (x Integer) IntDiv(y any) (Integer, error) {
 	switch y := y.(type) {
 	case Integer:
-		return x / y, nil
+		return Integer(x / y), nil
 	default:
-		return nil, fmt.Errorf("%v is not an integer", y)
+		return Integer(0), fmt.Errorf("%v is not an integer", y)
 	}
 }
 
-func (x Integer) Mod(y Sexpr) (Sexpr, error) {
+func (x Integer) Mod(y any) (Arith, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x % y, nil
@@ -79,55 +79,55 @@ func (x Integer) Mod(y Sexpr) (Sexpr, error) {
 		result := math.Mod(float64(x), float64(y))
 		return Float(result), nil
 	default:
-		return nil, &ErrNaN{y}
+		return nil, NaN{y}
 	}
 }
 
-func (x Float) Add(y Sexpr) (Sexpr, error) {
+func (x Float) Add(y any) (Arith, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x + Float(y), nil
 	case Float:
 		return x + y, nil
 	default:
-		return nil, &ErrNaN{y}
+		return nil, NaN{y}
 	}
 }
 
-func (x Float) Sub(y Sexpr) (Sexpr, error) {
+func (x Float) Sub(y any) (Arith, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x - Float(y), nil
 	case Float:
 		return x - y, nil
 	default:
-		return nil, &ErrNaN{y}
+		return nil, NaN{y}
 	}
 }
 
-func (x Float) Mul(y Sexpr) (Sexpr, error) {
+func (x Float) Mul(y any) (Arith, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x * Float(y), nil
 	case Float:
 		return x * y, nil
 	default:
-		return nil, &ErrNaN{y}
+		return nil, NaN{y}
 	}
 }
 
-func (x Float) Div(y Sexpr) (Sexpr, error) {
+func (x Float) Div(y any) (Arith, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x / Float(y), nil
 	case Float:
 		return x / y, nil
 	default:
-		return nil, &ErrNaN{y}
+		return nil, NaN{y}
 	}
 }
 
-func (x Float) Mod(y Sexpr) (Sexpr, error) {
+func (x Float) Mod(y any) (Arith, error) {
 	switch y := y.(type) {
 	case Integer:
 		result := math.Mod(float64(x), float64(y))
@@ -136,7 +136,7 @@ func (x Float) Mod(y Sexpr) (Sexpr, error) {
 		result := math.Mod(float64(x), float64(y))
 		return Float(result), nil
 	default:
-		return nil, &ErrNaN{y}
+		return nil, NaN{y}
 	}
 }
 
@@ -146,10 +146,10 @@ func (x Float) String() string {
 	return fmt.Sprintf("%g", num)
 }
 
-type ErrNaN struct {
-	Val Sexpr
+type NaN struct {
+	Val any
 }
 
-func (e *ErrNaN) Error() string {
+func (e NaN) Error() string {
 	return fmt.Sprintf("%v is not a number", e.Val)
 }

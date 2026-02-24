@@ -6,45 +6,56 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-func Not(args *types.Pair) (types.Sexpr, error) {
+var _ eval.Procedure = Not
+var _ eval.Procedure = And
+var _ eval.Procedure = Or
+
+func Not(args any, env *envir.Env) (any, error) {
 	if args == nil {
-		return types.FALSE, nil
+		return false, nil
 	}
-	return !types.IsTrue(args.This), nil
+	v, err := eval.EvalOne(args, env)
+	return !types.IsTrue(v), err
 }
 
-func And(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || args.This == nil {
-		return types.TRUE, nil
-	}
-	head := args
-	for head != nil {
-		test, err := eval.Eval(head.This, env)
+func And(args any, env *envir.Env) (any, error) {
+	var (
+		this any
+		ok   bool
+	)
+	for args != nil {
+		this, args, ok = unpack(args)
+		if !ok {
+			return nil, eval.SyntaxError
+		}
+		test, err := eval.Eval(this, env)
 		if err != nil {
 			return nil, err
 		}
 		if !types.IsTrue(test) {
-			return types.FALSE, nil
+			return false, nil
 		}
-		head = head.Next
 	}
-	return types.TRUE, nil
+	return true, nil
 }
 
-func Or(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || args.This == nil {
-		return types.TRUE, nil
-	}
-	head := args
-	for head != nil {
-		test, err := eval.Eval(head.This, env)
+func Or(args any, env *envir.Env) (any, error) {
+	var (
+		this any
+		ok   bool
+	)
+	for args != nil {
+		this, args, ok = unpack(args)
+		if !ok {
+			return nil, eval.SyntaxError
+		}
+		test, err := eval.Eval(this, env)
 		if err != nil {
 			return nil, err
 		}
 		if types.IsTrue(test) {
-			return types.TRUE, nil
+			return true, nil
 		}
-		head = head.Next
 	}
-	return types.FALSE, nil
+	return false, nil
 }

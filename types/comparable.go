@@ -1,73 +1,73 @@
 package types
 
 type Comparable interface {
-	Equal(Sexpr) (Bool, error)
-	Lower(Sexpr) (Bool, error)
-	Greater(Sexpr) (Bool, error)
+	Equal(any) (bool, error)
+	Lower(any) (bool, error)
+	Greater(any) (bool, error)
 }
 
-func (x Integer) Equal(y Sexpr) (Bool, error) {
+func (x Integer) Equal(y any) (bool, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x == y, nil
 	case Float:
 		return Float(x) == y, nil
 	default:
-		return false, &ErrNaN{y}
+		return false, NaN{y}
 	}
 }
 
-func (x Integer) Lower(y Sexpr) (Bool, error) {
+func (x Integer) Lower(y any) (bool, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x < y, nil
 	case Float:
 		return Float(x) < y, nil
 	default:
-		return false, &ErrNaN{y}
+		return false, NaN{y}
 	}
 }
 
-func (x Integer) Greater(y Sexpr) (Bool, error) {
+func (x Integer) Greater(y any) (bool, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x > y, nil
 	case Float:
 		return Float(x) > y, nil
 	default:
-		return false, &ErrNaN{y}
+		return false, NaN{y}
 	}
 }
 
-func (x Float) Equal(y Sexpr) (Bool, error) {
+func (x Float) Equal(y any) (bool, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x == Float(y), nil
 	case Float:
 		return x == y, nil
 	default:
-		return false, &ErrNaN{y}
+		return false, NaN{y}
 	}
 }
 
-func (x Float) Lower(y Sexpr) (Bool, error) {
+func (x Float) Lower(y any) (bool, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x < Float(y), nil
 	case Float:
 		return x < y, nil
 	default:
-		return false, &ErrNaN{y}
+		return false, NaN{y}
 	}
 }
 
-func (x Float) Greater(y Sexpr) (Bool, error) {
+func (x Float) Greater(y any) (bool, error) {
 	switch y := y.(type) {
 	case Integer:
 		return x > Float(y), nil
 	case Float:
 		return x > y, nil
 	default:
-		return false, &ErrNaN{y}
+		return false, NaN{y}
 	}
 }

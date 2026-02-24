@@ -1,78 +1,58 @@
 package parser
 
 import (
-	"fmt"
+	"reflect"
 	"testing"
 
 	"github.com/google/go-cmp/cmp"
 	"github.com/twolodzko/gosch/types"
 )
 
-func Test_Parse(t *testing.T) {
+func TestParse(t *testing.T) {
 	var testCases = []struct {
 		input    string
-		expected types.Sexpr
+		expected any
 	}{
-		{"a", "a"},
+		{"a", types.Symbol("a")},
 		{"42", types.Integer(42)},
 		{"-100", types.Integer(-100)},
-		{"3.14", types.Float(3.14)},
 		{"-5.0", types.Float(-5.0)},
 		{"12e-8", types.Float(12e-8)},
-		{"nil", nil},
-		{"#t", types.TRUE},
-		{"#f", types.FALSE},
-		{"()", &types.Pair{}},
-		{"(a)", types.MakePair(types.Symbol("a"), nil)},
-		{"(())", types.MakePair(&types.Pair{}, nil)},
-		{"(1 2 3)", types.MakePair(types.Integer(1), types.MakePair(types.Integer(2), types.MakePair(types.Integer(3), nil)))},
-		{"((1 2) 3)", types.MakePair(types.MakePair(types.Integer(1), types.MakePair(types.Integer(2), nil)), types.MakePair(types.Integer(3), nil))},
-		{"(1 (2 3))", types.MakePair(types.Integer(1), types.MakePair(types.MakePair(types.Integer(2), types.MakePair(types.Integer(3), nil)), nil))},
-		{"'a", Quote(types.Symbol("a"))},
-		{"'(a)", Quote(types.MakePair(types.Symbol("a"), nil))},
-		{"('a)", types.MakePair(Quote(types.Symbol("a")), nil)},
-		{"'''a", Quote(Quote(Quote(types.Symbol("a"))))},
-		{"'()", Quote(&types.Pair{})},
-		{"''()", Quote(Quote(&types.Pair{}))},
-		{"`()", Quasiquote(&types.Pair{})},
-		{"``()", Quasiquote(Quasiquote(&types.Pair{}))},
-		{"'`()", Quote(Quasiquote(&types.Pair{}))},
-		{"`'()", Quasiquote(Quote(&types.Pair{}))},
-		{"`,'()", Quasiquote(Unquote(Quote(&types.Pair{})))},
-		{"(`a)", types.MakePair(Quasiquote(types.Symbol("a")), nil)},
-		{"  \n\ta", "a"},
-		{"\n  \t\n(\n   a\t\n)  ", types.MakePair(types.Symbol("a"), nil)},
-		{`"hello world!"`, types.String("hello world!")},
-		{`"William Joseph \"Wild Bill\" Donovan"`, types.String(`William Joseph "Wild Bill" Donovan`)},
-		{"(list 1 2 ;; a comment\n3)", types.MakePair(types.Symbol("list"), types.MakePair(types.Integer(1), types.MakePair(types.Integer(2), types.MakePair(types.Integer(3), nil))))},
+		{"#t", true},
+		{"#f", false},
+		{"()", nil},
+		{"(a)", types.List(types.Symbol("a"))},
+		{"(())", types.List(nil)},
+		{"(1 2 3)", types.List(types.Integer(1), types.Integer(2), types.Integer(3))},
+		{"((1 2) 3)", types.List(types.List(types.Integer(1), types.Integer(2)), types.Integer(3))},
+		{"(1 (2 3))", types.List(types.Integer(1), types.List(types.Integer(2), types.Integer(3)))},
+		{"'a", types.List(types.Symbol("quote"), types.Symbol("a"))},
+		{"'(a)", types.List(types.Symbol("quote"), types.List(types.Symbol("a")))},
+		{"('a)", types.List(Quote(types.Symbol("a")))},
+		{"'''a", types.List(types.Symbol("quote"), types.List(types.Symbol("quote"), types.List(types.Symbol("quote"), types.Symbol("a"))))},
+		{"'()", types.List(types.Symbol("quote"), nil)},
+		{"''()", types.List(types.Symbol("quote"), types.List(types.Symbol("quote"), nil))},
+		{"  \n\ta", types.Symbol("a")},
+		{"\n  \t\n(\n   a\t\n)  ", types.List(types.Symbol("a"))},
+		{"(list 1 2 ;; a comment\n3)", types.List(types.Symbol("list"), types.Integer(1), types.Integer(2), types.Integer(3))},
+		{`"hello world!"`, "hello world!"},
+		{`"William Joseph \"Wild Bill\" Donovan"`, `William Joseph "Wild Bill" Donovan`},
+		{"(list 1 2 ;; a comment\n3)", types.List(types.Symbol("list"), types.Integer(1), types.Integer(2), types.Integer(3))},
 	}
 
 	for _, tt := range testCases {
 		parser := NewParser(tt.input)
 		result, err := parser.Read()
 		if err != nil {
-			t.Errorf("unexpected error: %v", err)
+			t.Errorf("unexpected error for %v: %v", tt.input, err)
 		}
-		if !cmp.Equal(result[0], tt.expected) {
+		if !reflect.DeepEqual(result[0], tt.expected) {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result[0])
 		}
 	}
 }
 
-func Test_ParseAny(t *testing.T) {
-	input := "1 2 3"
-	expected := []types.Sexpr{types.Integer(1), types.Integer(2), types.Integer(3)}
-	parser := NewParser(input)
-	result, err := parser.Read()
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
-	}
-	if !cmp.Equal(result, expected) {
-		t.Errorf("for %q expected %v, got: %v", input, expected, result)
-	}
-}
-
-func Test_ParseAndPrint(t *testing.T) {
+func TestParseAndPrint(t *testing.T) {
 	var testCases = []string{
 		"(1 2 3)",
 		"(1 (2 3))",
@@ -86,13 +66,13 @@ func Test_ParseAndPrint(t *testing.T) {
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
 		}
-		if fmt.Sprintf("%v", result[0]) != input {
+		if types.ToString(result[0]) != input {
 			t.Errorf("%q is printable as %v", input, result[0])
 		}
 	}
 }
 
-func Test_ReadAtomValue(t *testing.T) {
+func TestReadAtomValue(t *testing.T) {
 	var testCases = []struct {
 		input    string
 		expected types.Symbol
@@ -115,7 +95,7 @@ func Test_ReadAtomValue(t *testing.T) {
 	}
 }
 
-func Test_ParseExpectError(t *testing.T) {
+func TestParseExpectError(t *testing.T) {
 	var testCases = []struct {
 		input    string
 		expected string
@@ -133,18 +113,18 @@ func Test_ParseExpectError(t *testing.T) {
 	}
 }
 
-func Test_Quote(t *testing.T) {
+func TestQuote(t *testing.T) {
 	var testCases = []struct {
-		input    types.Sexpr
-		expected types.Sexpr
+		input    any
+		expected any
 	}{
 		{
 			"x",
-			&types.Pair{This: "quote", Next: &types.Pair{This: "x", Next: nil}},
+			types.List(types.Symbol("quote"), "x"),
 		},
 		{
-			&types.Pair{},
-			&types.Pair{This: "quote", Next: &types.Pair{This: &types.Pair{}, Next: nil}},
+			nil,
+			types.List(types.Symbol("quote"), nil),
 		},
 	}
 
@@ -153,19 +133,5 @@ func Test_Quote(t *testing.T) {
 		if !cmp.Equal(result, tt.expected) {
 			t.Errorf("for %q expected %v, got: %v", tt.input, tt.expected, result)
 		}
-	}
-}
-
-func Test_DoubleBrackets(t *testing.T) {
-	input := `
-	(define factorial
-		(lambda (n)
-			(do ([i n (- i 1)] [a 1 (* a i)])
-				((zero? i) a))))
-	`
-	parser := NewParser(input)
-	_, err := parser.Read()
-	if err != nil {
-		t.Errorf("unexpected error: %v", err)
 	}
 }

@@ -2,7 +2,6 @@ package special_forms
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
@@ -12,43 +11,24 @@ import (
 var _ eval.Callable = (*Lambda)(nil)
 
 type Lambda struct {
-	Vars      []types.Symbol
-	Body      *types.Pair
-	ParentEnv *envir.Env
+	args      any
+	body      types.Pair
+	parentEnv *envir.Env
 }
 
 // Create `lambda` function
 //
 //	(lambda (args ...) body ...)
-func NewLambda(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return Lambda{}, eval.ErrBadArgNumber
+func NewLambda(def any, env *envir.Env) (any, error) {
+	args, tail, ok := unpack(def)
+	if !ok {
+		return nil, eval.SyntaxError
 	}
-	switch pair := args.This.(type) {
-	case *types.Pair:
-		vars, err := extractSymbols(pair)
-		return Lambda{vars, args.Next, env}, err
-	default:
-		return Lambda{}, eval.NewErrNonList(args.This)
+	body, ok := tail.(types.Pair)
+	if !ok {
+		return nil, eval.SyntaxError
 	}
-}
-
-// Transform pair to slice
-func extractSymbols(args *types.Pair) ([]types.Symbol, error) {
-	var vars []types.Symbol
-	if args == nil || args.IsNull() {
-		return vars, nil
-	}
-	head := args
-	for head != nil {
-		if name, ok := head.This.(types.Symbol); ok {
-			vars = append(vars, name)
-		} else {
-			return vars, eval.NewErrBadName(args.This)
-		}
-		head = head.Next
-	}
-	return vars, nil
+	return Lambda{args, body, env}, nil
 }
 
 // Call `lambda` function
@@ -65,45 +45,67 @@ func extractSymbols(args *types.Pair) ([]types.Symbol, error) {
 //	 => (+ 4 (+ 3 7)) = 14
 //	      /     |  \
 //	  parent  local  calling env
-func (l Lambda) Call(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
-
-	local, err := l.createClosure(args, env)
-	if err != nil {
-		return nil, local, err
+func (l Lambda) Call(args any, env *envir.Env) (any, *envir.Env, error) {
+	local := envir.NewEnvFrom(l.parentEnv)
+	if err := bindArgs(l.args, args, env, local); err != nil {
+		return nil, nil, err
 	}
-
 	// the body of the function is evaluated in the local env of the lambda
-	return eval.PartialEval(l.Body, local)
-}
-
-func (l Lambda) createClosure(args *types.Pair, env *envir.Env) (*envir.Env, error) {
-	// local env inherits from the env where the lambda was defined
-	local := envir.NewEnvFrom(l.ParentEnv)
-
-	// setup local env
-	head := args
-	for _, name := range l.Vars {
-		if head == nil {
-			return local, eval.ErrBadArgNumber
-		}
-		// arguments are evaluated in the env enclosing the lambda call
-		val, err := eval.Eval(head.This, env)
-		if err != nil {
-			return local, err
-		}
-		local.Set(name, val)
-		head = head.Next
-	}
-
-	if head != nil && head.HasNext() {
-		return local, eval.ErrBadArgNumber
-	}
-
-	return local, nil
+	return eval.PartialEval(l.body, local)
 }
 
 func (l Lambda) String() string {
-	vars := strings.Join(l.Vars, " ")
-	body := l.Body.ToString()
-	return fmt.Sprintf("(lambda (%v) %v)", vars, body)
+	body := l.body.ToString()
+	return fmt.Sprintf("(lambda %v %v)", types.ToString(l.args), body)
+}
+
+func bindArgs(args, vals any, evalEnv, bindEnv *envir.Env) error {
+	for {
+		switch a := args.(type) {
+		case types.Pair:
+			name, ok := a.This.(types.Symbol)
+			if !ok {
+				return eval.InvalidName{Val: a.This}
+			}
+			v, ok := vals.(types.Pair)
+			if !ok {
+				return eval.ArityError
+			}
+			val, err := eval.Eval(v.This, evalEnv)
+			if err != nil {
+				return err
+			}
+			bindEnv.Set(name, val)
+			// next arg
+			args = a.Next
+			vals = v.Next
+		case nil:
+			// end of list or arg names
+			if vals != nil {
+				return eval.ArityError
+			}
+			return nil
+		case types.Symbol:
+			// it was a dotted pair
+			var (
+				val any
+				err error
+			)
+			switch v := vals.(type) {
+			case nil:
+			case types.Pair:
+				var l []any
+				l, err = v.TryMap(func(val any) (any, error) {
+					return eval.Eval(val, evalEnv)
+				})
+				val = types.Cons(l...)
+			default:
+				val, err = eval.Eval(vals, evalEnv)
+			}
+			bindEnv.Set(a, val)
+			return err
+		default:
+			return eval.InvalidName{Val: a}
+		}
+	}
 }

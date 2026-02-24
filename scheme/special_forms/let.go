@@ -1,133 +1,132 @@
 package special_forms
 
 import (
-	"fmt"
-
 	"github.com/twolodzko/gosch/envir"
 	"github.com/twolodzko/gosch/eval"
 	"github.com/twolodzko/gosch/types"
 )
 
-var _ eval.TailCallOptimized = Let
-var _ eval.TailCallOptimized = LetStar
-
-// Tail call optimized procedures
-// see: https://github.com/kanaka/mal/blob/master/process/guide.md#step-5-tail-call-optimization
+var _ eval.TailCallOpt = Let
+var _ eval.TailCallOpt = LetStar
 
 // `let` procedure
 //
 //	(let ((key1 value1) (key2 value2) ...) expr1 expr2 ...)
-//	(let name ((key1 value1) (key2 value2) ...) expr1 expr2 ...)
-func Let(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
-	if args == nil || !args.HasNext() {
-		return nil, env, eval.ErrBadArgNumber
+func Let(args any, env *envir.Env) (any, *envir.Env, error) {
+	p, ok := args.(types.Pair)
+	if !ok {
+		return nil, nil, eval.SyntaxError
 	}
-
-	switch first := args.This.(type) {
-	case *types.Pair:
-		return regularLet(first, args.Next, env)
+	switch name := p.This.(type) {
 	case types.Symbol:
-		return namedLet(first, args.Next, env)
+		return namedLet(name, p.Next, env)
 	default:
-		return nil, env, eval.ErrInvalidSyntax
+		body, ok := p.Next.(types.Pair)
+		if !ok {
+			return nil, nil, eval.SyntaxError
+		}
+		return regularLet(p.This, body, env)
 	}
 }
 
-func regularLet(bindings, body *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
+func regularLet(bindings any, body types.Pair, env *envir.Env) (any, *envir.Env, error) {
 	local := envir.NewEnvFrom(env)
-	if err := setBindings(bindings, local, env); err != nil {
-		return nil, local, err
+	switch b := bindings.(type) {
+	case nil:
+	case types.Pair:
+		if err := setBindings(b, local, env); err != nil {
+			return nil, local, err
+		}
+	default:
+		return nil, nil, eval.NonList{Val: bindings}
 	}
 	return eval.PartialEval(body, local)
 }
 
-func namedLet(name types.Symbol, rest *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
-	if !rest.HasNext() {
-		return nil, env, eval.ErrBadArgNumber
-	}
-	head, ok := rest.This.(*types.Pair)
+func namedLet(name types.Symbol, rest any, env *envir.Env) (any, *envir.Env, error) {
+	this, tail, ok := unpack(rest)
 	if !ok {
-		return nil, env, eval.NewErrNonList(rest.This)
+		return nil, nil, eval.SyntaxError
+	}
+
+	bindings, ok := this.(types.Pair)
+	if !ok {
+		return nil, nil, eval.SyntaxError
+	}
+	body, ok := tail.(types.Pair)
+	if !ok {
+		return nil, nil, eval.SyntaxError
 	}
 	var (
-		vars []types.Symbol
-		args = types.NewAppendablePair()
+		keys, vals []any
+		head       any = bindings
 	)
 	for head != nil {
-		switch binding := head.This.(type) {
-		case *types.Pair:
-			name, arg, err := extractBinding(binding)
-			if err != nil {
-				return nil, env, err
-			}
-			vars = append(vars, name)
-			args.Append(arg)
-		default:
-			return nil, env, eval.NewErrNonList(binding)
+		p, ok := head.(types.Pair)
+		if !ok {
+			return nil, nil, eval.SyntaxError
 		}
-		head = head.Next
+		b, ok := p.This.(types.Pair)
+		if !ok {
+			return nil, nil, eval.SyntaxError
+		}
+		name, arg, err := extractBinding(b)
+		if err != nil {
+			return nil, env, err
+		}
+		keys = append(keys, name)
+		vals = append(vals, arg)
+		head = p.Next
 	}
 
+	k := types.List(keys...)
+	v := types.List(vals...)
+
 	local := envir.NewEnvFrom(env)
-	lambda := Lambda{vars, rest.Next, local}
+	lambda := Lambda{k, body, local}
 	local.Set(name, lambda)
 
-	return lambda.Call(args.ToPair(), local)
+	return lambda.Call(v, local)
 }
 
 // `let*` procedure
 //
 //	(let* ((name1 value1) (name2 value2) ...) expr1 expr2 ...)
-func LetStar(args *types.Pair, env *envir.Env) (types.Sexpr, *envir.Env, error) {
-	if args == nil || !args.HasNext() {
-		return nil, env, eval.ErrBadArgNumber
-	}
-
-	local := envir.NewEnvFrom(env)
-
-	// bind variables
-	bindings, ok := args.This.(*types.Pair)
+func LetStar(args any, env *envir.Env) (any, *envir.Env, error) {
+	p, ok := args.(types.Pair)
 	if !ok {
-		return nil, local, eval.NewErrNonList(args.This)
+		return nil, nil, eval.SyntaxError
 	}
-	err := setBindings(bindings, local, local)
-	if err != nil {
-		return nil, local, err
+	local := envir.NewEnvFrom(env)
+	b, ok := p.This.(types.Pair)
+	if !ok {
+		return nil, nil, eval.SyntaxError
 	}
-
-	return eval.PartialEval(args.Next, local)
+	if err := setBindings(b, local, local); err != nil {
+		return nil, nil, err
+	}
+	return eval.PartialEval(p.Next, local)
 }
 
 // Iterate through the bindings ((key1 value1) (key2 value2) ...) and set them to an environment
-func setBindings(bindings *types.Pair, local, parent *envir.Env) error {
-	if bindings.IsNull() {
-		return nil
-	}
-
-	head := bindings
-	for head != nil {
-		switch pair := head.This.(type) {
-		case *types.Pair:
-			err := bind(pair, local, parent)
-			if err != nil {
-				return err
-			}
-		default:
-			return eval.NewErrNonList(head.This)
+func setBindings(bindings types.Pair, local, parent *envir.Env) error {
+	return bindings.TryForEach(func(val any) error {
+		p, ok := val.(types.Pair)
+		if !ok {
+			return eval.NonList{Val: val}
 		}
-		head = head.Next
-	}
-	return nil
+		return bind(p, local, parent)
+	})
 }
 
 // Bind value to the name in the local env
-func bind(binding *types.Pair, local, parent *envir.Env) error {
-	name, sexpr, err := extractBinding(binding)
+func bind(binding types.Pair, local, parent *envir.Env) error {
+	name, expr, err := extractBinding(binding)
 	if err != nil {
 		return err
 	}
 	// arguments are evaluated in env enclosing let
-	val, err := eval.Eval(sexpr, parent)
+	val, err := eval.Eval(expr, parent)
 	if err != nil {
 		return err
 	}
@@ -136,14 +135,15 @@ func bind(binding *types.Pair, local, parent *envir.Env) error {
 }
 
 // Extract name and value for the binding
-func extractBinding(arg *types.Pair) (types.Symbol, types.Sexpr, error) {
-	if !arg.HasNext() {
-		return "", nil, fmt.Errorf("%v has not value to bind", arg)
-	}
+func extractBinding(arg types.Pair) (types.Symbol, any, error) {
 	switch name := arg.This.(type) {
 	case types.Symbol:
-		return name, arg.Next.This, nil
+		p, ok := arg.Next.(types.Pair)
+		if !ok {
+			return "", nil, eval.SyntaxError
+		}
+		return name, p.This, nil
 	default:
-		return "", nil, eval.NewErrBadName(arg.This)
+		return "", nil, eval.InvalidName{Val: arg.This}
 	}
 }

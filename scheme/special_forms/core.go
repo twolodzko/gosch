@@ -9,83 +9,86 @@ import (
 )
 
 // `define` procedure
-func Define(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return nil, eval.ErrBadArgNumber
+func Define(args any, env *envir.Env) (any, error) {
+	head, body, ok := unpack(args)
+	if !ok {
+		return nil, eval.ArityError
 	}
-	switch this := args.This.(type) {
+
+	switch this := head.(type) {
 	case types.Symbol:
-		val, err := eval.Eval(args.Next.This, env)
+		body, tail, ok := unpack(body)
+		if !ok || tail != nil {
+			return nil, eval.SyntaxError
+		}
+		val, err := eval.Eval(body, env)
 		if err != nil {
 			return nil, err
 		}
 		env.Set(this, val)
 		return val, nil
-	case *types.Pair:
-		return defineLambda(this, args.Next, env)
+	case types.Pair:
+		body, ok := body.(types.Pair)
+		if !ok {
+			return nil, eval.SyntaxError
+		}
+		return defineLambda(this, body, env)
 	default:
-		return nil, eval.NewErrBadName(args.This)
+		return nil, eval.InvalidName{Val: this}
 	}
 }
 
 // Implementation of
 //
 //	(define (name args...) body...)
-func defineLambda(args, body *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil {
-		return nil, eval.ErrBadArgNumber
-	}
-	name, ok := args.This.(types.Symbol)
+func defineLambda(head, body types.Pair, env *envir.Env) (any, error) {
+	name, ok := head.This.(types.Symbol)
 	if !ok {
-		return nil, eval.NewErrBadName(args.This)
+		return nil, eval.InvalidName{Val: head.This}
 	}
-	vars, err := extractSymbols(args.Next)
-	if err != nil {
-		return nil, err
-	}
-	fn := Lambda{vars, body, env}
-	env.Set(name, fn)
-	return fn, nil
+	args := head.Next
+	lambda := Lambda{args, body, env}
+	env.Set(name, lambda)
+	return lambda, nil
 }
 
 // `set!` procedure
-func Set(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || !args.HasNext() {
-		return nil, eval.ErrBadArgNumber
+func Set(args any, env *envir.Env) (any, error) {
+	head, args, ok := unpack(args)
+	if !ok {
+		return nil, eval.ArityError
 	}
-
-	val, err := eval.Eval(args.Next.This, env)
+	name, ok := head.(types.Symbol)
+	if !ok {
+		return nil, eval.InvalidName{Val: head}
+	}
+	expr, tail, ok := unpack(args)
+	if !ok || tail != nil {
+		return nil, eval.ArityError
+	}
+	val, err := eval.Eval(expr, env)
 	if err != nil {
 		return nil, err
 	}
-
-	switch name := args.This.(type) {
-	case types.Symbol:
-		if localEnv, ok := env.FindEnv(name); ok {
-			localEnv.Set(name, val)
-		} else {
-			env.Set(name, val)
-		}
-		return val, nil
-	default:
-		return nil, eval.NewErrBadName(args.This)
+	if localEnv, ok := env.FindEnv(name); ok {
+		localEnv.Set(name, val)
+	} else {
+		env.Set(name, val)
 	}
+	return val, nil
 }
 
 // `load` procedure
-func Load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil {
-		return nil, eval.ErrBadArgNumber
-	}
-	head, err := eval.Eval(args.This, env)
+func Load(args any, env *envir.Env) (any, error) {
+	v, err := eval.EvalOne(args, env)
 	if err != nil {
 		return nil, err
 	}
-	path, ok := head.(types.String)
+	path, ok := v.(string)
 	if !ok {
-		return nil, fmt.Errorf("invalid path: %v", head)
+		return nil, fmt.Errorf("invalid path: %v", v)
 	}
-	sexprs, err := eval.LoadEval(string(path), env)
+	sexprs, err := eval.LoadEval(path, env)
 	if err != nil {
 		return nil, err
 	}
@@ -96,15 +99,11 @@ func Load(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
 }
 
 // `eval` procedure
-func Eval(args *types.Pair, env *envir.Env) (types.Sexpr, error) {
-	if args == nil || args.HasNext() {
-		return nil, eval.ErrBadArgNumber
-	}
-	// this is what "just" evaluating the object would do
-	expr, err := eval.Eval(args.This, env)
+func Eval(args any, env *envir.Env) (any, error) {
+	val, err := eval.EvalOne(args, env)
 	if err != nil {
 		return nil, err
 	}
 	// here we evaluate the resulting expression
-	return eval.Eval(expr, env)
+	return eval.Eval(val, env)
 }

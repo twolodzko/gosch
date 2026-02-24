@@ -1,4 +1,4 @@
-test: unit-test integration-test
+test: lint unit-test integration-test
 
 unit-test:
     go vet ./...

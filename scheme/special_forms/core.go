@@ -12,14 +12,14 @@ import (
 func Define(args any, env *envir.Env) (any, error) {
 	head, body, ok := unpack(args)
 	if !ok {
-		return nil, eval.ArityError
+		return nil, eval.ErrArity
 	}
 
 	switch this := head.(type) {
 	case types.Symbol:
 		body, tail, ok := unpack(body)
 		if !ok || tail != nil {
-			return nil, eval.SyntaxError
+			return nil, eval.ErrSyntax
 		}
 		val, err := eval.Eval(body, env)
 		if err != nil {
@@ -30,7 +30,7 @@ func Define(args any, env *envir.Env) (any, error) {
 	case types.Pair:
 		body, ok := body.(types.Pair)
 		if !ok {
-			return nil, eval.SyntaxError
+			return nil, eval.ErrSyntax
 		}
 		return defineLambda(this, body, env)
 	default:
@@ -56,7 +56,7 @@ func defineLambda(head, body types.Pair, env *envir.Env) (any, error) {
 func Set(args any, env *envir.Env) (any, error) {
 	head, args, ok := unpack(args)
 	if !ok {
-		return nil, eval.ArityError
+		return nil, eval.ErrArity
 	}
 	name, ok := head.(types.Symbol)
 	if !ok {
@@ -64,7 +64,7 @@ func Set(args any, env *envir.Env) (any, error) {
 	}
 	expr, tail, ok := unpack(args)
 	if !ok || tail != nil {
-		return nil, eval.ArityError
+		return nil, eval.ErrArity
 	}
 	val, err := eval.Eval(expr, env)
 	if err != nil {

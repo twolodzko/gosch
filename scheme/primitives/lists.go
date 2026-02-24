@@ -13,7 +13,7 @@ var _ eval.Procedure = Cons
 func Car(args any, env *envir.Env) (any, error) {
 	p, ok := args.(types.Pair)
 	if !ok {
-		return nil, eval.SyntaxError
+		return nil, eval.ErrSyntax
 	}
 	v, err := eval.Eval(p.This, env)
 	if err != nil {
@@ -31,7 +31,7 @@ func Car(args any, env *envir.Env) (any, error) {
 func Cdr(args any, env *envir.Env) (any, error) {
 	p, ok := args.(types.Pair)
 	if !ok {
-		return nil, eval.SyntaxError
+		return nil, eval.ErrSyntax
 	}
 	v, err := eval.Eval(p.This, env)
 	if err != nil {

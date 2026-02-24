@@ -26,7 +26,7 @@ func And(args any, env *envir.Env) (any, error) {
 	for args != nil {
 		this, args, ok = unpack(args)
 		if !ok {
-			return nil, eval.SyntaxError
+			return nil, eval.ErrSyntax
 		}
 		test, err := eval.Eval(this, env)
 		if err != nil {
@@ -47,7 +47,7 @@ func Or(args any, env *envir.Env) (any, error) {
 	for args != nil {
 		this, args, ok = unpack(args)
 		if !ok {
-			return nil, eval.SyntaxError
+			return nil, eval.ErrSyntax
 		}
 		test, err := eval.Eval(this, env)
 		if err != nil {

@@ -83,10 +83,10 @@ func PartialEval(args any, env *envir.Env) (any, *envir.Env, error) {
 func EvalOne(args any, env *envir.Env) (any, error) {
 	p, ok := args.(types.Pair)
 	if !ok {
-		return nil, SyntaxError
+		return nil, ErrSyntax
 	}
 	if p.Next != nil {
-		return nil, ArityError
+		return nil, ErrArity
 	}
 	return Eval(p.This, env)
 }
@@ -95,7 +95,7 @@ func EvalOne(args any, env *envir.Env) (any, error) {
 func EvalTwo(args any, env *envir.Env) (any, any, error) {
 	p, ok := args.(types.Pair)
 	if !ok {
-		return nil, nil, SyntaxError
+		return nil, nil, ErrSyntax
 	}
 	a, err := Eval(p.This, env)
 	if err != nil {
@@ -103,7 +103,7 @@ func EvalTwo(args any, env *envir.Env) (any, any, error) {
 	}
 	p, ok = p.Next.(types.Pair)
 	if !ok || p.Next != nil {
-		return nil, nil, ArityError
+		return nil, nil, ErrArity
 	}
 	b, err := Eval(p.This, env)
 	return a, b, err
@@ -111,7 +111,7 @@ func EvalTwo(args any, env *envir.Env) (any, any, error) {
 
 func ListMapEval(list any, env *envir.Env) ([]any, error) {
 	var (
-		head any = list
+		head = list
 		acc  []any
 	)
 	for head != nil {

@@ -41,7 +41,7 @@ func Equal(args any, env *envir.Env) (any, error) {
 
 func Lower(args any, env *envir.Env) (any, error) {
 	if args == nil {
-		return nil, eval.ArityError
+		return nil, eval.ErrArity
 	}
 	vals, err := eval.ListMapEval(args, env)
 	if err != nil {
@@ -62,7 +62,7 @@ func Lower(args any, env *envir.Env) (any, error) {
 
 func Greater(args any, env *envir.Env) (any, error) {
 	if args == nil {
-		return nil, eval.ArityError
+		return nil, eval.ErrArity
 	}
 	vals, err := eval.ListMapEval(args, env)
 	if err != nil {

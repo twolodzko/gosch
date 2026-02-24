@@ -37,7 +37,7 @@ func Substring(args any, env *envir.Env) (any, error) {
 		return nil, err
 	}
 	if len(vals) != 3 {
-		return nil, eval.ArityError
+		return nil, eval.ErrArity
 	}
 	str, ok := vals[0].(string)
 	if !ok {

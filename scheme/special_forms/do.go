@@ -41,7 +41,7 @@ func Do(args any, env *envir.Env) (any, error) {
 			for head != nil {
 				p, ok := head.(types.Pair)
 				if !ok {
-					return nil, eval.SyntaxError
+					return nil, eval.ErrSyntax
 				}
 				result, err = eval.Eval(p.This, job.env)
 				head = p.Next
@@ -103,7 +103,7 @@ func newDoJob(args any, env *envir.Env) (doJob, error) {
 
 	this, next, ok := unpack(args)
 	if !ok {
-		return doJob{}, eval.SyntaxError
+		return doJob{}, eval.ErrSyntax
 	}
 	// ((var init update) ...) ...
 	steps, err := setSteps(this, env, local)
@@ -114,11 +114,11 @@ func newDoJob(args any, env *envir.Env) (doJob, error) {
 	// ... (test result ...) ...
 	this, next, ok = unpack(next)
 	if !ok {
-		return doJob{}, eval.SyntaxError
+		return doJob{}, eval.ErrSyntax
 	}
 	clause, ok := this.(types.Pair)
 	if !ok {
-		return doJob{}, eval.SyntaxError
+		return doJob{}, eval.ErrSyntax
 	}
 
 	// ... expr ...)
@@ -126,7 +126,7 @@ func newDoJob(args any, env *envir.Env) (doJob, error) {
 	if next != nil {
 		this, ok := next.(types.Pair)
 		if !ok {
-			return doJob{}, eval.SyntaxError
+			return doJob{}, eval.ErrSyntax
 		}
 		body = &this
 	}
@@ -145,13 +145,13 @@ func setSteps(args any, parent, local *envir.Env) (map[types.Symbol]any, error) 
 	for head != nil {
 		step, head, ok = unpack(head)
 		if !ok {
-			return nil, eval.SyntaxError
+			return nil, eval.ErrSyntax
 		}
 
 		// variable name
 		this, step, ok := unpack(step)
 		if !ok {
-			return nil, eval.SyntaxError
+			return nil, eval.ErrSyntax
 		}
 		name, ok := this.(types.Symbol)
 		if !ok {
@@ -160,6 +160,9 @@ func setSteps(args any, parent, local *envir.Env) (map[types.Symbol]any, error) 
 
 		// init variable
 		expr, step, ok := unpack(step)
+		if !ok {
+			return nil, eval.ErrSyntax
+		}
 		val, err := eval.Eval(expr, parent)
 		if err != nil {
 			return nil, err
@@ -170,7 +173,7 @@ func setSteps(args any, parent, local *envir.Env) (map[types.Symbol]any, error) 
 		if step != nil {
 			this, step, ok = unpack(step)
 			if !ok || step != nil {
-				return nil, eval.SyntaxError
+				return nil, eval.ErrSyntax
 			}
 			steps[name] = this
 		} else {

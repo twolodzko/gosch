@@ -13,10 +13,10 @@ var _ eval.Procedure = Unquote
 func Quote(args any, env *envir.Env) (any, error) {
 	p, ok := args.(types.Pair)
 	if !ok {
-		return nil, eval.SyntaxError
+		return nil, eval.ErrSyntax
 	}
 	if p.Next != nil {
-		return nil, eval.ArityError
+		return nil, eval.ErrArity
 	}
 	return p.This, nil
 }
@@ -25,10 +25,10 @@ func Quote(args any, env *envir.Env) (any, error) {
 func Unquote(args any, env *envir.Env) (any, error) {
 	p, ok := args.(types.Pair)
 	if !ok {
-		return nil, eval.SyntaxError
+		return nil, eval.ErrSyntax
 	}
 	if p.Next != nil {
-		return nil, eval.ArityError
+		return nil, eval.ErrArity
 	}
 	return eval.Eval(p.This, env)
 }
@@ -37,10 +37,10 @@ func Unquote(args any, env *envir.Env) (any, error) {
 func QuasiQuote(args any, env *envir.Env) (any, error) {
 	p, ok := args.(types.Pair)
 	if !ok {
-		return nil, eval.SyntaxError
+		return nil, eval.ErrSyntax
 	}
 	if p.Next != nil {
-		return nil, eval.ArityError
+		return nil, eval.ErrArity
 	}
 	return unquoteRecursively(p.This, 1, env)
 }

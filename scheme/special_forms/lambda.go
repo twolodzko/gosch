@@ -22,11 +22,11 @@ type Lambda struct {
 func NewLambda(def any, env *envir.Env) (any, error) {
 	args, tail, ok := unpack(def)
 	if !ok {
-		return nil, eval.SyntaxError
+		return nil, eval.ErrSyntax
 	}
 	body, ok := tail.(types.Pair)
 	if !ok {
-		return nil, eval.SyntaxError
+		return nil, eval.ErrSyntax
 	}
 	return Lambda{args, body, env}, nil
 }
@@ -69,7 +69,7 @@ func bindArgs(args, vals any, evalEnv, bindEnv *envir.Env) error {
 			}
 			v, ok := vals.(types.Pair)
 			if !ok {
-				return eval.ArityError
+				return eval.ErrArity
 			}
 			val, err := eval.Eval(v.This, evalEnv)
 			if err != nil {
@@ -82,7 +82,7 @@ func bindArgs(args, vals any, evalEnv, bindEnv *envir.Env) error {
 		case nil:
 			// end of list or arg names
 			if vals != nil {
-				return eval.ArityError
+				return eval.ErrArity
 			}
 			return nil
 		case types.Symbol:

@@ -14,6 +14,9 @@ var _ eval.TailCallOpt = Cond
 //	(if condition if-true if-false)
 func If(args any, env *envir.Env) (any, *envir.Env, error) {
 	cond, tail, ok := unpack(args)
+	if !ok {
+		return nil, nil, eval.ErrSyntax
+	}
 
 	condition, err := eval.Eval(cond, env)
 	if err != nil {
@@ -21,7 +24,7 @@ func If(args any, env *envir.Env) (any, *envir.Env, error) {
 	}
 	yes, no, ok := unpack(tail)
 	if !ok {
-		return nil, nil, eval.SyntaxError
+		return nil, nil, eval.ErrSyntax
 	}
 	if types.IsTrue(condition) {
 		return yes, env, nil
@@ -38,12 +41,12 @@ func Cond(args any, env *envir.Env) (any, *envir.Env, error) {
 	var (
 		this any
 		ok   bool
-		head any = args
+		head = args
 	)
 	for head != nil {
 		this, head, ok = unpack(head)
 		if !ok {
-			return nil, nil, eval.SyntaxError
+			return nil, nil, eval.ErrSyntax
 		}
 		cond, body, ok := unpack(this)
 		if !ok {

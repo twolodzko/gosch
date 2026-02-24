@@ -7,9 +7,9 @@ import (
 	"github.com/twolodzko/gosch/types"
 )
 
-var ArityError = errors.New("wrong number of arguments")
-var SyntaxError = errors.New("invalid syntax")
-var TypeError = errors.New("invalid type")
+var ErrArity = errors.New("wrong number of arguments")
+var ErrSyntax = errors.New("invalid syntax")
+var ErrType = errors.New("invalid type")
 
 type WrongArg struct {
 	Val any

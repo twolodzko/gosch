@@ -15,7 +15,7 @@ var _ eval.TailCallOpt = LetStar
 func Let(args any, env *envir.Env) (any, *envir.Env, error) {
 	p, ok := args.(types.Pair)
 	if !ok {
-		return nil, nil, eval.SyntaxError
+		return nil, nil, eval.ErrSyntax
 	}
 	switch name := p.This.(type) {
 	case types.Symbol:
@@ -23,7 +23,7 @@ func Let(args any, env *envir.Env) (any, *envir.Env, error) {
 	default:
 		body, ok := p.Next.(types.Pair)
 		if !ok {
-			return nil, nil, eval.SyntaxError
+			return nil, nil, eval.ErrSyntax
 		}
 		return regularLet(p.This, body, env)
 	}
@@ -46,16 +46,16 @@ func regularLet(bindings any, body types.Pair, env *envir.Env) (any, *envir.Env,
 func namedLet(name types.Symbol, rest any, env *envir.Env) (any, *envir.Env, error) {
 	this, tail, ok := unpack(rest)
 	if !ok {
-		return nil, nil, eval.SyntaxError
+		return nil, nil, eval.ErrSyntax
 	}
 
 	bindings, ok := this.(types.Pair)
 	if !ok {
-		return nil, nil, eval.SyntaxError
+		return nil, nil, eval.ErrSyntax
 	}
 	body, ok := tail.(types.Pair)
 	if !ok {
-		return nil, nil, eval.SyntaxError
+		return nil, nil, eval.ErrSyntax
 	}
 	var (
 		keys, vals []any
@@ -64,11 +64,11 @@ func namedLet(name types.Symbol, rest any, env *envir.Env) (any, *envir.Env, err
 	for head != nil {
 		p, ok := head.(types.Pair)
 		if !ok {
-			return nil, nil, eval.SyntaxError
+			return nil, nil, eval.ErrSyntax
 		}
 		b, ok := p.This.(types.Pair)
 		if !ok {
-			return nil, nil, eval.SyntaxError
+			return nil, nil, eval.ErrSyntax
 		}
 		name, arg, err := extractBinding(b)
 		if err != nil {
@@ -95,12 +95,12 @@ func namedLet(name types.Symbol, rest any, env *envir.Env) (any, *envir.Env, err
 func LetStar(args any, env *envir.Env) (any, *envir.Env, error) {
 	p, ok := args.(types.Pair)
 	if !ok {
-		return nil, nil, eval.SyntaxError
+		return nil, nil, eval.ErrSyntax
 	}
 	local := envir.NewEnvFrom(env)
 	b, ok := p.This.(types.Pair)
 	if !ok {
-		return nil, nil, eval.SyntaxError
+		return nil, nil, eval.ErrSyntax
 	}
 	if err := setBindings(b, local, local); err != nil {
 		return nil, nil, err
@@ -140,7 +140,7 @@ func extractBinding(arg types.Pair) (types.Symbol, any, error) {
 	case types.Symbol:
 		p, ok := arg.Next.(types.Pair)
 		if !ok {
-			return "", nil, eval.SyntaxError
+			return "", nil, eval.ErrSyntax
 		}
 		return name, p.This, nil
 	default:

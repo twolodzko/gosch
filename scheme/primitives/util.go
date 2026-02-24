@@ -19,7 +19,7 @@ func Display(args any, env *envir.Env) (any, error) {
 // `newline` procedure
 func Newline(args []any) (any, error) {
 	if len(args) != 0 {
-		return nil, eval.ArityError
+		return nil, eval.ErrArity
 	}
 	fmt.Println()
 	return nil, nil

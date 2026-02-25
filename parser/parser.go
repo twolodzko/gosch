@@ -135,22 +135,30 @@ func (p *Parser) readPair() (any, error) {
 		switch {
 		case unicode.IsSpace(p.Head()):
 			p.pos++
-		case isClosingBracket(p.Head()):
+		case p.Head() == ')':
 			p.pos++
 			return types.List(acc...), nil
 		case p.Head() == '.':
 			p.pos++
-			tail, err := p.Sexpr()
-			if err != nil {
-				return nil, err
+			if p.Head() == ' ' {
+				if len(acc) == 0 {
+					return nil, fmt.Errorf("missing first pair element")
+				}
+				tail, err := p.Sexpr()
+				if err != nil {
+					return nil, err
+				}
+				pair := types.Cons(append(acc, tail)...)
+				p.skipSpace()
+				if p.Head() != ')' {
+					return nil, fmt.Errorf("list was not closed with closing bracket")
+				}
+				p.pos++
+				return pair, nil
 			}
-			pair := types.Cons(append(acc, tail)...)
-			p.skipSpace()
-			if !isClosingBracket(p.Head()) {
-				return nil, fmt.Errorf("list was not closed with closing bracket")
-			}
-			p.pos++
-			return pair, nil
+			// dot is a part of atom name
+			p.pos--
+			fallthrough
 		default:
 			elem, err := p.Sexpr()
 			if err != nil {
@@ -213,13 +221,5 @@ func unquote(s any) any {
 }
 
 func isWordBoundary(r rune) bool {
-	return unicode.IsSpace(r) || isOpeningBracket(r) || isClosingBracket(r) || r == '\''
-}
-
-func isOpeningBracket(r rune) bool {
-	return r == '('
-}
-
-func isClosingBracket(r rune) bool {
-	return r == ')'
+	return unicode.IsSpace(r) || r == '(' || r == ')'
 }

@@ -24,6 +24,7 @@ func TestParse(t *testing.T) {
 		{"(a)", types.List(types.Symbol("a"))},
 		{"(())", types.List(nil)},
 		{"(1 2 3)", types.List(types.Integer(1), types.Integer(2), types.Integer(3))},
+		{"(.1 . .2)", types.Cons(types.Float(0.1), types.Float(0.2))},
 		{"((1 2) 3)", types.List(types.List(types.Integer(1), types.Integer(2)), types.Integer(3))},
 		{"(1 (2 3))", types.List(types.Integer(1), types.List(types.Integer(2), types.Integer(3)))},
 		{"'a", types.List(types.Symbol("quote"), types.Symbol("a"))},

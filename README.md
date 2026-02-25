@@ -56,7 +56,6 @@ condition always evaluating to `#t`, e.g. `(cond (else 'yay))`.
 
 Comments begin with `;` and everything that follows, from the semicolon until the end of the line, is ignored.
 
-
 ## Details of the Lisp design
 
 1. Everything is an *[S-expression]*.

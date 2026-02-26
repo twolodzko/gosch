@@ -13,19 +13,19 @@ var _ eval.TailCallOpt = LetStar
 //
 //	(let ((key1 value1) (key2 value2) ...) expr1 expr2 ...)
 func Let(args any, env *envir.Env) (any, *envir.Env, error) {
-	p, ok := args.(types.Pair)
+	this, tail, ok := unpack(args)
 	if !ok {
 		return nil, nil, eval.ErrSyntax
 	}
-	switch name := p.This.(type) {
+	switch name := this.(type) {
 	case types.Symbol:
-		return namedLet(name, p.Next, env)
+		return namedLet(name, tail, env)
 	default:
-		body, ok := p.Next.(types.Pair)
+		body, ok := tail.(types.Pair)
 		if !ok {
 			return nil, nil, eval.ErrSyntax
 		}
-		return regularLet(p.This, body, env)
+		return regularLet(this, body, env)
 	}
 }
 
@@ -93,19 +93,19 @@ func namedLet(name types.Symbol, rest any, env *envir.Env) (any, *envir.Env, err
 //
 //	(let* ((name1 value1) (name2 value2) ...) expr1 expr2 ...)
 func LetStar(args any, env *envir.Env) (any, *envir.Env, error) {
-	p, ok := args.(types.Pair)
+	this, body, ok := unpack(args)
 	if !ok {
 		return nil, nil, eval.ErrSyntax
 	}
 	local := envir.NewEnvFrom(env)
-	b, ok := p.This.(types.Pair)
+	b, ok := this.(types.Pair)
 	if !ok {
 		return nil, nil, eval.ErrSyntax
 	}
 	if err := setBindings(b, local, local); err != nil {
 		return nil, nil, err
 	}
-	return eval.PartialEval(p.Next, local)
+	return eval.PartialEval(body, local)
 }
 
 // Iterate through the bindings ((key1 value1) (key2 value2) ...) and set them to an environment
